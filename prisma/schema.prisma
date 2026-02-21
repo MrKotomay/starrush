@@ -1,0 +1,240 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  telegramId   BigInt   @unique
+  username     String?  @db.VarChar(64)
+  firstName    String?  @db.VarChar(128)
+  lastName     String?  @db.VarChar(128)
+  photoUrl     String?  @db.VarChar(512)
+  languageCode String?  @db.VarChar(16)
+  isBot        Boolean  @default(false)
+  referredById String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  sessions     Session[]
+  wallets      Wallet[]
+  ledger       LedgerEntry[]
+  roundPlayers RoundPlayer[]
+  queuedRoundBet RoundQueuedBet?
+  referredBy   User?    @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals    User[]   @relation("UserReferrals")
+
+  @@index([referredById])
+}
+
+enum Currency {
+  TON
+  STARS
+}
+
+enum LedgerType {
+  DEPOSIT
+  WITHDRAW
+  REWARD
+  PURCHASE
+  BET_LOCK
+  BET_LOSS_SETTLEMENT
+  BET_WIN
+  GAME_BET
+  GAME_WIN
+  ADJUSTMENT
+  TRANSFER
+}
+
+enum LedgerStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum HouseLedgerType {
+  INITIAL_BANKROLL
+  BET_LOSS_SETTLEMENT
+  BET_WIN
+  HOUSE_FUND
+  ADJUSTMENT
+}
+
+enum RoundStatus {
+  WAITING
+  RUNNING
+  CRASHED
+  FINISHED
+}
+
+enum FairnessVersion {
+  LEGACY_HASH_V0
+  HMAC_SHA256_V1
+  HMAC_SHA256_V2_BOUNDED_MAX
+}
+
+enum RoundPlayerStatus {
+  BET_PLACED
+  CASHED_OUT
+  LOST
+}
+
+enum RoundEventType {
+  ROUND_WAITING
+  ROUND_STARTED
+  MULTIPLIER_UPDATE
+  PLAYER_BET
+  PLAYER_CASHOUT
+  ROUND_CRASHED
+  ROUND_FINISHED
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  userId     String
+  tokenHash  String   @unique @db.VarChar(128)
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime?
+  expiresAt  DateTime
+  revokedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Wallet {
+  id        String   @id @default(cuid())
+  userId    String
+  currency  Currency
+  balance   Decimal  @default(0) @db.Decimal(20, 9)
+  lockedBalance Decimal @default(0) @db.Decimal(20, 9)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+  ledger LedgerEntry[]
+
+  @@unique([userId, currency])
+  @@index([currency])
+}
+
+model LedgerEntry {
+  id        String       @id @default(cuid())
+  userId    String
+  walletId  String
+  currency  Currency
+  amount    Decimal      @db.Decimal(20, 9)
+  type      LedgerType
+  status    LedgerStatus @default(PENDING)
+  referenceId String     @db.VarChar(128)
+  metadata  Json?
+  createdAt DateTime     @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  wallet Wallet @relation(fields: [walletId], references: [id])
+
+  @@index([userId, currency, createdAt])
+  @@index([walletId, createdAt])
+  @@unique([walletId, referenceId, type])
+}
+
+model HouseWallet {
+  id        String    @id @default(cuid())
+  currency  Currency  @unique
+  balance   Decimal   @default(0) @db.Decimal(20, 9)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  ledger    HouseLedgerEntry[]
+
+  @@index([currency])
+}
+
+model HouseLedgerEntry {
+  id            String          @id @default(cuid())
+  houseWalletId String
+  currency      Currency
+  amount        Decimal         @db.Decimal(20, 9)
+  type          HouseLedgerType
+  roundId       String?
+  userId        String?
+  metadata      Json?
+  createdAt     DateTime        @default(now())
+
+  houseWallet HouseWallet @relation(fields: [houseWalletId], references: [id])
+
+  @@index([currency, createdAt])
+  @@index([houseWalletId, createdAt])
+  @@index([roundId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model Round {
+  id              String       @id @default(cuid())
+  status          RoundStatus  @default(WAITING)
+  fairnessVersion FairnessVersion @default(HMAC_SHA256_V1)
+  fairnessNonce   Int          @default(0)
+  clientSeed      String?      @db.VarChar(128)
+  serverSeedHash  String       @db.VarChar(128)
+  serverSeed      String?      @db.VarChar(128)
+  houseEdge       Decimal      @default(0.01) @db.Decimal(10, 6)
+  maxCrash        Decimal      @default(1000) @db.Decimal(20, 6)
+  crashMultiplier Decimal?     @db.Decimal(20, 6)
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  createdAt       DateTime     @default(now())
+
+  players RoundPlayer[]
+  events  RoundEventLog[]
+
+  @@index([status, createdAt])
+}
+
+model RoundPlayer {
+  id                String            @id @default(cuid())
+  roundId           String
+  userId            String
+  currency          Currency
+  betAmount         Decimal           @db.Decimal(20, 9)
+  cashoutMultiplier Decimal?          @db.Decimal(20, 6)
+  profit            Decimal?          @db.Decimal(20, 9)
+  status            RoundPlayerStatus @default(BET_PLACED)
+  createdAt         DateTime          @default(now())
+
+  round Round @relation(fields: [roundId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([roundId, userId])
+  @@index([roundId, status])
+  @@index([userId])
+}
+
+model RoundQueuedBet {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  currency  Currency
+  betAmount Decimal   @db.Decimal(20, 9)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@index([currency, createdAt])
+}
+
+model RoundEventLog {
+  id        String         @id @default(cuid())
+  roundId   String
+  eventType RoundEventType
+  payload   Json
+  createdAt DateTime       @default(now())
+
+  round Round @relation(fields: [roundId], references: [id])
+
+  @@index([roundId, createdAt])
+}
