@@ -6,7 +6,7 @@
 - Event storage optimized: `MULTIPLIER_UPDATE` is no longer persisted in `RoundEventLog` (still published via Redis/WS).
 - Round loop ownership unified: service-level `updateMultiplierLoop` removed; round ticks are worker-authoritative.
 - Dependency explicitness improved: `react` added as a direct dependency aligned with `react-dom`.
-- Compose persistence path fixed: PostgreSQL volume uses `/var/lib/postgresql/data`.
+- Compose persistence path fixed for PostgreSQL 18: volume uses `/var/lib/postgresql`.
 - Dev auth hardened: `app/api/auth/dev` is now always disabled when `NODE_ENV=production`.
 - Docker stack simplified to production-only mode: root `docker-compose.yml` is the single source of truth.
 - Local-only compose/ngrok helpers were removed to reduce environment drift before VDS rollout.
