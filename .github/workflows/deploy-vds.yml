@@ -44,9 +44,21 @@ jobs:
           set -euo pipefail
           port="${VDS_PORT:-22}"
           install -m 700 -d ~/.ssh
-          printf "%s" "${VDS_SSH_KEY}" > ~/.ssh/id_ed25519
+          printf "%s" "${VDS_SSH_KEY}" | tr -d '\r' > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
+          ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null
           ssh-keyscan -p "${port}" "${VDS_HOST}" >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Verify SSH access to VDS
+        env:
+          VDS_HOST: ${{ secrets.VDS_HOST }}
+          VDS_PORT: ${{ secrets.VDS_PORT }}
+          VDS_USER: ${{ secrets.VDS_USER }}
+        run: |
+          set -euo pipefail
+          port="${VDS_PORT:-22}"
+          ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 -p "${port}" "${VDS_USER}@${VDS_HOST}" "echo SSH_OK"
 
       - name: Deploy on server
         env:
@@ -60,7 +72,7 @@ jobs:
           set -euo pipefail
           port="${VDS_PORT:-22}"
           branch="${VDS_BRANCH:-main}"
-          ssh -p "${port}" "${VDS_USER}@${VDS_HOST}" "APP_PATH='${VDS_APP_PATH}' REPO_URL='${VDS_REPO_URL}' BRANCH='${branch}' bash -s" <<'EOF'
+          ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 -p "${port}" "${VDS_USER}@${VDS_HOST}" "APP_PATH='${VDS_APP_PATH}' REPO_URL='${VDS_REPO_URL}' BRANCH='${branch}' bash -s" <<'EOF'
           set -euo pipefail
 
           if [ ! -d "${APP_PATH}/.git" ]; then
