@@ -1,5 +1,6 @@
-﻿"use client"
+"use client"
 
+import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import { motion, useReducedMotion } from "framer-motion"
 import { Trophy, Vault } from "lucide-react"
@@ -11,17 +12,39 @@ import { StatCard } from "@/components/ui/stat-card"
 
 import styles from "@/styles/staking-safe.module.css"
 
-const leaderboard = [
-  { rank: 1, username: "ldxbl", avatar: "/avatars/1.jpg", gifts: 1303, commission: "19.80%" },
-  { rank: 2, username: "sekret7483...", avatar: null, gifts: 620, commission: "9.42%" },
-  { rank: 3, username: "Mickey_0_N...", avatar: "/avatars/3.jpg", gifts: 333, commission: "5.06%" },
-  { rank: 4, username: "legality", avatar: "/avatars/4.jpg", gifts: 302, commission: "4.59%" },
-  { rank: 5, username: "ImPaulDuRo...", avatar: null, gifts: 260, commission: "3.95%" },
-  { rank: 6, username: "brocry", avatar: "/avatars/6.jpg", gifts: 234, commission: "3.55%" },
-  { rank: 7, username: "L_locket", avatar: "/avatars/7.jpg", gifts: 230, commission: "3.54%" },
-]
-
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
+const LEADERBOARD_LIMIT = 50
+
+type LeaderboardSort = "gifts" | "ton" | "stars"
+
+type LeaderboardEntry = {
+  rank: number
+  userId: string
+  username: string | null
+  displayName: string
+  avatarUrl: string | null
+  gifts: number
+  tonBalance: string
+  starsBalance: string
+}
+
+type LeaderboardApiResponse = {
+  ok?: boolean
+  error?: string
+  leaderboard?: {
+    sortBy: LeaderboardSort
+    totalPlayers: number
+    yourRank: number | null
+    yourEntry: LeaderboardEntry | null
+    items: LeaderboardEntry[]
+  }
+}
+
+const SORT_OPTIONS: Array<{ id: LeaderboardSort; label: string }> = [
+  { id: "gifts", label: "Подарки" },
+  { id: "ton", label: "TON" },
+  { id: "stars", label: "Stars" },
+]
 
 type StakingContentProps = {
   stakeAmountTon?: number
@@ -39,11 +62,115 @@ function rankColor(rank: number) {
   return "text-text-tertiary"
 }
 
+function metricHeader(sortBy: LeaderboardSort) {
+  if (sortBy === "ton") return "TON"
+  if (sortBy === "stars") return "Stars"
+  return "Подарки"
+}
+
+function metricValue(entry: LeaderboardEntry, sortBy: LeaderboardSort) {
+  if (sortBy === "gifts") {
+    return new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 }).format(entry.gifts)
+  }
+
+  const source = sortBy === "ton" ? entry.tonBalance : entry.starsBalance
+  const parsed = Number.parseFloat(source)
+  const safe = Number.isFinite(parsed) ? Math.max(0, parsed) : 0
+  return new Intl.NumberFormat("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(safe)
+}
+
+function AvatarCell({ entry, isTop }: { entry: LeaderboardEntry; isTop: boolean }) {
+  const [imageFailed, setImageFailed] = useState(false)
+  const firstLetter = (entry.displayName.charAt(0) || "U").toUpperCase()
+  const canRenderImage = Boolean(entry.avatarUrl) && !imageFailed
+
+  return (
+    <div
+      className={cn(
+        "flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border text-xs font-bold text-foreground",
+        isTop
+          ? "border-brand-soft/42 bg-gradient-to-br from-brand-1 to-brand-2"
+          : "border-border/80 bg-gradient-to-br from-brand-1/45 to-brand-2/28",
+      )}
+    >
+      {canRenderImage ? (
+        <img
+          src={entry.avatarUrl ?? ""}
+          alt={entry.displayName}
+          className="h-full w-full object-cover"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <span>{firstLetter}</span>
+      )}
+    </div>
+  )
+}
+
 export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
   const stakingAmountLabel = formatTonAmount(stakeAmountTon)
+  const [sortBy, setSortBy] = useState<LeaderboardSort>("gifts")
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
+  const [totalPlayers, setTotalPlayers] = useState(0)
+  const [yourRank, setYourRank] = useState<number | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [isLeaderboardLoading, setLeaderboardLoading] = useState(true)
+  const [leaderboardError, setLeaderboardError] = useState<string | null>(null)
   const shouldReduceMotion = useReducedMotion()
   const sectionInitial = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 12 }
   const sectionAnimate = { opacity: 1, y: 0 }
+
+  const activeSortLabel = useMemo(
+    () => SORT_OPTIONS.find((option) => option.id === sortBy)?.label ?? "Подарки",
+    [sortBy],
+  )
+
+  useEffect(() => {
+    let cancelled = false
+    const controller = new AbortController()
+
+    const fetchLeaderboard = async () => {
+      setLeaderboardLoading(true)
+      setLeaderboardError(null)
+
+      try {
+        const response = await fetch(`/api/staking/leaderboard?sortBy=${sortBy}&limit=${LEADERBOARD_LIMIT}`, {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+          signal: controller.signal,
+        })
+
+        const payload = (await response.json().catch(() => ({}))) as LeaderboardApiResponse
+        if (!response.ok || payload.ok !== true || !payload.leaderboard) {
+          throw new Error(payload.error || `HTTP_${response.status}`)
+        }
+
+        if (cancelled) return
+        setLeaderboard(payload.leaderboard.items)
+        setTotalPlayers(payload.leaderboard.totalPlayers)
+        setYourRank(payload.leaderboard.yourRank)
+        setCurrentUserId(payload.leaderboard.yourEntry?.userId ?? null)
+      } catch (error: unknown) {
+        if (cancelled || controller.signal.aborted) return
+        setLeaderboard([])
+        setTotalPlayers(0)
+        setYourRank(null)
+        setCurrentUserId(null)
+        setLeaderboardError(error instanceof Error ? error.message : "LEADERBOARD_UNAVAILABLE")
+      } finally {
+        if (!cancelled) setLeaderboardLoading(false)
+      }
+    }
+
+    void fetchLeaderboard()
+
+    return () => {
+      cancelled = true
+      controller.abort()
+    }
+  }, [sortBy])
 
   return (
     <div className="px-4 pb-2">
@@ -102,8 +229,8 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
         <StatCard
           icon={<Trophy className="h-5 w-5 text-foreground" />}
           iconClassName="bg-gradient-to-br from-brand-2 to-brand-1"
-          label="Твое место"
-          value="3034 место"
+          label={`Твое место (${activeSortLabel})`}
+          value={yourRank ? `${yourRank} место` : "—"}
         />
       </motion.div>
 
@@ -113,85 +240,90 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
         animate={sectionAnimate}
         transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE, delay: shouldReduceMotion ? 0 : 0.06 }}
       >
-        <div className="mb-4 text-center">
-          <h2 className="mb-2 text-2xl font-bold text-foreground">Лидерборд</h2>
-          <p className="mb-1 text-sm text-muted-foreground">
-            Список игроков с самым большим
-            <br />
-            игровым инвентарем
-          </p>
-          <p className="text-xs text-text-tertiary">
-            50% прибыли распределяется среди топ 50 человек
-            <br />
-            Чем больше подарков, тем больше % прибыли
-          </p>
+        <div className={styles.leaderboardHeader}>
+          <h2 className={styles.leaderboardTitle}>Лидерборд</h2>
+          <div className={styles.sortSwitch} role="tablist" aria-label="Сортировка лидерборда">
+            {SORT_OPTIONS.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                role="tab"
+                aria-selected={sortBy === option.id}
+                className={cn(styles.sortButton, sortBy === option.id && styles.sortButtonActive)}
+                onClick={() => setSortBy(option.id)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <GlassCard variant="elevated" className="rounded-[20px] p-2.5">
-          <div className="mb-2 grid grid-cols-[48px_1fr_74px_72px] items-center px-2.5 text-[11px] font-semibold uppercase tracking-wide text-text-tertiary">
+        <GlassCard variant="elevated" className={cn("rounded-[20px] p-2.5", styles.leaderboardCard)}>
+          <div className={styles.leaderboardHeadRow}>
             <span>Место</span>
             <span>Игрок</span>
-            <span className="text-right">Подарки</span>
-            <span className="text-right">Комиссия</span>
+            <span className="text-right">{metricHeader(sortBy)}</span>
           </div>
 
-          <div className="space-y-1.5">
-            {leaderboard.map((item, index) => {
-              const isTop1 = item.rank === 1
-              const isTop3 = item.rank <= 3
+          {isLeaderboardLoading ? (
+            <div className={styles.leaderboardState}>Загрузка...</div>
+          ) : null}
 
-              return (
-                <motion.div
-                  key={item.rank}
-                  initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    duration: shouldReduceMotion ? 0.1 : 0.2,
-                    delay: shouldReduceMotion ? 0 : 0.09 + index * 0.03,
-                    ease: EASE,
-                  }}
-                  className={cn(
-                    "grid grid-cols-[48px_1fr_74px_72px] items-center gap-2 rounded-2xl border px-2.5 py-2.5 transition-colors duration-200",
-                    isTop1
-                      ? "border-brand-soft/38 bg-gradient-to-r from-brand-1/30 to-brand-2/16 shadow-[var(--shadow-sm)]"
-                      : isTop3
-                        ? "border-brand-soft/20 bg-gradient-to-r from-brand-1/20 to-surface-2/80"
-                        : "border-transparent bg-surface-2/58",
-                  )}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <span className={cn("text-lg font-extrabold tabular-nums", rankColor(item.rank))}>
-                      {item.rank}
-                    </span>
-                  </div>
+          {!isLeaderboardLoading && leaderboardError ? (
+            <div className={styles.leaderboardState}>Лидерборд временно недоступен</div>
+          ) : null}
 
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    <div
-                      className={cn(
-                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-xs font-bold text-foreground",
-                        isTop3
-                          ? "border-brand-soft/42 bg-gradient-to-br from-brand-1 to-brand-2"
-                          : "border-border/80 bg-gradient-to-br from-brand-1/45 to-brand-2/28",
-                      )}
-                    >
-                      {item.username.charAt(0).toUpperCase()}
+          {!isLeaderboardLoading && !leaderboardError && leaderboard.length === 0 ? (
+            <div className={styles.leaderboardState}>Пока нет игроков с балансом</div>
+          ) : null}
+
+          {!isLeaderboardLoading && !leaderboardError && leaderboard.length > 0 ? (
+            <div className={styles.leaderboardList}>
+              {leaderboard.map((entry, index) => {
+                const isTop1 = entry.rank === 1
+                const isTop3 = entry.rank <= 3
+                const isCurrentUser = currentUserId !== null && currentUserId === entry.userId
+
+                return (
+                  <motion.div
+                    key={`${entry.userId}-${entry.rank}-${sortBy}`}
+                    initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: shouldReduceMotion ? 0.1 : 0.2,
+                      delay: shouldReduceMotion ? 0 : 0.07 + index * 0.025,
+                      ease: EASE,
+                    }}
+                    className={cn(
+                      styles.leaderboardRow,
+                      isTop1 && styles.leaderboardRowTop,
+                      isTop3 && styles.leaderboardRowTop3,
+                      isCurrentUser && styles.leaderboardRowCurrent,
+                    )}
+                  >
+                    <div className={styles.rankCell}>
+                      <span className={cn("text-lg font-extrabold tabular-nums", rankColor(entry.rank))}>
+                        {entry.rank}
+                      </span>
                     </div>
-                    <span className="truncate text-sm font-medium text-foreground">{item.username}</span>
-                  </div>
 
-                  <div className="text-right text-sm font-semibold tabular-nums text-foreground">
-                    {item.gifts}
-                  </div>
-                  <div className="text-right text-sm font-semibold tabular-nums text-brand-soft">
-                    {item.commission}
-                  </div>
-                </motion.div>
-              )
-            })}
-          </div>
+                    <div className={styles.playerCell}>
+                      <AvatarCell entry={entry} isTop={isTop3} />
+                      <span className={styles.playerName}>{entry.displayName}</span>
+                    </div>
+
+                    <div className={styles.metricCell}>{metricValue(entry, sortBy)}</div>
+                  </motion.div>
+                )
+              })}
+            </div>
+          ) : null}
         </GlassCard>
+
+        {!isLeaderboardLoading && !leaderboardError && totalPlayers > 0 ? (
+          <p className={styles.leaderboardMeta}>Игроков в рейтинге: {totalPlayers}</p>
+        ) : null}
       </motion.div>
     </div>
   )
 }
-
