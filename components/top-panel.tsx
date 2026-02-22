@@ -1,9 +1,11 @@
 ﻿"use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { ChevronUp, Wallet } from "lucide-react"
 import rushStyles from "@/styles/starrush.module.css"
+
+const BALANCE_SWITCH_DELAY_MS = 140
 
 type TopPanelProps = {
   tonBalance: number
@@ -38,11 +40,32 @@ export function TopPanel({
 }: TopPanelProps) {
   const [activeBalanceCurrency, setActiveBalanceCurrency] = useState<"TON" | "STARS">("TON")
   const [isBalanceSelectorOpen, setBalanceSelectorOpen] = useState(false)
+  const balanceSwitchTimeoutRef = useRef<number | null>(null)
   const tonBalanceLabel = useMemo(() => tonBalance.toFixed(2), [tonBalance])
   const starsBalanceLabel = useMemo(() => formatStarsBalance(starsBalance), [starsBalance])
   const inactiveBalanceCurrency = activeBalanceCurrency === "TON" ? "STARS" : "TON"
   const activeBalanceLabel = activeBalanceCurrency === "TON" ? tonBalanceLabel : starsBalanceLabel
   const inactiveBalanceLabel = inactiveBalanceCurrency === "TON" ? tonBalanceLabel : starsBalanceLabel
+
+  useEffect(() => {
+    return () => {
+      if (balanceSwitchTimeoutRef.current !== null) {
+        window.clearTimeout(balanceSwitchTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  const switchBalanceCurrency = (nextCurrency: "TON" | "STARS") => {
+    if (balanceSwitchTimeoutRef.current !== null) {
+      window.clearTimeout(balanceSwitchTimeoutRef.current)
+      balanceSwitchTimeoutRef.current = null
+    }
+    setBalanceSelectorOpen(false)
+    balanceSwitchTimeoutRef.current = window.setTimeout(() => {
+      setActiveBalanceCurrency(nextCurrency)
+      balanceSwitchTimeoutRef.current = null
+    }, BALANCE_SWITCH_DELAY_MS)
+  }
 
   return (
     <div className="flex items-center justify-between mb-6">
@@ -91,11 +114,15 @@ export function TopPanel({
         <div className={rushStyles.balanceChip}>
           <button
             type="button"
-            className={rushStyles.balanceMainBtn}
+            className={`${rushStyles.balanceChevronBtn} ${isBalanceSelectorOpen ? rushStyles.balanceChevronBtnOpen : ""}`}
             onClick={() => setBalanceSelectorOpen((prev) => !prev)}
-            aria-label={`${activeBalanceCurrency} balance`}
+            aria-label="Toggle balance selector"
             aria-expanded={isBalanceSelectorOpen}
           >
+            <ChevronUp size={14} strokeWidth={2.4} />
+          </button>
+
+          <div className={rushStyles.balanceMain} aria-label={`${activeBalanceCurrency} balance`}>
             <AnimatePresence mode="wait" initial={false}>
               {activeBalanceCurrency === "TON" ? (
                 <motion.img
@@ -134,29 +161,17 @@ export function TopPanel({
                 {activeBalanceLabel}
               </motion.span>
             </AnimatePresence>
-          </button>
-
-          <div className={rushStyles.balanceControls}>
-            <button
-              type="button"
-              className={rushStyles.plusBtn}
-              disabled={isRefreshingBalances}
-              onClick={() => onRefreshBalances?.()}
-              title={isRefreshingBalances ? "Обновление..." : "Обновить баланс"}
-            >
-              +
-            </button>
-
-            <button
-              type="button"
-              className={`${rushStyles.balanceChevronBtn} ${isBalanceSelectorOpen ? rushStyles.balanceChevronBtnOpen : ""}`}
-              onClick={() => setBalanceSelectorOpen((prev) => !prev)}
-              aria-label="Toggle balance selector"
-              aria-expanded={isBalanceSelectorOpen}
-            >
-              <ChevronUp size={14} strokeWidth={2.4} />
-            </button>
           </div>
+
+          <button
+            type="button"
+            className={rushStyles.plusBtn}
+            disabled={isRefreshingBalances}
+            onClick={() => onRefreshBalances?.()}
+            title={isRefreshingBalances ? "Обновление..." : "Обновить баланс"}
+          >
+            +
+          </button>
         </div>
 
         <div
@@ -167,8 +182,7 @@ export function TopPanel({
             type="button"
             className={rushStyles.balanceOption}
             onClick={() => {
-              setActiveBalanceCurrency(inactiveBalanceCurrency)
-              setBalanceSelectorOpen(false)
+              switchBalanceCurrency(inactiveBalanceCurrency)
             }}
           >
             {inactiveBalanceCurrency === "TON" ? (

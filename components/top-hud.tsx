@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { ChevronUp, Wallet } from "lucide-react"
 
@@ -24,6 +24,7 @@ type TopHudProps = {
 }
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
+const BALANCE_SWITCH_DELAY_MS = 140
 
 function formatStarsBalance(value: number): string {
   if (!Number.isFinite(value)) return "0"
@@ -48,6 +49,7 @@ export function TopHud({
   avatarLayoutId = "shared-profile-avatar",
 }: TopHudProps) {
   const [isBalanceSelectorOpen, setBalanceSelectorOpen] = useState(false)
+  const balanceSwitchTimeoutRef = useRef<number | null>(null)
   const shouldReduceMotion = useReducedMotion()
   const tonBalanceLabel = useMemo(() => tonBalance.toFixed(2), [tonBalance])
   const starsBalanceLabel = useMemo(() => formatStarsBalance(starsBalance), [starsBalance])
@@ -59,7 +61,31 @@ export function TopHud({
 
   useEffect(() => {
     setBalanceSelectorOpen(false)
+    if (balanceSwitchTimeoutRef.current !== null) {
+      window.clearTimeout(balanceSwitchTimeoutRef.current)
+      balanceSwitchTimeoutRef.current = null
+    }
   }, [activeTab])
+
+  useEffect(() => {
+    return () => {
+      if (balanceSwitchTimeoutRef.current !== null) {
+        window.clearTimeout(balanceSwitchTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  const switchBalanceCurrency = (nextCurrency: "TON" | "STARS") => {
+    if (balanceSwitchTimeoutRef.current !== null) {
+      window.clearTimeout(balanceSwitchTimeoutRef.current)
+      balanceSwitchTimeoutRef.current = null
+    }
+    setBalanceSelectorOpen(false)
+    balanceSwitchTimeoutRef.current = window.setTimeout(() => {
+      onActiveBalanceCurrencyChange?.(nextCurrency)
+      balanceSwitchTimeoutRef.current = null
+    }, BALANCE_SWITCH_DELAY_MS)
+  }
 
   const hudTransition = shouldReduceMotion
     ? { duration: 0.1 }
@@ -139,11 +165,16 @@ export function TopHud({
             <div className={rushStyles.balanceChip} data-ui="shared-balance-chip">
               <button
                 type="button"
-                className={rushStyles.balanceMainBtn}
+                data-ui="shared-balance-chevron"
+                className={`${rushStyles.balanceChevronBtn} ${isBalanceSelectorOpen ? rushStyles.balanceChevronBtnOpen : ""}`}
                 onClick={() => setBalanceSelectorOpen((prev) => !prev)}
-                aria-label={`${activeBalanceCurrency} баланс`}
+                aria-label="Переключить селектор баланса"
                 aria-expanded={isBalanceSelectorOpen}
               >
+                <ChevronUp size={14} strokeWidth={2.4} />
+              </button>
+
+              <div className={rushStyles.balanceMain} aria-label={`${activeBalanceCurrency} баланс`}>
                 <AnimatePresence mode="wait" initial={false}>
                   {activeBalanceCurrency === "TON" ? (
                     <motion.img
@@ -182,30 +213,17 @@ export function TopHud({
                     {activeBalanceLabel}
                   </motion.span>
                 </AnimatePresence>
-              </button>
-
-              <div className={rushStyles.balanceControls}>
-                <button
-                  type="button"
-                  className={rushStyles.plusBtn}
-                  disabled={isRefreshingBalances}
-                  onClick={() => onRefreshBalances?.()}
-                  title={isRefreshingBalances ? "Обновление..." : "Обновить баланс"}
-                >
-                  +
-                </button>
-
-                <button
-                  type="button"
-                  data-ui="shared-balance-chevron"
-                  className={`${rushStyles.balanceChevronBtn} ${isBalanceSelectorOpen ? rushStyles.balanceChevronBtnOpen : ""}`}
-                  onClick={() => setBalanceSelectorOpen((prev) => !prev)}
-                  aria-label="Переключить селектор баланса"
-                  aria-expanded={isBalanceSelectorOpen}
-                >
-                  <ChevronUp size={14} strokeWidth={2.4} />
-                </button>
               </div>
+
+              <button
+                type="button"
+                className={rushStyles.plusBtn}
+                disabled={isRefreshingBalances}
+                onClick={() => onRefreshBalances?.()}
+                title={isRefreshingBalances ? "Обновление..." : "Обновить баланс"}
+              >
+                +
+              </button>
             </div>
 
             <div
@@ -216,8 +234,7 @@ export function TopHud({
                 type="button"
                 className={rushStyles.balanceOption}
                 onClick={() => {
-                  onActiveBalanceCurrencyChange?.(inactiveBalanceCurrency)
-                  setBalanceSelectorOpen(false)
+                  switchBalanceCurrency(inactiveBalanceCurrency)
                 }}
               >
                 {inactiveBalanceCurrency === "TON" ? (
