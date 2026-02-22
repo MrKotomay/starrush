@@ -88,29 +88,13 @@ export function TopPanel({
       )}
 
       <div className={rushStyles.balanceSelector}>
-        <div className={rushStyles.balanceSelectorRow}>
+        <div className={rushStyles.balanceChip}>
           <button
             type="button"
-            className={`${rushStyles.balanceChevronBtn} ${isBalanceSelectorOpen ? rushStyles.balanceChevronBtnOpen : ""}`}
+            className={rushStyles.balanceMainBtn}
             onClick={() => setBalanceSelectorOpen((prev) => !prev)}
-            aria-label="Toggle balance selector"
-            aria-expanded={isBalanceSelectorOpen}
-          >
-            <ChevronUp size={14} strokeWidth={2.4} />
-          </button>
-
-          <div
-            className={rushStyles.balanceChip}
-            role="button"
-            tabIndex={0}
-            onClick={() => setBalanceSelectorOpen(false)}
-            onKeyDown={(event) => {
-              if ((event.key === "Enter" || event.key === " ") && isBalanceSelectorOpen) {
-                event.preventDefault()
-                setBalanceSelectorOpen(false)
-              }
-            }}
             aria-label={`${activeBalanceCurrency} balance`}
+            aria-expanded={isBalanceSelectorOpen}
           >
             <AnimatePresence mode="wait" initial={false}>
               {activeBalanceCurrency === "TON" ? (
@@ -150,18 +134,27 @@ export function TopPanel({
                 {activeBalanceLabel}
               </motion.span>
             </AnimatePresence>
+          </button>
 
+          <div className={rushStyles.balanceControls}>
             <button
               type="button"
               className={rushStyles.plusBtn}
               disabled={isRefreshingBalances}
-              onClick={(event) => {
-                event.stopPropagation()
-                onRefreshBalances?.()
-              }}
+              onClick={() => onRefreshBalances?.()}
               title={isRefreshingBalances ? "Обновление..." : "Обновить баланс"}
             >
               +
+            </button>
+
+            <button
+              type="button"
+              className={`${rushStyles.balanceChevronBtn} ${isBalanceSelectorOpen ? rushStyles.balanceChevronBtnOpen : ""}`}
+              onClick={() => setBalanceSelectorOpen((prev) => !prev)}
+              aria-label="Toggle balance selector"
+              aria-expanded={isBalanceSelectorOpen}
+            >
+              <ChevronUp size={14} strokeWidth={2.4} />
             </button>
           </div>
         </div>

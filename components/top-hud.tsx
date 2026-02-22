@@ -136,31 +136,13 @@ export function TopHud({
 
         <div className="flex w-[132px] justify-end">
           <div className={rushStyles.balanceSelector}>
-            <div className={rushStyles.balanceSelectorRow}>
+            <div className={rushStyles.balanceChip} data-ui="shared-balance-chip">
               <button
                 type="button"
-                data-ui="shared-balance-chevron"
-                className={`${rushStyles.balanceChevronBtn} ${isBalanceSelectorOpen ? rushStyles.balanceChevronBtnOpen : ""}`}
+                className={rushStyles.balanceMainBtn}
                 onClick={() => setBalanceSelectorOpen((prev) => !prev)}
-                aria-label="Переключить селектор баланса"
-                aria-expanded={isBalanceSelectorOpen}
-              >
-                <ChevronUp size={14} strokeWidth={2.4} />
-              </button>
-
-              <div
-                className={rushStyles.balanceChip}
-                data-ui="shared-balance-chip"
-                role="button"
-                tabIndex={0}
-                onClick={() => setBalanceSelectorOpen(false)}
-                onKeyDown={(event) => {
-                  if ((event.key === "Enter" || event.key === " ") && isBalanceSelectorOpen) {
-                    event.preventDefault()
-                    setBalanceSelectorOpen(false)
-                  }
-                }}
                 aria-label={`${activeBalanceCurrency} баланс`}
+                aria-expanded={isBalanceSelectorOpen}
               >
                 <AnimatePresence mode="wait" initial={false}>
                   {activeBalanceCurrency === "TON" ? (
@@ -200,18 +182,28 @@ export function TopHud({
                     {activeBalanceLabel}
                   </motion.span>
                 </AnimatePresence>
+              </button>
 
+              <div className={rushStyles.balanceControls}>
                 <button
                   type="button"
                   className={rushStyles.plusBtn}
                   disabled={isRefreshingBalances}
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    onRefreshBalances?.()
-                  }}
+                  onClick={() => onRefreshBalances?.()}
                   title={isRefreshingBalances ? "Обновление..." : "Обновить баланс"}
                 >
                   +
+                </button>
+
+                <button
+                  type="button"
+                  data-ui="shared-balance-chevron"
+                  className={`${rushStyles.balanceChevronBtn} ${isBalanceSelectorOpen ? rushStyles.balanceChevronBtnOpen : ""}`}
+                  onClick={() => setBalanceSelectorOpen((prev) => !prev)}
+                  aria-label="Переключить селектор баланса"
+                  aria-expanded={isBalanceSelectorOpen}
+                >
+                  <ChevronUp size={14} strokeWidth={2.4} />
                 </button>
               </div>
             </div>
