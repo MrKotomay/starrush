@@ -70,7 +70,7 @@ async function testRoundCommitRevealFlow() {
   expect(typeof waitingPayload.houseEdge === "number", "ROUND_WAITING must include houseEdge")
   expect(typeof waitingPayload.maxCrash === "number", "ROUND_WAITING must include maxCrash")
 
-  await startRound(round.id, { startLoop: false })
+  await startRound(round.id)
 
   const startedEvent = await db.roundEventLog.findFirst({
     where: { roundId: round.id, eventType: RoundEventType.ROUND_STARTED },

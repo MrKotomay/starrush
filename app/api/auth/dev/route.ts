@@ -14,6 +14,9 @@ function parseBooleanEnv(value: string | undefined): boolean | null {
 }
 
 function isDevAuthEnabled(): boolean {
+  if (process.env.NODE_ENV === "production") {
+    return false
+  }
   const explicitToggle = parseBooleanEnv(process.env.DEV_AUTH_ENABLED)
   if (explicitToggle !== null) {
     return explicitToggle

@@ -1,30 +1,108 @@
+name: starrush-vds
+
+x-app-common: &app-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+    args:
+      NEXT_PUBLIC_WS_URL: ${DOCKER_NEXT_PUBLIC_WS_URL:-}
+      NEXT_PUBLIC_GATEWAY_PORT: ${DOCKER_NEXT_PUBLIC_GATEWAY_PORT:-8081}
+  env_file:
+    - .env
+  environment:
+    NODE_ENV: production
+    DATABASE_URL: ${DOCKER_DATABASE_URL:-postgresql://starrush:${POSTGRES_PASSWORD:-starrush}@postgres:5432/${POSTGRES_DB:-starrush}}
+    REDIS_URL: ${DOCKER_REDIS_URL:-redis://redis:6379}
+  restart: unless-stopped
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
 services:
   postgres:
     image: postgres:18
-    container_name: starrush-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: starrush
-      POSTGRES_PASSWORD: starrush
-      POSTGRES_DB: starrush
+      POSTGRES_USER: ${POSTGRES_USER:-starrush}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-starrush}
+      POSTGRES_DB: ${POSTGRES_DB:-starrush}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
-      - starrush_pgdata:/var/lib/postgresql
+      - starrush_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U starrush -d starrush"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-starrush} -d ${POSTGRES_DB:-starrush}"]
       interval: 5s
       timeout: 3s
-      retries: 10
+      retries: 20
 
   redis:
-    image: redis:7.4-alpine
-    container_name: starrush-redis
+    image: redis:8
     restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--save", "60", "1000"]
     ports:
-      - "6379:6379"
-    command: ["redis-server", "--appendonly", "yes"]
+      - "127.0.0.1:${REDIS_HOST_PORT:-6379}:6379"
+    volumes:
+      - starrush_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    <<: *app-common
+    command: ["npx", "prisma", "migrate", "deploy"]
+    restart: "no"
+
+  app:
+    <<: *app-common
+    command: ["npm", "run", "start"]
+    expose:
+      - "3000"
+
+  gateway:
+    <<: *app-common
+    command: ["npm", "run", "gateway"]
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DOCKER_DATABASE_URL:-postgresql://starrush:${POSTGRES_PASSWORD:-starrush}@postgres:5432/${POSTGRES_DB:-starrush}}
+      REDIS_URL: ${DOCKER_REDIS_URL:-redis://redis:6379}
+      GATEWAY_PORT: 8081
+    expose:
+      - "8081"
+
+  worker:
+    <<: *app-common
+    command: ["npm", "run", "worker:round"]
+
+  edge:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:-localhost}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:-admin@example.com}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      app:
+        condition: service_started
+      gateway:
+        condition: service_started
 
 volumes:
   starrush_pgdata:
+    driver: local
+  starrush_redisdata:
+    driver: local
+  caddy_data:
+    driver: local
+  caddy_config:
     driver: local

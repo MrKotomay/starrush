@@ -6,8 +6,6 @@
     "dev": "node scripts/clean-start.js && next dev",
     "dev:all": "node scripts/dev-all.js",
     "dev:force": "taskkill /F /IM node.exe 2>nul & rmdir /s /q .next 2>nul & next dev",
-    "telegram:start": "powershell -ExecutionPolicy Bypass -File scripts/start-telegram-prod.ps1",
-    "telegram:stop": "powershell -ExecutionPolicy Bypass -File scripts/stop-telegram.ps1",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
@@ -24,7 +22,12 @@
     "verify:fairness": "tsx scripts/verify_round_fairness.ts",
     "house:fund": "tsx scripts/dev_house_fund.ts",
     "worker:round": "tsx workers/round-worker.ts",
-    "gateway": "tsx gateway/server.ts"
+    "gateway": "tsx gateway/server.ts",
+    "docker:vds:up": "docker compose up -d --build",
+    "docker:vds:down": "docker compose down",
+    "docker:vds:logs": "docker compose logs -f edge app gateway worker postgres redis",
+    "deploy:vds": "bash infra/deploy/deploy-vds.sh",
+    "deploy:vds:update": "bash infra/deploy/update-from-git.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -71,6 +74,7 @@
     "next": "^16.1.6",
     "next-themes": "^0.4.6",
     "phaser": "^3.90.0",
+    "react": "19.2.0",
     "react-day-picker": "9.8.0",
     "react-dom": "19.2.0",
     "react-hook-form": "^7.60.0",

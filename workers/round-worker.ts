@@ -114,7 +114,7 @@ async function tickRound() {
       threshold: WAITING_PHASE_MS,
     })
     if (elapsed >= WAITING_PHASE_MS) {
-      const started = await startRound(round.id, { startLoop: false })
+      const started = await startRound(round.id)
       await redis.set(REDIS_KEYS.roundState(round.id), RoundStatus.RUNNING)
       await redis.set(REDIS_KEYS.crashPoint(round.id), started.crashMultiplier?.toString() ?? "0")
       console.log("[RoundWorker] Round started", round.id)

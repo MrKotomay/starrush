@@ -52,6 +52,11 @@ const PLANET_ASSETS = [
   "/planets/noatmosphere.png",
 ] as const
 
+const IMAGE_ASSETS = [
+  ...PLANET_ASSETS,
+  "/safe.png",
+] as const
+
 const UI_ASSETS = [
   "/rocket/rocket.json",
   "/ton.svg",
@@ -150,7 +155,7 @@ async function preloadStaticAssets(): Promise<void> {
   )
 
   await Promise.all(
-    PLANET_ASSETS.map(async (url) => {
+    IMAGE_ASSETS.map(async (url) => {
       try {
         await preloadImage(url)
       } catch {

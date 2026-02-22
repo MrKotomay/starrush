@@ -6,13 +6,16 @@ const EVENTS_CHANNEL = "game:events"
 const ROUND_EVENTS_CHANNEL = "game:round:events"
 
 export async function emitGameEvent(roundId: string, eventType: RoundEventType, payload: Record<string, unknown>) {
-  await db.roundEventLog.create({
-    data: {
-      roundId,
-      eventType,
-      payload: payload as Prisma.InputJsonValue,
-    },
-  })
+  const shouldPersistInDb = eventType !== RoundEventType.MULTIPLIER_UPDATE
+  if (shouldPersistInDb) {
+    await db.roundEventLog.create({
+      data: {
+        roundId,
+        eventType,
+        payload: payload as Prisma.InputJsonValue,
+      },
+    })
+  }
 
   if (redis) {
     const message = JSON.stringify({ roundId, eventType, payload })

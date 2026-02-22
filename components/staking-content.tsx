@@ -64,7 +64,8 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
                 fill
                 className={styles.safeImage}
                 sizes="(max-width: 640px) 80vw, 360px"
-                priority={false}
+                priority
+                loading="eager"
               />
             </div>
           </div>

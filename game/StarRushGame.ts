@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import * as Phaser from "phaser";
 
 import { RoundPhase, RoundSnapshot } from "@/game/types";
 import { colors } from "@/theme/colors";

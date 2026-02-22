@@ -22,8 +22,6 @@ const REDIS_KEYS = {
   crashPoint: (roundId: string) => `game:round:${roundId}:crash_point`,
 }
 
-const DEFAULT_GROWTH_RATE = 0.15
-const MULTIPLIER_TICK_MS = 200
 const WAITING_PHASE_MS = Number(process.env.ROUND_WAITING_MS ?? 5000)
 const COOLDOWN_PHASE_MS = Number(process.env.ROUND_COOLDOWN_MS ?? 3000)
 const DEBUG_ROUND_LOOP = process.env.DEBUG_ROUND_LOOP === "1"
@@ -131,7 +129,7 @@ export async function createRound() {
   return round
 }
 
-export async function startRound(roundId: string, options?: { startLoop?: boolean }) {
+export async function startRound(roundId: string) {
   if (!redis) throw new Error("REDIS_NOT_CONFIGURED")
   const redisClient = redis
 
@@ -195,10 +193,6 @@ export async function startRound(roundId: string, options?: { startLoop?: boolea
       crashPoint: crashMultiplier,
     })
 
-    if (options?.startLoop !== false) {
-      updateMultiplierLoop(round.id)
-    }
-
     return updated
   } finally {
     await releaseLock(`round:start:${roundId}`, lock.token)
@@ -234,56 +228,6 @@ export function calculateCrashPoint(input: {
     houseEdge,
     maxCrash,
   })
-}
-
-export async function updateMultiplierLoop(roundId: string, growthRate = DEFAULT_GROWTH_RATE) {
-  if (!redis) throw new Error("REDIS_NOT_CONFIGURED")
-  const redisClient = redis
-
-  const lock = await acquireLock(`round:loop:${roundId}`, 2000)
-  if (!lock.acquired) return
-
-  const round = await prisma.round.findUnique({ where: { id: roundId } })
-  if (!round?.startedAt) {
-    await releaseLock(`round:loop:${roundId}`, lock.token)
-    return
-  }
-
-  const startedAtMs = round.startedAt.getTime()
-
-  const timer = setInterval(async () => {
-    const state = await redisClient.get(REDIS_KEYS.roundState(roundId))
-    if (state !== RoundStatus.RUNNING) {
-      clearInterval(timer)
-      await releaseLock(`round:loop:${roundId}`, lock.token)
-      return
-    }
-
-    const elapsedSeconds = (Date.now() - startedAtMs) / 1000
-    const multiplier = Math.exp(growthRate * elapsedSeconds)
-    const crashPoint = Number.parseFloat((await redisClient.get(REDIS_KEYS.crashPoint(roundId))) || "0")
-
-    await redisClient.set(REDIS_KEYS.multiplier(roundId), multiplier.toFixed(4))
-
-    await emitGameEvent(roundId, RoundEventType.MULTIPLIER_UPDATE, {
-      roundId,
-      multiplier: Number(multiplier.toFixed(4)),
-      serverTs: Date.now(),
-    })
-
-    debugRoundServiceLog("emit MULTIPLIER_UPDATE (service loop)", {
-      roundId,
-      multiplier: Number(multiplier.toFixed(4)),
-      crashPoint,
-    })
-
-    if (crashPoint && multiplier >= crashPoint) {
-      clearInterval(timer)
-      await crashRound(roundId)
-      await finishRound(roundId)
-      await releaseLock(`round:loop:${roundId}`, lock.token)
-    }
-  }, MULTIPLIER_TICK_MS)
 }
 
 export async function cashoutPlayer(roundId: string, userId: string) {

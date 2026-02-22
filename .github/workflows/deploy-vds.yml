@@ -1,0 +1,77 @@
+name: Deploy VDS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-vds
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Validate required secrets
+        env:
+          VDS_HOST: ${{ secrets.VDS_HOST }}
+          VDS_USER: ${{ secrets.VDS_USER }}
+          VDS_SSH_KEY: ${{ secrets.VDS_SSH_KEY }}
+          VDS_APP_PATH: ${{ secrets.VDS_APP_PATH }}
+          VDS_REPO_URL: ${{ secrets.VDS_REPO_URL }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in VDS_HOST VDS_USER VDS_SSH_KEY VDS_APP_PATH VDS_REPO_URL; do
+            if [ -z "${!name}" ]; then
+              echo "::error::${name} is not set"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+
+      - name: Configure SSH
+        env:
+          VDS_HOST: ${{ secrets.VDS_HOST }}
+          VDS_PORT: ${{ secrets.VDS_PORT }}
+          VDS_SSH_KEY: ${{ secrets.VDS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          port="${VDS_PORT:-22}"
+          install -m 700 -d ~/.ssh
+          printf "%s" "${VDS_SSH_KEY}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "${port}" "${VDS_HOST}" >> ~/.ssh/known_hosts
+
+      - name: Deploy on server
+        env:
+          VDS_HOST: ${{ secrets.VDS_HOST }}
+          VDS_PORT: ${{ secrets.VDS_PORT }}
+          VDS_USER: ${{ secrets.VDS_USER }}
+          VDS_APP_PATH: ${{ secrets.VDS_APP_PATH }}
+          VDS_REPO_URL: ${{ secrets.VDS_REPO_URL }}
+          VDS_BRANCH: ${{ secrets.VDS_BRANCH }}
+        run: |
+          set -euo pipefail
+          port="${VDS_PORT:-22}"
+          branch="${VDS_BRANCH:-main}"
+          ssh -p "${port}" "${VDS_USER}@${VDS_HOST}" "APP_PATH='${VDS_APP_PATH}' REPO_URL='${VDS_REPO_URL}' BRANCH='${branch}' bash -s" <<'EOF'
+          set -euo pipefail
+
+          if [ ! -d "${APP_PATH}/.git" ]; then
+            mkdir -p "$(dirname "${APP_PATH}")"
+            git clone "${REPO_URL}" "${APP_PATH}"
+          fi
+
+          cd "${APP_PATH}"
+          git fetch origin "${BRANCH}"
+          git checkout "${BRANCH}"
+          git pull --ff-only origin "${BRANCH}"
+
+          bash infra/deploy/deploy-vds.sh
+          EOF

@@ -1,5 +1,23 @@
 # StarRush TODO (Auto-synced with code audit)
 
+## 0.0) Hardening Update (2026-02-22)
+- Next.js config deduplicated: single `next.config.ts` is now the source of truth; `next.config.mjs` removed.
+- Build safety tightened: no `typescript.ignoreBuildErrors` override remains in active Next config.
+- Event storage optimized: `MULTIPLIER_UPDATE` is no longer persisted in `RoundEventLog` (still published via Redis/WS).
+- Round loop ownership unified: service-level `updateMultiplierLoop` removed; round ticks are worker-authoritative.
+- Dependency explicitness improved: `react` added as a direct dependency aligned with `react-dom`.
+- Compose persistence path fixed: PostgreSQL volume uses `/var/lib/postgresql/data`.
+- Dev auth hardened: `app/api/auth/dev` is now always disabled when `NODE_ENV=production`.
+- Docker stack simplified to production-only mode: root `docker-compose.yml` is the single source of truth.
+- Local-only compose/ngrok helpers were removed to reduce environment drift before VDS rollout.
+- App bootstrap now preloads `safe.png`, and staking safe image is eager-loaded to reduce visible late texture loading.
+- Unified container build: added root `Dockerfile` and removed `Dockerfile.local` split to avoid local/prod drift.
+- Added full VDS compose stack in root `docker-compose.yml` (edge + app + gateway + worker + postgres + redis + migrate).
+- Added production reverse proxy config `infra/caddy/Caddyfile` for single-domain HTTPS and `/ws` routing.
+- Added deploy scripts `infra/deploy/deploy-vds.sh` and `infra/deploy/update-from-git.sh`.
+- Added GitHub Actions auto-deploy workflow `.github/workflows/deploy-vds.yml`.
+- Added dedicated VDS runbook: `docs/deploy-vds.md`.
+
 ## 0) Accounting Spec (canonical as of 2026-02-14)
 - **Model**: lock-at-bet, debit-at-loss.
 - **Definitions**
@@ -283,40 +301,6 @@
 - Risk race smoke: `npm run test:risk-parallel`
 - Queued risk smoke: `npm run test:risk-queued`
 - House bankroll guard smoke: `npm run test:house-bankroll-guard`
-
-### 7.1) Telegram phone test via one public tunnel (`ngrok` + `nginx`)
-- Goal: expose app + WS gateway through a single HTTPS domain for Telegram Mini App.
-- Why this works: only two local ports need public access (`3000` app, `8081` WS); worker has no public port.
-- One-command wrappers:
-  - Start: `npm run telegram:start`
-  - Stop: `npm run telegram:stop`
-  - Full stop (including postgres/redis): `powershell -ExecutionPolicy Bypass -File scripts/stop-telegram.ps1 -StopInfra`
-- Config file: `infra/nginx/dev-single-tunnel.conf`
-  - `location /` -> `http://host.docker.internal:3000`
-  - `location /ws` -> `http://host.docker.internal:8081` (WebSocket upgrade enabled)
-
-- Startup sequence (PowerShell, local dev):
-  - `docker compose up -d`
-  - `npm run dev:all`
-  - `docker run --rm -p 8088:8088 -v "${PWD}/infra/nginx/dev-single-tunnel.conf:/etc/nginx/nginx.conf:ro" nginx:alpine`
-  - In another terminal: `ngrok http 8088`
-
-- Env for browser client (before app start):
-  - Set `NEXT_PUBLIC_WS_URL=wss://<your-ngrok-domain>/ws`
-  - Keep app URL as `https://<your-ngrok-domain>/`
-  - If ngrok domain changes, update both env and BotFather Mini App URL.
-
-- Telegram Bot setup:
-  - In `@BotFather` set Mini App URL to `https://<your-ngrok-domain>/`
-  - Open bot from phone, launch Mini App, verify tabs + game loop + bet/cashout.
-
-- VDS/Docker note:
-  - Same pattern is used in production, but without ngrok.
-  - Use one reverse proxy (`nginx`/`traefik`/`caddy`) on `443` with TLS:
-    - `/` -> app container
-    - `/ws` -> gateway container
-    - worker stays internal (no external port).
-  - No need to publish worker port on VDS.
 
 ## 8) UI Polish — BattleRoll-level Premium Dark Cosmic Aesthetic (2026-02-21)
 

@@ -1,0 +1,19 @@
+{
+  email {$LETSENCRYPT_EMAIL:admin@example.com}
+}
+
+{$APP_DOMAIN:localhost} {
+  encode zstd gzip
+
+  header {
+    X-Content-Type-Options "nosniff"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    X-Frame-Options "SAMEORIGIN"
+    Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  }
+
+  @gateway_ws path /ws*
+  reverse_proxy @gateway_ws gateway:8081
+
+  reverse_proxy app:3000
+}
