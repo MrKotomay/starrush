@@ -8,13 +8,11 @@ Telegram Mini App crash game:
 
 ## 1) VDS run (single server, Docker)
 
-`docker-compose.yml` contains full VDS stack:
+`docker-compose.yml` is the production/DBaaS stack:
 - `edge` (Caddy reverse proxy + TLS)
 - `app` (Next.js)
 - `gateway` (WebSocket backend)
 - `worker` (round loop)
-- `postgres` (PostgreSQL 18)
-- `redis` (Redis 8)
 - `migrate` (Prisma migrations, one-off)
 
 ### First deploy on VDS
@@ -27,7 +25,7 @@ Telegram Mini App crash game:
 cp .env.example .env
 ```
 
-4. Deploy stack:
+4. Deploy stack (production/DBaaS mode):
 
 ```bash
 bash infra/deploy/deploy-vds.sh
@@ -67,14 +65,12 @@ What happens on each push to `main`:
 2. Clones repo (first time) or pulls latest commit.
 3. Runs `bash infra/deploy/deploy-vds.sh`.
 
-## 3) Later migration to DBaaS (Timeweb)
+## 3) DBaaS setup (Timeweb)
 
-When you decide to move databases to managed services:
-1. Create PostgreSQL and Redis instances in Timeweb Cloud.
-2. Update `.env` on VDS:
-   - `DOCKER_DATABASE_URL=...` (managed PostgreSQL)
-   - `DOCKER_REDIS_URL=...` (managed Redis)
-3. Optional: stop local `postgres` and `redis` services in compose.
-4. Re-run deploy script.
+1. Create managed PostgreSQL and Redis instances in Timeweb Cloud.
+2. Set these variables in `.env` on VDS:
+   - `DOCKER_DATABASE_URL=...`
+   - `DOCKER_REDIS_URL=...`
+3. Re-run deploy script.
 
 No changes are needed in application code for this switch.

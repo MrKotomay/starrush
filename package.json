@@ -25,7 +25,7 @@
     "gateway": "tsx gateway/server.ts",
     "docker:vds:up": "docker compose up -d --build",
     "docker:vds:down": "docker compose down",
-    "docker:vds:logs": "docker compose logs -f edge app gateway worker postgres redis",
+    "docker:vds:logs": "docker compose logs -f edge app gateway worker",
     "deploy:vds": "bash infra/deploy/deploy-vds.sh",
     "deploy:vds:update": "bash infra/deploy/update-from-git.sh"
   },

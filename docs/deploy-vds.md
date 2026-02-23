@@ -1,11 +1,11 @@
 # VDS Deploy Runbook (Timeweb + Docker)
 
-This runbook is for a single VDS setup where the full project runs in Docker:
+This runbook is for a single VDS setup where the full project runs in Docker (production/DBaaS mode).
+
+`docker-compose.yml` contains:
 - app
 - gateway
 - worker
-- postgres
-- redis
 - edge proxy (Caddy + TLS)
 
 ## 1) Prepare server
@@ -40,7 +40,7 @@ cp .env.example .env
 Fill `.env`:
 - all secrets (`TELEGRAM_BOT_TOKEN`, `SESSION_SECRET`, `INTERNAL_API_KEY`)
 - domain (`APP_DOMAIN`)
-- DB credentials (`POSTGRES_PASSWORD`)
+- DB URLs (`DOCKER_DATABASE_URL`, `DOCKER_REDIS_URL`) for production/DBaaS mode
 - `COOKIE_SECURE=true`
 
 ## 3) First deploy
@@ -93,11 +93,10 @@ Required GitHub secrets:
 
 After this, each push to `main` triggers deploy automatically.
 
-## 7) Move DB to Timeweb DBaaS later
+## 7) Timeweb DBaaS checklist
 
-When ready:
 1. Provision managed PostgreSQL and Redis.
-2. Change only these env vars on VDS:
+2. Set these env vars on VDS:
    - `DOCKER_DATABASE_URL`
    - `DOCKER_REDIS_URL`
 3. Re-run deploy script.
