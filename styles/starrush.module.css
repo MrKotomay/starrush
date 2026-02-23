@@ -77,7 +77,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  padding-inline: 12px;
+  padding-inline: 0;
   font-family: "Inter", "Segoe UI", sans-serif;
   font-size: 13px;
   font-weight: 700;
@@ -88,11 +88,12 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0;
+  gap: 8px;
+  min-width: 138px;
   min-height: 34px;
   border: 1px solid rgba(var(--ui-rgb-text-primary), 0.12);
   border-radius: 999px;
-  padding: 7px 12px;
+  padding: 7px 10px 7px 11px;
   background:
     linear-gradient(155deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.03) 58%),
     var(--ui-surface-glass-strong);
@@ -115,6 +116,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  flex: 1;
   padding: 0;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
@@ -148,12 +150,10 @@
 }
 
 .plusBtn {
-  position: absolute;
-  top: 50%;
-  right: -12px;
+  position: relative;
   width: 28px;
   height: 28px;
-  transform: translateY(-50%);
+  transform: none;
   border-radius: 50%;
   border: 1px solid hsl(var(--brand-soft) / 0.36);
   background-color: hsl(var(--brand-1));
@@ -174,7 +174,7 @@
 }
 
 .plusBtn:hover:not(:disabled) {
-  transform: translateY(calc(-50% - 1px));
+  transform: translateY(-1px);
   filter: brightness(1.05);
   box-shadow:
     0 0 18px rgba(var(--ui-rgb-primary), 0.42),
@@ -182,7 +182,7 @@
 }
 
 .plusBtn:active:not(:disabled) {
-  transform: translateY(calc(-50% + 1px)) scale(0.97);
+  transform: translateY(1px) scale(0.97);
   filter: brightness(0.95);
 }
 
@@ -192,31 +192,27 @@
 }
 
 .balanceChevronBtn {
-  position: absolute;
-  top: 50%;
-  left: -11px;
-  width: 20px;
-  height: 20px;
-  transform: translateY(-50%);
-  border-radius: 8px;
-  border: 1px solid transparent;
+  position: relative;
+  width: 16px;
+  height: 16px;
+  transform: none;
+  border-radius: 4px;
+  border: 0;
   background: transparent;
-  color: rgba(var(--ui-rgb-text-secondary), 0.9);
+  color: rgba(var(--ui-rgb-text-secondary), 0.86);
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   cursor: pointer;
   transition:
-    background-color 0.18s ease,
-    border-color 0.18s ease,
     color 0.18s ease,
     transform 0.18s ease;
 }
 
 .balanceChevronBtn:focus-visible {
   outline: none;
-  border-color: rgba(var(--ui-rgb-primary-soft), 0.3);
-  background: rgba(var(--ui-rgb-primary), 0.11);
+  color: rgba(var(--ui-rgb-primary-soft), 0.96);
 }
 
 .balanceChevronBtn svg {
@@ -224,8 +220,10 @@
 }
 
 .balanceChevronBtnOpen {
-  border-color: rgba(var(--ui-rgb-primary-soft), 0.36);
-  background: rgba(var(--ui-rgb-primary), 0.16);
+  color: rgba(var(--ui-rgb-primary-soft), 0.95);
+}
+
+.balanceChevronBtn:active {
   color: rgba(var(--ui-rgb-primary-soft), 0.95);
 }
 
@@ -236,7 +234,7 @@
 .balanceDropdown {
   position: absolute;
   top: calc(100% + 8px);
-  right: 10px;
+  right: 0;
   opacity: 0;
   transform: translateY(-6px);
   pointer-events: none;

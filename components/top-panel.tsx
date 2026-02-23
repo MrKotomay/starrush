@@ -112,17 +112,16 @@ export function TopPanel({
 
       <div className={rushStyles.balanceSelector}>
         <div className={rushStyles.balanceChip}>
-          <button
-            type="button"
-            className={`${rushStyles.balanceChevronBtn} ${isBalanceSelectorOpen ? rushStyles.balanceChevronBtnOpen : ""}`}
-            onClick={() => setBalanceSelectorOpen((prev) => !prev)}
-            aria-label="Toggle balance selector"
-            aria-expanded={isBalanceSelectorOpen}
-          >
-            <ChevronUp size={14} strokeWidth={2.4} />
-          </button>
-
           <div className={rushStyles.balanceMain} aria-label={`${activeBalanceCurrency} balance`}>
+            <button
+              type="button"
+              className={`${rushStyles.balanceChevronBtn} ${isBalanceSelectorOpen ? rushStyles.balanceChevronBtnOpen : ""}`}
+              onClick={() => setBalanceSelectorOpen((prev) => !prev)}
+              aria-label="Toggle balance selector"
+              aria-expanded={isBalanceSelectorOpen}
+            >
+              <ChevronUp size={14} strokeWidth={2.4} />
+            </button>
             <AnimatePresence mode="wait" initial={false}>
               {activeBalanceCurrency === "TON" ? (
                 <motion.img

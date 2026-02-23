@@ -8,24 +8,27 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  telegramId   BigInt   @unique
-  username     String?  @db.VarChar(64)
-  firstName    String?  @db.VarChar(128)
-  lastName     String?  @db.VarChar(128)
-  photoUrl     String?  @db.VarChar(512)
-  languageCode String?  @db.VarChar(16)
-  isBot        Boolean  @default(false)
-  referredById String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  sessions     Session[]
-  wallets      Wallet[]
-  ledger       LedgerEntry[]
-  roundPlayers RoundPlayer[]
-  queuedRoundBet RoundQueuedBet?
-  referredBy   User?    @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
-  referrals    User[]   @relation("UserReferrals")
+  id                String             @id @default(cuid())
+  telegramId        BigInt             @unique
+  username          String?            @db.VarChar(64)
+  firstName         String?            @db.VarChar(128)
+  lastName          String?            @db.VarChar(128)
+  photoUrl          String?            @db.VarChar(512)
+  languageCode      String?            @db.VarChar(16)
+  isBot             Boolean            @default(false)
+  referredById      String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  sessions          Session[]
+  wallets           Wallet[]
+  ledger            LedgerEntry[]
+  depositIntents    DepositIntent[]
+  giftIngressEvents GiftIngressEvent[]
+  giftStubs         UserGiftStub[]
+  roundPlayers      RoundPlayer[]
+  queuedRoundBet    RoundQueuedBet?
+  referredBy        User?              @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals         User[]             @relation("UserReferrals")
 
   @@index([referredById])
 }
@@ -33,6 +36,22 @@ model User {
 enum Currency {
   TON
   STARS
+}
+
+enum DepositProvider {
+  TELEGRAM_STARS
+  TON_CONNECT
+}
+
+enum DepositStatus {
+  CREATED
+  WAITING_PAYMENT
+  SUBMITTED
+  CONFIRMING
+  COMPLETED
+  FAILED
+  EXPIRED
+  CANCELED
 }
 
 enum LedgerType {
@@ -93,10 +112,10 @@ enum RoundEventType {
 }
 
 model Session {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   userId     String
-  tokenHash  String   @unique @db.VarChar(128)
-  createdAt  DateTime @default(now())
+  tokenHash  String    @unique @db.VarChar(128)
+  createdAt  DateTime  @default(now())
   lastSeenAt DateTime?
   expiresAt  DateTime
   revokedAt  DateTime?
@@ -108,15 +127,15 @@ model Session {
 }
 
 model Wallet {
-  id        String   @id @default(cuid())
-  userId    String
-  currency  Currency
-  balance   Decimal  @default(0) @db.Decimal(20, 9)
-  lockedBalance Decimal @default(0) @db.Decimal(20, 9)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(cuid())
+  userId        String
+  currency      Currency
+  balance       Decimal  @default(0) @db.Decimal(20, 9)
+  lockedBalance Decimal  @default(0) @db.Decimal(20, 9)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  user   User          @relation(fields: [userId], references: [id])
   ledger LedgerEntry[]
 
   @@unique([userId, currency])
@@ -124,31 +143,31 @@ model Wallet {
 }
 
 model LedgerEntry {
-  id        String       @id @default(cuid())
-  userId    String
-  walletId  String
-  currency  Currency
-  amount    Decimal      @db.Decimal(20, 9)
-  type      LedgerType
-  status    LedgerStatus @default(PENDING)
-  referenceId String     @db.VarChar(128)
-  metadata  Json?
-  createdAt DateTime     @default(now())
+  id          String       @id @default(cuid())
+  userId      String
+  walletId    String
+  currency    Currency
+  amount      Decimal      @db.Decimal(20, 9)
+  type        LedgerType
+  status      LedgerStatus @default(PENDING)
+  referenceId String       @db.VarChar(128)
+  metadata    Json?
+  createdAt   DateTime     @default(now())
 
   user   User   @relation(fields: [userId], references: [id])
   wallet Wallet @relation(fields: [walletId], references: [id])
 
+  @@unique([walletId, referenceId, type])
   @@index([userId, currency, createdAt])
   @@index([walletId, createdAt])
-  @@unique([walletId, referenceId, type])
 }
 
 model HouseWallet {
-  id        String    @id @default(cuid())
-  currency  Currency  @unique
-  balance   Decimal   @default(0) @db.Decimal(20, 9)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id        String             @id @default(cuid())
+  currency  Currency           @unique
+  balance   Decimal            @default(0) @db.Decimal(20, 9)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
   ledger    HouseLedgerEntry[]
 
   @@index([currency])
@@ -174,19 +193,19 @@ model HouseLedgerEntry {
 }
 
 model Round {
-  id              String       @id @default(cuid())
-  status          RoundStatus  @default(WAITING)
+  id              String          @id @default(cuid())
+  status          RoundStatus     @default(WAITING)
   fairnessVersion FairnessVersion @default(HMAC_SHA256_V1)
-  fairnessNonce   Int          @default(0)
-  clientSeed      String?      @db.VarChar(128)
-  serverSeedHash  String       @db.VarChar(128)
-  serverSeed      String?      @db.VarChar(128)
-  houseEdge       Decimal      @default(0.01) @db.Decimal(10, 6)
-  maxCrash        Decimal      @default(1000) @db.Decimal(20, 6)
-  crashMultiplier Decimal?     @db.Decimal(20, 6)
+  fairnessNonce   Int             @default(0)
+  clientSeed      String?         @db.VarChar(128)
+  serverSeedHash  String          @db.VarChar(128)
+  serverSeed      String?         @db.VarChar(128)
+  houseEdge       Decimal         @default(0.01) @db.Decimal(10, 6)
+  maxCrash        Decimal         @default(1000) @db.Decimal(20, 6)
+  crashMultiplier Decimal?        @db.Decimal(20, 6)
   startedAt       DateTime?
   finishedAt      DateTime?
-  createdAt       DateTime     @default(now())
+  createdAt       DateTime        @default(now())
 
   players RoundPlayer[]
   events  RoundEventLog[]
@@ -214,12 +233,12 @@ model RoundPlayer {
 }
 
 model RoundQueuedBet {
-  id        String    @id @default(cuid())
-  userId    String    @unique
+  id        String   @id @default(cuid())
+  userId    String   @unique
   currency  Currency
-  betAmount Decimal   @db.Decimal(20, 9)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  betAmount Decimal  @db.Decimal(20, 9)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id])
 
@@ -237,4 +256,89 @@ model RoundEventLog {
   round Round @relation(fields: [roundId], references: [id])
 
   @@index([roundId, createdAt])
+}
+
+model DepositIntent {
+  id                 String          @id @default(cuid())
+  userId             String
+  provider           DepositProvider
+  currency           Currency
+  status             DepositStatus   @default(CREATED)
+  amount             Decimal         @db.Decimal(20, 9)
+  amountNano         BigInt?
+  senderAddress      String?         @db.VarChar(128)
+  recipientAddress   String?         @db.VarChar(128)
+  providerPaymentId  String?         @db.VarChar(256)
+  providerExternalId String?         @db.VarChar(256)
+  providerPayload    String?         @db.VarChar(256)
+  txHash             String?         @db.VarChar(256)
+  txBoc              String?
+  ledgerReferenceId  String          @db.VarChar(128)
+  failureReason      String?         @db.VarChar(256)
+  metadata           Json?
+  expiresAt          DateTime
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  user   User                   @relation(fields: [userId], references: [id])
+  events PaymentProviderEvent[]
+
+  @@unique([ledgerReferenceId])
+  @@unique([provider, providerPaymentId])
+  @@unique([provider, txHash])
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([provider, status, createdAt])
+}
+
+model PaymentProviderEvent {
+  id          String          @id @default(cuid())
+  provider    DepositProvider
+  eventId     String          @db.VarChar(128)
+  eventType   String          @db.VarChar(64)
+  intentId    String?
+  status      String          @default("RECEIVED") @db.VarChar(32)
+  error       String?         @db.VarChar(256)
+  payload     Json
+  processedAt DateTime?
+  createdAt   DateTime        @default(now())
+
+  intent DepositIntent? @relation(fields: [intentId], references: [id], onDelete: SetNull)
+
+  @@unique([provider, eventId])
+  @@index([provider, eventType, createdAt])
+  @@index([intentId, createdAt])
+}
+
+model GiftIngressEvent {
+  id              String   @id @default(cuid())
+  providerEventId String?  @unique @db.VarChar(128)
+  telegramGiftId  String?  @db.VarChar(128)
+  fromTelegramId  BigInt?
+  toTelegramId    BigInt?
+  userId          String?
+  payload         Json
+  createdAt       DateTime @default(now())
+
+  user      User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  giftStubs UserGiftStub[]
+
+  @@index([userId, createdAt])
+  @@index([telegramGiftId, createdAt])
+}
+
+model UserGiftStub {
+  id                 String   @id @default(cuid())
+  userId             String
+  giftIngressEventId String
+  giftType           String   @db.VarChar(128)
+  quantity           Int      @default(1)
+  metadata           Json?
+  createdAt          DateTime @default(now())
+
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  giftIngressEvent GiftIngressEvent @relation(fields: [giftIngressEventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, giftIngressEventId, giftType])
+  @@index([userId, createdAt])
 }

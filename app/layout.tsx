@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { appColorCssVariables, colors } from "@/theme/colors"
+import { TonConnectProvider } from "@/components/providers/tonconnect-provider"
 import './globals.css'
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
@@ -55,7 +56,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} antialiased`}>
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
-        {children}
+        <TonConnectProvider>{children}</TonConnectProvider>
         <Analytics />
       </body>
     </html>

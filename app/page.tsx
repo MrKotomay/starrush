@@ -18,6 +18,7 @@ import { TopHud } from "@/components/top-hud"
 import { WalletActionModal } from "@/components/wallet-action-modal"
 import { WalletOverviewModal } from "@/components/wallet-overview-modal"
 import { AppBootstrapSplash } from "@/components/app-bootstrap-splash"
+import { DepositFundsModal } from "@/components/deposit-funds-modal"
 
 const CrashGame = dynamic(
   () => import("@/components/crash/CrashGame").then((mod) => mod.CrashGame),
@@ -43,7 +44,7 @@ const mockAchievements = [
 
 type WalletCurrency = "TON" | "STARS"
 type TabId = "staking" | "mine" | "profile"
-type WalletActionMode = "deposit" | "withdraw" | null
+type WalletActionMode = "withdraw" | null
 
 type WalletView = {
   id: string
@@ -147,6 +148,7 @@ export default function ProfilePage() {
   const [walletsState, setWalletsState] = useState<WalletView[]>([])
   const [ledgerState, setLedgerState] = useState<LedgerView[]>([])
   const [walletActionMode, setWalletActionMode] = useState<WalletActionMode>(null)
+  const [isDepositModalOpen, setDepositModalOpen] = useState(false)
   const [isWalletActionSubmitting, setWalletActionSubmitting] = useState(false)
   const [isWalletOverviewOpen, setWalletOverviewOpen] = useState(false)
   const [isWalletsLoading, setWalletsLoading] = useState(false)
@@ -349,11 +351,7 @@ export default function ProfilePage() {
         await refreshWallets()
         await refreshLedger()
         setWalletActionMode(null)
-        setToast(
-          mode === "deposit"
-            ? `Пополнение ${input.amount.toFixed(2)} ${input.currency} выполнено`
-            : `Вывод ${input.amount.toFixed(2)} ${input.currency} выполнен`
-        )
+        setToast(`Вывод ${input.amount.toFixed(2)} ${input.currency} выполнен`)
       } finally {
         setWalletActionSubmitting(false)
       }
@@ -423,6 +421,7 @@ export default function ProfilePage() {
     username,
     isRefreshingBalances: isWalletsLoading,
     onRefreshBalances: handleWalletsRefresh,
+    onDepositClick: () => setDepositModalOpen(true),
     onWalletClick: openWalletOverview,
     onActiveBalanceCurrencyChange: setSelectedBalanceCurrency,
     avatarLayoutId: sharedAvatarLayoutId,
@@ -504,9 +503,9 @@ export default function ProfilePage() {
                   />
 
                   <ActionButtons
-                    onDeposit={() => setWalletActionMode("deposit")}
+                    onDeposit={() => setDepositModalOpen(true)}
                     onWithdraw={() => setWalletActionMode("withdraw")}
-                    isDepositLoading={isWalletActionSubmitting && walletActionMode === "deposit"}
+                    isDepositLoading={false}
                     isWithdrawLoading={isWalletActionSubmitting && walletActionMode === "withdraw"}
                   />
 
@@ -565,6 +564,15 @@ export default function ProfilePage() {
           void refreshLedger()
         }}
         onClose={() => setWalletOverviewOpen(false)}
+      />
+
+      <DepositFundsModal
+        open={isDepositModalOpen}
+        onClose={() => setDepositModalOpen(false)}
+        onCompleted={() => {
+          void refreshWallets()
+          void refreshLedger()
+        }}
       />
 
       {toast ? (
