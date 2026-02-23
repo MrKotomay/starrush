@@ -1,7 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { flushSync } from "react-dom"
+import { useEffect } from "react"
 import { motion, useReducedMotion } from "framer-motion"
 import { Rocket, TrendingUp, User } from "lucide-react"
 
@@ -22,8 +21,6 @@ const tabs = [
 ]
 
 export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationProps) {
-  const [pendingTab, setPendingTab] = useState<TabId | null>(null)
-  const switchFrameRef = useRef<number | null>(null)
   const shouldReduceMotion = useReducedMotion()
 
   useEffect(() => {
@@ -31,44 +28,17 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
     const prev = root.style.getPropertyValue("--bottom-nav-h")
     root.style.setProperty("--bottom-nav-h", "66px")
     return () => {
-      if (switchFrameRef.current !== null) {
-        window.cancelAnimationFrame(switchFrameRef.current)
-        switchFrameRef.current = null
-      }
       if (prev) root.style.setProperty("--bottom-nav-h", prev)
       else root.style.removeProperty("--bottom-nav-h")
     }
   }, [])
 
-  useEffect(() => {
-    setPendingTab(null)
-  }, [activeTab])
-
-  const displayTab = pendingTab ?? activeTab
   const indicatorTransition = shouldReduceMotion
     ? ({ duration: 0.1 } as const)
     : ({ type: "spring", stiffness: 500, damping: 36, mass: 0.7 } as const)
 
   const handleTabClick = (tab: TabId) => {
-    if (switchFrameRef.current !== null) {
-      window.cancelAnimationFrame(switchFrameRef.current)
-      switchFrameRef.current = null
-    }
-
-    if (tab === activeTab) {
-      setPendingTab(null)
-      onTabChange(tab)
-      return
-    }
-
-    flushSync(() => {
-      setPendingTab(tab)
-    })
-
-    switchFrameRef.current = window.requestAnimationFrame(() => {
-      switchFrameRef.current = null
-      onTabChange(tab)
-    })
+    onTabChange(tab)
   }
 
   return (
@@ -80,7 +50,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
       <BottomNavShell className="relative px-1 py-1">
         <div className="flex items-center gap-0.5">
           {tabs.map((tab) => {
-            const isActive = displayTab === tab.id
+            const isActive = activeTab === tab.id
             const Icon = tab.icon
 
             return (

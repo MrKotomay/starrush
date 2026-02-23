@@ -359,9 +359,9 @@ export default function ProfilePage() {
     [refreshLedger, refreshWallets, walletActionMode]
   )
   const shouldReduceMotion = useReducedMotion()
-  const tabEnter = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 12 }
+  const tabEnter = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 10 }
   const tabActive = { opacity: 1, y: 0 }
-  const tabExit = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -10 }
+  const tabExit = { opacity: 0, y: 0 }
   const tabTransition = shouldReduceMotion
     ? { duration: 0.1 }
     : { duration: 0.2, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }
@@ -406,9 +406,6 @@ export default function ProfilePage() {
     startTransition(() => {
       setActiveTab(nextTab)
     })
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "auto" })
-    }
   }
   const sharedAvatarLayoutId = "shared-profile-avatar"
   const topHudProps = {

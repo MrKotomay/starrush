@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
-import { motion, useReducedMotion } from "framer-motion"
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { Trophy, Vault } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -252,13 +252,22 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
                 className={cn(styles.sortButton, sortBy === option.id && styles.sortButtonActive)}
                 onClick={() => setSortBy(option.id)}
               >
+                {sortBy === option.id ? <motion.span layoutId="staking-sort-indicator" className={styles.sortIndicator} /> : null}
                 {option.label}
               </button>
             ))}
           </div>
         </div>
 
-        <GlassCard variant="elevated" className={cn("rounded-[20px] p-2.5", styles.leaderboardCard)}>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={`leaderboard-${sortBy}`}
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
+            transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
+          >
+            <GlassCard variant="elevated" className={cn("rounded-[20px] p-2.5", styles.leaderboardCard)}>
           <div className={styles.leaderboardHeadRow}>
             <span>Место</span>
             <span>Игрок</span>
@@ -318,11 +327,13 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
               })}
             </div>
           ) : null}
-        </GlassCard>
+            </GlassCard>
 
-        {!isLeaderboardLoading && !leaderboardError && totalPlayers > 0 ? (
-          <p className={styles.leaderboardMeta}>Игроков в рейтинге: {totalPlayers}</p>
-        ) : null}
+            {!isLeaderboardLoading && !leaderboardError && totalPlayers > 0 ? (
+              <p className={styles.leaderboardMeta}>Игроков в рейтинге: {totalPlayers}</p>
+            ) : null}
+          </motion.div>
+        </AnimatePresence>
       </motion.div>
     </div>
   )

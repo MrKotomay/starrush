@@ -77,7 +77,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  padding-inline: 0;
+  padding-right: 10px;
   font-family: "Inter", "Segoe UI", sans-serif;
   font-size: 13px;
   font-weight: 700;
@@ -88,12 +88,14 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-width: 138px;
+  gap: 6px;
+  width: fit-content;
+  max-width: min(260px, calc(100vw - 24px));
+  min-width: 0;
   min-height: 34px;
   border: 1px solid rgba(var(--ui-rgb-text-primary), 0.12);
   border-radius: 999px;
-  padding: 7px 10px 7px 11px;
+  padding: 7px 38px 7px 10px;
   background:
     linear-gradient(155deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.03) 58%),
     var(--ui-surface-glass-strong);
@@ -116,7 +118,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  flex: 1;
+  flex: 0 1 auto;
+  min-width: 0;
   padding: 0;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
@@ -142,6 +145,9 @@
 
 .balanceValue {
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
   font-variant-numeric: tabular-nums;
   font-family: inherit;
   font-size: inherit;
@@ -150,10 +156,12 @@
 }
 
 .plusBtn {
-  position: relative;
-  width: 28px;
-  height: 28px;
-  transform: none;
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  transform: translateY(-50%);
   border-radius: 50%;
   border: 1px solid hsl(var(--brand-soft) / 0.36);
   background-color: hsl(var(--brand-1));
@@ -174,7 +182,7 @@
 }
 
 .plusBtn:hover:not(:disabled) {
-  transform: translateY(-1px);
+  transform: translateY(calc(-50% - 1px));
   filter: brightness(1.05);
   box-shadow:
     0 0 18px rgba(var(--ui-rgb-primary), 0.42),
@@ -182,7 +190,7 @@
 }
 
 .plusBtn:active:not(:disabled) {
-  transform: translateY(1px) scale(0.97);
+  transform: translateY(calc(-50% + 1px)) scale(0.97);
   filter: brightness(0.95);
 }
 
@@ -234,7 +242,7 @@
 .balanceDropdown {
   position: absolute;
   top: calc(100% + 8px);
-  right: 0;
+  right: 10px;
   opacity: 0;
   transform: translateY(-6px);
   pointer-events: none;
