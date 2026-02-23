@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
@@ -68,30 +68,30 @@ function toPositiveTon(raw: string): string | null {
 function mapDepositError(code: string | undefined) {
   switch (code) {
     case "RATE_LIMIT":
-      return "РЎР»РёС€РєРѕРј РјРЅРѕРіРѕ Р·Р°РїСЂРѕСЃРѕРІ, РїРѕРїСЂРѕР±СѓР№С‚Рµ РЅРµРјРЅРѕРіРѕ РїРѕР·Р¶Рµ"
+      return "Слишком много запросов, попробуйте немного позже"
     case "STARS_PAYMENTS_DISABLED":
-      return "РџРѕРїРѕР»РЅРµРЅРёРµ Stars СЃРµР№С‡Р°СЃ РѕС‚РєР»СЋС‡РµРЅРѕ"
+      return "Пополнение Stars сейчас отключено"
     case "TON_DEPOSITS_DISABLED":
-      return "РџРѕРїРѕР»РЅРµРЅРёРµ TON СЃРµР№С‡Р°СЃ РѕС‚РєР»СЋС‡РµРЅРѕ"
+      return "Пополнение TON сейчас отключено"
     case "TON_LIMITS_EXCEEDED":
-      return "РЎСѓРјРјР° TON РЅРµ РІС…РѕРґРёС‚ РІ РґРѕСЃС‚СѓРїРЅС‹Рµ Р»РёРјРёС‚С‹"
+      return "Сумма TON не входит в доступные лимиты"
     case "STARS_LIMITS_EXCEEDED":
-      return "РЎСѓРјРјР° Stars РЅРµ РІС…РѕРґРёС‚ РІ РґРѕСЃС‚СѓРїРЅС‹Рµ Р»РёРјРёС‚С‹"
+      return "Сумма Stars не входит в доступные лимиты"
     case "TX_ALREADY_USED":
-      return "Р­С‚Р° С‚СЂР°РЅР·Р°РєС†РёСЏ СѓР¶Рµ Р±С‹Р»Р° РёСЃРїРѕР»СЊР·РѕРІР°РЅР°"
+      return "Эта транзакция уже была использована"
     case "INTENT_NOT_FOUND":
-      return "РџР»Р°С‚РµР¶РЅР°СЏ СЃРµСЃСЃРёСЏ РЅРµ РЅР°Р№РґРµРЅР°"
+      return "Платежная сессия не найдена"
     default:
-      return "РќРµ СѓРґР°Р»РѕСЃСЊ РІС‹РїРѕР»РЅРёС‚СЊ РїРѕРїРѕР»РЅРµРЅРёРµ"
+      return "Не удалось выполнить пополнение"
   }
 }
 
 function mapIntentStatus(status: DepositIntentStatus, failureReason?: string | null) {
-  if (status === "COMPLETED") return "РџРѕРїРѕР»РЅРµРЅРёРµ СѓСЃРїРµС€РЅРѕ Р·Р°С‡РёСЃР»РµРЅРѕ"
-  if (status === "FAILED") return failureReason || "РџР»Р°С‚РµР¶ РѕС‚РєР»РѕРЅРµРЅ"
-  if (status === "EXPIRED") return "Р’СЂРµРјСЏ РїР»Р°С‚РµР¶Р° РёСЃС‚РµРєР»Рѕ"
-  if (status === "CANCELED") return "РџР»Р°С‚РµР¶ РѕС‚РјРµРЅРµРЅ"
-  return "РџР»Р°С‚РµР¶ РѕР±СЂР°Р±Р°С‚С‹РІР°РµС‚СЃСЏ"
+  if (status === "COMPLETED") return "Пополнение успешно зачислено"
+  if (status === "FAILED") return failureReason || "Платеж отклонен"
+  if (status === "EXPIRED") return "Время платежа истекло"
+  if (status === "CANCELED") return "Платеж отменен"
+  return "Платеж обрабатывается"
 }
 
 export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsModalProps) {
@@ -108,6 +108,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
   const tonWallet = useTonWallet()
   const completionFiredRef = useRef(false)
   const shouldReduceMotion = useReducedMotion()
+
   const stackVariants = useMemo(
     () => ({
       hidden: { opacity: 0 },
@@ -121,6 +122,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
     }),
     [shouldReduceMotion],
   )
+
   const itemVariants = useMemo(
     () => ({
       hidden: shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 7 },
@@ -196,7 +198,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
   const onPayStars = async () => {
     const amount = toPositiveInt(starsAmountRaw)
     if (!amount) {
-      setError("Р’РІРµРґРёС‚Рµ РєРѕСЂСЂРµРєС‚РЅСѓСЋ СЃСѓРјРјСѓ Stars")
+      setError("Введите корректную сумму Stars")
       return
     }
 
@@ -229,7 +231,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
 
       setActiveIntentId(payload.intent.id)
       setActiveIntentStatus(payload.intent.status)
-      setInfo("РћС‚РєСЂРѕР№С‚Рµ СЃС‡РµС‚ РІ Telegram Рё РїРѕРґС‚РІРµСЂРґРёС‚Рµ РѕРїР»Р°С‚Сѓ")
+      setInfo("Откройте счет в Telegram и подтвердите оплату")
 
       const tg = (window as unknown as {
         Telegram?: {
@@ -242,18 +244,18 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
       if (tg?.openInvoice) {
         tg.openInvoice(payload.invoiceUrl, (status) => {
           if (status === "paid") {
-            setInfo("РџР»Р°С‚РµР¶ РїРѕРґС‚РІРµСЂР¶РґРµРЅ, РѕР¶РёРґР°РµРј Р·Р°С‡РёСЃР»РµРЅРёРµ")
+            setInfo("Платеж подтвержден, ожидаем зачисление")
           } else if (status === "cancelled") {
-            setInfo("РћРїР»Р°С‚Р° РѕС‚РјРµРЅРµРЅР°")
+            setInfo("Оплата отменена")
           } else if (status === "failed") {
-            setInfo("РћРїР»Р°С‚Р° РЅРµ РїСЂРѕС€Р»Р°")
+            setInfo("Оплата не прошла")
           }
         })
       } else {
         window.open(payload.invoiceUrl, "_blank", "noopener,noreferrer")
       }
     } catch {
-      setError("РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ СЃС‡РµС‚ РЅР° РѕРїР»Р°С‚Сѓ")
+      setError("Не удалось создать счет на оплату")
     } finally {
       setSubmitting(false)
     }
@@ -262,17 +264,17 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
   const onPayTon = async () => {
     const amount = toPositiveTon(tonAmountRaw)
     if (!amount) {
-      setError("Р’РІРµРґРёС‚Рµ РєРѕСЂСЂРµРєС‚РЅСѓСЋ СЃСѓРјРјСѓ TON")
+      setError("Введите корректную сумму TON")
       return
     }
 
     if (!tonWallet?.account?.address) {
       setError(null)
-      setInfo("РџРѕРґРєР»СЋС‡РёС‚Рµ TON РєРѕС€РµР»РµРє РґР»СЏ РїСЂРѕРґРѕР»Р¶РµРЅРёСЏ")
+      setInfo("Подключите TON кошелек для продолжения")
       try {
         await tonConnectUI.openModal()
       } catch {
-        setError("РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РєСЂС‹С‚СЊ TON Connect")
+        setError("Не удалось открыть TON Connect")
       }
       return
     }
@@ -333,9 +335,9 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
 
       setActiveIntentId(intentPayload.intent.id)
       setActiveIntentStatus(submitPayload.intent.status)
-      setInfo("TON С‚СЂР°РЅР·Р°РєС†РёСЏ РѕС‚РїСЂР°РІР»РµРЅР°, РѕР¶РёРґР°РµРј РїРѕРґС‚РІРµСЂР¶РґРµРЅРёРµ СЃРµС‚Рё")
+      setInfo("TON транзакция отправлена, ожидаем подтверждение сети")
     } catch {
-      setError("РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РїСЂР°РІРёС‚СЊ TON С‚СЂР°РЅР·Р°РєС†РёСЋ")
+      setError("Не удалось отправить TON транзакцию")
     } finally {
       setSubmitting(false)
     }
@@ -362,7 +364,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
           <motion.section
             role="dialog"
             aria-modal="true"
-            aria-label="РџРѕРїРѕР»РЅРµРЅРёРµ Р±Р°Р»Р°РЅСЃР°"
+            aria-label="Пополнение баланса"
             className={styles.sheet}
             initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 34, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -375,15 +377,15 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
 
               <div className={styles.header}>
                 <div>
-                  <h3 className={styles.title}>РџРѕРїРѕР»РЅРµРЅРёРµ</h3>
-                  <p className={styles.subtitle}>Р’С‹Р±РµСЂРёС‚Рµ СЃРїРѕСЃРѕР± Рё РїРѕРїРѕР»РЅРёС‚Рµ Р±Р°Р»Р°РЅСЃ РІ РїР°СЂСѓ С€Р°РіРѕРІ</p>
+                  <h3 className={styles.title}>Пополнение</h3>
+                  <p className={styles.subtitle}>Выберите способ и пополните баланс в пару шагов</p>
                 </div>
-                <button type="button" className={styles.closeBtn} onClick={onClose} disabled={!canClose} aria-label="Р—Р°РєСЂС‹С‚СЊ">
+                <button type="button" className={styles.closeBtn} onClick={onClose} disabled={!canClose} aria-label="Закрыть">
                   <X size={16} />
                 </button>
               </div>
 
-              <div className={styles.tabs} role="tablist" aria-label="РЎРїРѕСЃРѕР±С‹ РїРѕРїРѕР»РЅРµРЅРёСЏ">
+              <div className={styles.tabs} role="tablist" aria-label="Способы пополнения">
                 {METHOD_OPTIONS.map((option) => {
                   const Icon = option.icon
                   const isActive = method === option.id
@@ -433,11 +435,13 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                         NFT Gifts
                       </motion.p>
                       <motion.p className={styles.giftDesc} variants={itemVariants}>
-                        Р Р°Р·РґРµР» РїРѕРґР°СЂРєРѕРІ РїРѕРґРєР»СЋС‡РёРј СЃР»РµРґСѓСЋС‰РёРј С€Р°РіРѕРј. Р—РґРµСЃСЊ Р±СѓРґРµС‚ РёРјРїРѕСЂС‚ РІР°С€РёС… РїРѕРґР°СЂРєРѕРІ РёР· Telegram.
+                        Раздел подарков подключим следующим шагом. Здесь будет импорт ваших подарков из Telegram.
                       </motion.p>
-                      <motion.span className={styles.badgeSoon} variants={itemVariants}>РЎРєРѕСЂРѕ РІ MVP</motion.span>
+                      <motion.span className={styles.badgeSoon} variants={itemVariants}>
+                        Скоро в MVP
+                      </motion.span>
                       <motion.button type="button" className={styles.ghostBtn} disabled variants={itemVariants}>
-                        РњРµС…Р°РЅРёРєР° РІ СЂР°Р·СЂР°Р±РѕС‚РєРµ
+                        Механика в разработке
                       </motion.button>
                     </motion.div>
                   ) : null}
@@ -453,7 +457,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                       transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
                     >
                       <motion.label className={styles.inputLabel} variants={itemVariants}>
-                        РЎСѓРјРјР° TON
+                        Сумма TON
                       </motion.label>
                       <motion.input
                         type="text"
@@ -481,7 +485,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                       </motion.div>
 
                       <motion.p className={styles.walletHint} variants={itemVariants}>
-                        {walletShortAddress ? `РљРѕС€РµР»РµРє РїРѕРґРєР»СЋС‡РµРЅ: ${walletShortAddress}` : "РљРѕС€РµР»РµРє РЅРµ РїРѕРґРєР»СЋС‡РµРЅ"}
+                        {walletShortAddress ? `Кошелек подключен: ${walletShortAddress}` : "Кошелек не подключен"}
                       </motion.p>
 
                       <motion.button
@@ -492,10 +496,10 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                         variants={itemVariants}
                       >
                         {!walletShortAddress
-                          ? "РџРѕРґРєР»СЋС‡РёС‚СЊ TON РєРѕС€РµР»РµРє"
+                          ? "Подключить TON кошелек"
                           : isSubmitting
-                            ? "РћС‚РїСЂР°РІР»СЏРµРј С‚СЂР°РЅР·Р°РєС†РёСЋ..."
-                            : "РћРїР»Р°С‚РёС‚СЊ С‡РµСЂРµР· TON Connect"}
+                            ? "Отправляем транзакцию..."
+                            : "Оплатить через TON Connect"}
                       </motion.button>
                     </motion.div>
                   ) : null}
@@ -511,7 +515,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                       transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
                     >
                       <motion.label className={styles.inputLabel} variants={itemVariants}>
-                        РЎСѓРјРјР° Stars
+                        Сумма Stars
                       </motion.label>
                       <motion.input
                         type="number"
@@ -540,7 +544,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                       </motion.div>
 
                       <motion.p className={styles.walletHint} variants={itemVariants}>
-                        РћРїР»Р°С‚Р° РїСЂРѕР№РґРµС‚ С‡РµСЂРµР· Telegram Invoice
+                        Оплата пройдет через Telegram Invoice
                       </motion.p>
 
                       <motion.button
@@ -550,7 +554,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                         disabled={isSubmitting}
                         variants={itemVariants}
                       >
-                        {isSubmitting ? "РЎРѕР·РґР°РµРј СЃС‡РµС‚..." : "РћРїР»Р°С‚РёС‚СЊ Stars"}
+                        {isSubmitting ? "Создаем счет..." : "Оплатить Stars"}
                       </motion.button>
                     </motion.div>
                   ) : null}
@@ -585,4 +589,3 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
     </AnimatePresence>
   )
 }
-
