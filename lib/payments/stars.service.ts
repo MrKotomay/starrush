@@ -46,8 +46,8 @@ export async function createStarsInvoiceLink(input: {
   title?: string
   description?: string
 }) {
-  const title = input.title ?? "StarRush пополнение"
-  const description = input.description ?? `Пополнение ${input.amount} Stars`
+  const title = input.title ?? "StarRush РїРѕРїРѕР»РЅРµРЅРёРµ"
+  const description = input.description ?? `РџРѕРїРѕР»РЅРµРЅРёРµ ${input.amount} Stars`
 
   return callTelegram<string>("createInvoiceLink", {
     title,

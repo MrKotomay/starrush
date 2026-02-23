@@ -50,30 +50,30 @@ function toPositiveTon(raw: string): string | null {
 function mapDepositError(code: string | undefined) {
   switch (code) {
     case "RATE_LIMIT":
-      return "Слишком много запросов, попробуйте немного позже"
+      return "РЎР»РёС€РєРѕРј РјРЅРѕРіРѕ Р·Р°РїСЂРѕСЃРѕРІ, РїРѕРїСЂРѕР±СѓР№С‚Рµ РЅРµРјРЅРѕРіРѕ РїРѕР·Р¶Рµ"
     case "STARS_PAYMENTS_DISABLED":
-      return "Пополнение Stars сейчас отключено"
+      return "РџРѕРїРѕР»РЅРµРЅРёРµ Stars СЃРµР№С‡Р°СЃ РѕС‚РєР»СЋС‡РµРЅРѕ"
     case "TON_DEPOSITS_DISABLED":
-      return "Пополнение TON сейчас отключено"
+      return "РџРѕРїРѕР»РЅРµРЅРёРµ TON СЃРµР№С‡Р°СЃ РѕС‚РєР»СЋС‡РµРЅРѕ"
     case "TON_LIMITS_EXCEEDED":
-      return "Сумма TON не входит в доступные лимиты"
+      return "РЎСѓРјРјР° TON РЅРµ РІС…РѕРґРёС‚ РІ РґРѕСЃС‚СѓРїРЅС‹Рµ Р»РёРјРёС‚С‹"
     case "STARS_LIMITS_EXCEEDED":
-      return "Сумма Stars не входит в доступные лимиты"
+      return "РЎСѓРјРјР° Stars РЅРµ РІС…РѕРґРёС‚ РІ РґРѕСЃС‚СѓРїРЅС‹Рµ Р»РёРјРёС‚С‹"
     case "TX_ALREADY_USED":
-      return "Эта транзакция уже была использована"
+      return "Р­С‚Р° С‚СЂР°РЅР·Р°РєС†РёСЏ СѓР¶Рµ Р±С‹Р»Р° РёСЃРїРѕР»СЊР·РѕРІР°РЅР°"
     case "INTENT_NOT_FOUND":
-      return "Платежная сессия не найдена"
+      return "РџР»Р°С‚РµР¶РЅР°СЏ СЃРµСЃСЃРёСЏ РЅРµ РЅР°Р№РґРµРЅР°"
     default:
-      return "Не удалось выполнить пополнение"
+      return "РќРµ СѓРґР°Р»РѕСЃСЊ РІС‹РїРѕР»РЅРёС‚СЊ РїРѕРїРѕР»РЅРµРЅРёРµ"
   }
 }
 
 function mapIntentStatus(status: DepositIntentStatus, failureReason?: string | null) {
-  if (status === "COMPLETED") return "Пополнение успешно зачислено"
-  if (status === "FAILED") return failureReason || "Платеж отклонен"
-  if (status === "EXPIRED") return "Время платежа истекло"
-  if (status === "CANCELED") return "Платеж отменен"
-  return "Платеж обрабатывается"
+  if (status === "COMPLETED") return "РџРѕРїРѕР»РЅРµРЅРёРµ СѓСЃРїРµС€РЅРѕ Р·Р°С‡РёСЃР»РµРЅРѕ"
+  if (status === "FAILED") return failureReason || "РџР»Р°С‚РµР¶ РѕС‚РєР»РѕРЅРµРЅ"
+  if (status === "EXPIRED") return "Р’СЂРµРјСЏ РїР»Р°С‚РµР¶Р° РёСЃС‚РµРєР»Рѕ"
+  if (status === "CANCELED") return "РџР»Р°С‚РµР¶ РѕС‚РјРµРЅРµРЅ"
+  return "РџР»Р°С‚РµР¶ РѕР±СЂР°Р±Р°С‚С‹РІР°РµС‚СЃСЏ"
 }
 
 export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsModalProps) {
@@ -148,7 +148,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
   const onPayStars = async () => {
     const amount = toPositiveInt(starsAmountRaw)
     if (!amount) {
-      setError("Введите корректную сумму Stars")
+      setError("Р’РІРµРґРёС‚Рµ РєРѕСЂСЂРµРєС‚РЅСѓСЋ СЃСѓРјРјСѓ Stars")
       return
     }
 
@@ -181,7 +181,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
 
       setActiveIntentId(payload.intent.id)
       setActiveIntentStatus(payload.intent.status)
-      setInfo("Откройте счет в Telegram и подтвердите оплату")
+      setInfo("РћС‚РєСЂРѕР№С‚Рµ СЃС‡РµС‚ РІ Telegram Рё РїРѕРґС‚РІРµСЂРґРёС‚Рµ РѕРїР»Р°С‚Сѓ")
 
       const tg = (window as unknown as {
         Telegram?: {
@@ -194,18 +194,18 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
       if (tg?.openInvoice) {
         tg.openInvoice(payload.invoiceUrl, (status) => {
           if (status === "paid") {
-            setInfo("Платеж подтвержден, ждем зачисление")
+            setInfo("РџР»Р°С‚РµР¶ РїРѕРґС‚РІРµСЂР¶РґРµРЅ, Р¶РґРµРј Р·Р°С‡РёСЃР»РµРЅРёРµ")
           } else if (status === "cancelled") {
-            setInfo("Оплата отменена")
+            setInfo("РћРїР»Р°С‚Р° РѕС‚РјРµРЅРµРЅР°")
           } else if (status === "failed") {
-            setInfo("Оплата не прошла")
+            setInfo("РћРїР»Р°С‚Р° РЅРµ РїСЂРѕС€Р»Р°")
           }
         })
       } else {
         window.open(payload.invoiceUrl, "_blank", "noopener,noreferrer")
       }
     } catch {
-      setError("Не удалось создать счет на оплату")
+      setError("РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ СЃС‡РµС‚ РЅР° РѕРїР»Р°С‚Сѓ")
     } finally {
       setSubmitting(false)
     }
@@ -214,7 +214,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
   const onPayTon = async () => {
     const amount = toPositiveTon(tonAmountRaw)
     if (!amount) {
-      setError("Введите корректную сумму TON")
+      setError("Р’РІРµРґРёС‚Рµ РєРѕСЂСЂРµРєС‚РЅСѓСЋ СЃСѓРјРјСѓ TON")
       return
     }
 
@@ -229,7 +229,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
 
       const senderAddress = tonWallet?.account?.address
       if (!senderAddress) {
-        setError("Подключите TON кошелек")
+        setError("РџРѕРґРєР»СЋС‡РёС‚Рµ TON РєРѕС€РµР»РµРє")
         return
       }
 
@@ -284,9 +284,9 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
 
       setActiveIntentId(intentPayload.intent.id)
       setActiveIntentStatus(submitPayload.intent.status)
-      setInfo("TON транзакция отправлена, ожидаем подтверждение")
+      setInfo("TON С‚СЂР°РЅР·Р°РєС†РёСЏ РѕС‚РїСЂР°РІР»РµРЅР°, РѕР¶РёРґР°РµРј РїРѕРґС‚РІРµСЂР¶РґРµРЅРёРµ")
     } catch {
-      setError("Не удалось отправить TON транзакцию")
+      setError("РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РїСЂР°РІРёС‚СЊ TON С‚СЂР°РЅР·Р°РєС†РёСЋ")
     } finally {
       setSubmitting(false)
     }
@@ -315,8 +315,8 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
           boxShadow: "0 18px 48px rgba(4,7,22,0.54), 0 6px 18px rgba(11,17,38,0.30)",
         }}
       >
-        <h3 className="text-lg font-semibold text-foreground">Пополнение</h3>
-        <p className="mt-1 text-xs text-muted-foreground">Выберите способ пополнения баланса</p>
+        <h3 className="text-lg font-semibold text-foreground">РџРѕРїРѕР»РЅРµРЅРёРµ</h3>
+        <p className="mt-1 text-xs text-muted-foreground">Р’С‹Р±РµСЂРёС‚Рµ СЃРїРѕСЃРѕР± РїРѕРїРѕР»РЅРµРЅРёСЏ Р±Р°Р»Р°РЅСЃР°</p>
 
         <div className="mt-4 grid grid-cols-2 gap-2">
           <button
@@ -347,7 +347,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
 
         {method === "STARS" ? (
           <div className="mt-4 space-y-2">
-            <label className="text-xs text-muted-foreground">Сумма Stars</label>
+            <label className="text-xs text-muted-foreground">РЎСѓРјРјР° Stars</label>
             <input
               type="number"
               min={1}
@@ -365,12 +365,12 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
               disabled={isSubmitting}
               className="w-full rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
             >
-              {isSubmitting ? "Создаем счет..." : "Оплатить Stars"}
+              {isSubmitting ? "РЎРѕР·РґР°РµРј СЃС‡РµС‚..." : "РћРїР»Р°С‚РёС‚СЊ Stars"}
             </button>
           </div>
         ) : (
           <div className="mt-4 space-y-2">
-            <label className="text-xs text-muted-foreground">Сумма TON</label>
+            <label className="text-xs text-muted-foreground">РЎСѓРјРјР° TON</label>
             <input
               type="text"
               inputMode="decimal"
@@ -381,8 +381,8 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
             />
             <p className="text-[11px] text-muted-foreground">
               {tonWallet?.account?.address
-                ? `Кошелек: ${tonWallet.account.address.slice(0, 8)}...${tonWallet.account.address.slice(-6)}`
-                : "Кошелек не подключен"}
+                ? `РљРѕС€РµР»РµРє: ${tonWallet.account.address.slice(0, 8)}...${tonWallet.account.address.slice(-6)}`
+                : "РљРѕС€РµР»РµРє РЅРµ РїРѕРґРєР»СЋС‡РµРЅ"}
             </p>
             <button
               type="button"
@@ -392,7 +392,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
               disabled={isSubmitting}
               className="w-full rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
             >
-              {isSubmitting ? "Отправляем транзакцию..." : "Оплатить TON"}
+              {isSubmitting ? "РћС‚РїСЂР°РІР»СЏРµРј С‚СЂР°РЅР·Р°РєС†РёСЋ..." : "РћРїР»Р°С‚РёС‚СЊ TON"}
             </button>
           </div>
         )}
@@ -406,7 +406,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
           disabled={!canClose}
           className="mt-4 w-full rounded-xl border border-border px-3 py-2 text-sm text-foreground disabled:opacity-60"
         >
-          Закрыть
+          Р—Р°РєСЂС‹С‚СЊ
         </button>
       </div>
     </div>
