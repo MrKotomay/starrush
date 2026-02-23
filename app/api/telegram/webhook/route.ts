@@ -289,10 +289,28 @@ export async function POST(req: Request) {
     })
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      return jsonUtf8({ ok: true, duplicate: true })
+      const existing = await db.paymentProviderEvent.findUnique({
+        where: {
+          provider_eventId: {
+            provider: DepositProvider.TELEGRAM_STARS,
+            eventId: updateId,
+          },
+        },
+      })
+
+      if (!existing) {
+        return jsonUtf8({ ok: true, duplicate: true })
+      }
+
+      if (existing.status === "PROCESSED" || existing.status === "SKIPPED") {
+        return jsonUtf8({ ok: true, duplicate: true })
+      }
+
+      event = existing
+    } else {
+      console.error("[TelegramWebhook] Event create failed", error)
+      return jsonUtf8({ ok: false, error: "EVENT_SAVE_FAILED" }, { status: 500 })
     }
-    console.error("[TelegramWebhook] Event create failed", error)
-    return jsonUtf8({ ok: false, error: "EVENT_SAVE_FAILED" }, { status: 500 })
   }
 
   try {

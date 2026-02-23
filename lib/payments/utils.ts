@@ -1,3 +1,4 @@
+import crypto from "crypto"
 import { DepositStatus, Prisma } from "@prisma/client"
 
 const NANO_FACTOR = BigInt("1000000000")
@@ -62,4 +63,27 @@ export function clampText(value: string, maxLength: number) {
   const trimmed = value.trim()
   if (trimmed.length <= maxLength) return trimmed
   return trimmed.slice(0, maxLength)
+}
+
+const LEDGER_REFERENCE_MAX_LENGTH = 128
+
+export function buildSafeLedgerReferenceId(rawReferenceId: string) {
+  const referenceId = rawReferenceId.trim()
+  if (!referenceId) {
+    throw new Error("INVALID_REFERENCE_ID")
+  }
+
+  if (referenceId.length <= LEDGER_REFERENCE_MAX_LENGTH) {
+    return referenceId
+  }
+
+  const prefix = referenceId.split(":")[0]?.trim().toLowerCase() || "ref"
+  const hash = crypto.createHash("sha256").update(referenceId).digest("hex")
+  const hashedReference = `${prefix}:h:${hash}`
+
+  if (hashedReference.length <= LEDGER_REFERENCE_MAX_LENGTH) {
+    return hashedReference
+  }
+
+  return `h:${hash}`
 }

@@ -1,7 +1,7 @@
 import { DepositStatus, LedgerType, Prisma } from "@prisma/client"
 import { db } from "@/lib/db"
 import { applyTransaction, createTransaction } from "@/lib/ledger.service"
-import { isTerminalStatus } from "@/lib/payments/utils"
+import { buildSafeLedgerReferenceId, isTerminalStatus } from "@/lib/payments/utils"
 import { applyReferralRewardForDeposit } from "@/lib/referrals"
 
 type CompleteDepositIntentInput = {
@@ -24,6 +24,8 @@ type CompleteDepositIntentResult = {
 export async function completeDepositIntent(
   input: CompleteDepositIntentInput
 ): Promise<CompleteDepositIntentResult> {
+  const safeReferenceId = buildSafeLedgerReferenceId(input.referenceId)
+
   const result = await db.$transaction(async (tx) => {
     const intent = await tx.depositIntent.findUnique({ where: { id: input.intentId } })
     if (!intent) {
@@ -73,11 +75,12 @@ export async function completeDepositIntent(
         currency: intent.currency,
         amount: new Prisma.Decimal(intent.amount),
         type: LedgerType.DEPOSIT,
-        referenceId: input.referenceId,
+        referenceId: safeReferenceId,
         metadata: {
           source: "payments",
           provider: intent.provider,
           intentId: intent.id,
+          requestedReferenceId: input.referenceId,
           txHash: input.txHash ?? null,
           providerPaymentId: input.providerPaymentId ?? null,
           providerExternalId: input.providerExternalId ?? null,
@@ -95,7 +98,7 @@ export async function completeDepositIntent(
       data: {
         status: DepositStatus.COMPLETED,
         failureReason: null,
-        ledgerReferenceId: input.referenceId,
+        ledgerReferenceId: safeReferenceId,
         providerPaymentId: input.providerPaymentId ?? intent.providerPaymentId,
         providerExternalId: input.providerExternalId ?? intent.providerExternalId,
         providerPayload: input.providerPayload ?? intent.providerPayload,
