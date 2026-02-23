@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { Trophy, Users } from "lucide-react"
 

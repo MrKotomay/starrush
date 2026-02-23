@@ -5,7 +5,8 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { Gift, Sparkles, Wallet, X } from "lucide-react"
 import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react"
 
-import { cn } from "@/lib/utils"
+import { PrimaryButton } from "@/components/ui/primary-button"
+import { GlassSegmentedControl } from "@/components/ui/glass-segmented-control"
 import styles from "@/styles/deposit-funds-modal.module.css"
 
 type DepositMethod = "GIFTS" | "STARS" | "TON"
@@ -41,7 +42,7 @@ const METHOD_OPTIONS: Array<{
   label: string
   icon: React.ComponentType<{ className?: string }>
 }> = [
-  { id: "GIFTS", label: "Gifts", icon: Gift },
+  { id: "GIFTS", label: "Подарки", icon: Gift },
   { id: "TON", label: "TON", icon: Wallet },
   { id: "STARS", label: "Stars", icon: Sparkles },
 ]
@@ -194,6 +195,15 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
   }, [activeIntentId, activeIntentStatus, onCompleted, open])
 
   const canClose = useMemo(() => !isSubmitting, [isSubmitting])
+  const methodItems = useMemo(
+    () =>
+      METHOD_OPTIONS.map((option) => ({
+        id: option.id,
+        label: option.label,
+        icon: option.icon,
+      })),
+    [],
+  )
 
   const onPayStars = async () => {
     const amount = toPositiveInt(starsAmountRaw)
@@ -372,81 +382,59 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
             transition={{ duration: shouldReduceMotion ? 0.1 : 0.24, ease: EASE }}
             onClick={(event) => event.stopPropagation()}
           >
-            <div className={styles.sheetInner}>
-              <div className={styles.handle} />
+            <div className={styles.handle} />
 
-              <div className={styles.header}>
-                <div>
-                  <h3 className={styles.title}>Пополнение</h3>
-                  <p className={styles.subtitle}>Выберите способ и пополните баланс в пару шагов</p>
-                </div>
-                <button type="button" className={styles.closeBtn} onClick={onClose} disabled={!canClose} aria-label="Закрыть">
-                  <X size={16} />
-                </button>
+            <div className={styles.header}>
+              <div>
+                <h3 className={styles.title}>Пополнение</h3>
+                <p className={styles.subtitle}>Выберите способ и пополните баланс в пару шагов</p>
               </div>
+              <button type="button" className={styles.closeBtn} onClick={onClose} disabled={!canClose} aria-label="Закрыть">
+                <X size={16} />
+              </button>
+            </div>
 
-              <div className={styles.tabs} role="tablist" aria-label="Способы пополнения">
-                {METHOD_OPTIONS.map((option) => {
-                  const Icon = option.icon
-                  const isActive = method === option.id
+            <GlassSegmentedControl
+              items={methodItems}
+              value={method}
+              onChange={(next) => setMethod(next)}
+              ariaLabel="Способы пополнения"
+              layoutId="deposit-method-indicator"
+              disabled={isSubmitting}
+              className={styles.tabs}
+            />
 
-                  return (
-                    <button
-                      key={option.id}
-                      type="button"
-                      role="tab"
-                      aria-selected={isActive}
-                      className={cn(styles.tab, isActive && styles.tabActive)}
-                      onClick={() => setMethod(option.id)}
-                      disabled={isSubmitting}
-                    >
-                      {isActive ? (
-                        <motion.span
-                          layoutId="deposit-method-pill"
-                          className={styles.tabPill}
-                          transition={shouldReduceMotion ? { duration: 0.1 } : { duration: 0.26, ease: EASE }}
-                        >
-                          {!shouldReduceMotion ? <span className={styles.tabShimmer} /> : null}
-                        </motion.span>
-                      ) : null}
-                      <Icon className={styles.tabIcon} />
-                      <span>{option.label}</span>
-                    </button>
-                  )
-                })}
-              </div>
+            <div className={styles.content}>
+              <AnimatePresence mode="wait" initial={false}>
+                {method === "GIFTS" ? (
+                  <motion.div
+                    key="deposit-gifts"
+                    className={styles.giftStub}
+                    variants={stackVariants}
+                    initial="hidden"
+                    animate="show"
+                    exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
+                    transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
+                  >
+                    <motion.span className={styles.giftIconWrap} variants={itemVariants}>
+                      <Gift size={28} />
+                    </motion.span>
+                    <motion.p className={styles.giftTitle} variants={itemVariants}>
+                      NFT Gifts
+                    </motion.p>
+                    <motion.p className={styles.giftDesc} variants={itemVariants}>
+                      Раздел подарков подключим следующим шагом. Здесь будет импорт ваших подарков из Telegram.
+                    </motion.p>
+                    <motion.span className={styles.badgeSoon} variants={itemVariants}>
+                      Скоро в MVP
+                    </motion.span>
+                    <motion.button type="button" className={styles.ghostBtn} disabled variants={itemVariants}>
+                      Механика в разработке
+                    </motion.button>
+                  </motion.div>
+                ) : null}
 
-              <div className={styles.content}>
-                <AnimatePresence mode="wait" initial={false}>
-                  {method === "GIFTS" ? (
-                    <motion.div
-                      key="deposit-gifts"
-                      className={styles.giftStub}
-                      variants={stackVariants}
-                      initial="hidden"
-                      animate="show"
-                      exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
-                      transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
-                    >
-                      <motion.span className={styles.giftIconWrap} variants={itemVariants}>
-                        <Gift size={28} />
-                      </motion.span>
-                      <motion.p className={styles.giftTitle} variants={itemVariants}>
-                        NFT Gifts
-                      </motion.p>
-                      <motion.p className={styles.giftDesc} variants={itemVariants}>
-                        Раздел подарков подключим следующим шагом. Здесь будет импорт ваших подарков из Telegram.
-                      </motion.p>
-                      <motion.span className={styles.badgeSoon} variants={itemVariants}>
-                        Скоро в MVP
-                      </motion.span>
-                      <motion.button type="button" className={styles.ghostBtn} disabled variants={itemVariants}>
-                        Механика в разработке
-                      </motion.button>
-                    </motion.div>
-                  ) : null}
-
-                  {method === "TON" ? (
+                {method === "TON" ? (
                     <motion.div
                       key="deposit-ton"
                       className={styles.contentStack}
@@ -488,23 +476,24 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                         {walletShortAddress ? `Кошелек подключен: ${walletShortAddress}` : "Кошелек не подключен"}
                       </motion.p>
 
-                      <motion.button
+                    <motion.div variants={itemVariants}>
+                      <PrimaryButton
                         type="button"
-                        className={styles.primaryBtn}
                         onClick={() => void onPayTon()}
                         disabled={isSubmitting}
-                        variants={itemVariants}
+                        className={styles.primaryActionBtn}
                       >
                         {!walletShortAddress
                           ? "Подключить TON кошелек"
                           : isSubmitting
                             ? "Отправляем транзакцию..."
                             : "Оплатить через TON Connect"}
-                      </motion.button>
+                      </PrimaryButton>
                     </motion.div>
-                  ) : null}
+                  </motion.div>
+                ) : null}
 
-                  {method === "STARS" ? (
+                {method === "STARS" ? (
                     <motion.div
                       key="deposit-stars"
                       className={styles.contentStack}
@@ -547,42 +536,42 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                         Оплата пройдет через Telegram Invoice
                       </motion.p>
 
-                      <motion.button
+                    <motion.div variants={itemVariants}>
+                      <PrimaryButton
                         type="button"
-                        className={styles.primaryBtn}
                         onClick={() => void onPayStars()}
                         disabled={isSubmitting}
-                        variants={itemVariants}
+                        className={styles.primaryActionBtn}
                       >
                         {isSubmitting ? "Создаем счет..." : "Оплатить Stars"}
-                      </motion.button>
+                      </PrimaryButton>
                     </motion.div>
-                  ) : null}
-                </AnimatePresence>
-              </div>
-
-              {info ? (
-                <motion.p
-                  className={styles.statusInfo}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: shouldReduceMotion ? 0.1 : 0.16 }}
-                >
-                  {info}
-                </motion.p>
-              ) : null}
-
-              {error ? (
-                <motion.p
-                  className={styles.statusError}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: shouldReduceMotion ? 0.1 : 0.16 }}
-                >
-                  {error}
-                </motion.p>
-              ) : null}
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
             </div>
+
+            {info ? (
+              <motion.p
+                className={styles.statusInfo}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: shouldReduceMotion ? 0.1 : 0.16 }}
+              >
+                {info}
+              </motion.p>
+            ) : null}
+
+            {error ? (
+              <motion.p
+                className={styles.statusError}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: shouldReduceMotion ? 0.1 : 0.16 }}
+              >
+                {error}
+              </motion.p>
+            ) : null}
           </motion.section>
         </motion.div>
       ) : null}

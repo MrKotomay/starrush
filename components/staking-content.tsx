@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { GlassCard } from "@/components/ui/glass-card"
 import { PrimaryButton } from "@/components/ui/primary-button"
 import { StatCard } from "@/components/ui/stat-card"
+import { GlassSegmentedControl } from "@/components/ui/glass-segmented-control"
 
 import styles from "@/styles/staking-safe.module.css"
 
@@ -124,6 +125,14 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
     () => SORT_OPTIONS.find((option) => option.id === sortBy)?.label ?? "Подарки",
     [sortBy],
   )
+  const sortItems = useMemo(
+    () =>
+      SORT_OPTIONS.map((option) => ({
+        id: option.id,
+        label: option.label,
+      })),
+    [],
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -206,7 +215,7 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
                   <span className="text-base font-semibold text-foreground">{stakingAmountLabel} TON</span>
                 </div>
               </div>
-              <PrimaryButton breathing className="h-10 min-w-28 rounded-xl px-5 text-sm">
+              <PrimaryButton breathing depth="raised" variant="brandSoft" className="h-10 min-w-28 rounded-xl px-5 text-sm">
                 Забрать
               </PrimaryButton>
             </div>
@@ -242,21 +251,15 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
       >
         <div className={styles.leaderboardHeader}>
           <h2 className={styles.leaderboardTitle}>Лидерборд</h2>
-          <div className={styles.sortSwitch} role="tablist" aria-label="Сортировка лидерборда">
-            {SORT_OPTIONS.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                role="tab"
-                aria-selected={sortBy === option.id}
-                className={cn(styles.sortButton, sortBy === option.id && styles.sortButtonActive)}
-                onClick={() => setSortBy(option.id)}
-              >
-                {sortBy === option.id ? <motion.span layoutId="staking-sort-indicator" className={styles.sortIndicator} /> : null}
-                {option.label}
-              </button>
-            ))}
-          </div>
+          <GlassSegmentedControl
+            items={sortItems}
+            value={sortBy}
+            onChange={(next) => setSortBy(next)}
+            ariaLabel="Сортировка лидерборда"
+            className={styles.sortSwitch}
+            size="sm"
+            layoutId="staking-sort-indicator"
+          />
         </div>
 
         <AnimatePresence mode="wait" initial={false}>

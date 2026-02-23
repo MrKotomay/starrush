@@ -5,6 +5,10 @@
 
 :root {
   --bottom-nav-h: 72px;
+  --motion-fast: 160ms;
+  --motion-base: 220ms;
+  --motion-slow: 280ms;
+  --ease-out-fluid: cubic-bezier(0.22, 1, 0.36, 1);
 
   /* Safe-area fallbacks (Telegram + browser env). */
   --safe-top: max(env(safe-area-inset-top, 0px), var(--tg-safe-area-inset-top, 0px));
@@ -263,7 +267,10 @@
     box-shadow: var(--shadow-sm);
     position: relative;
     overflow: hidden;
-    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    transition:
+      transform var(--motion-base) var(--ease-out-fluid),
+      border-color var(--motion-base) var(--ease-out-fluid),
+      box-shadow var(--motion-base) var(--ease-out-fluid);
   }
 
   .card-elevated::before {
@@ -299,7 +306,14 @@
     background-clip: padding-box;
     box-shadow: var(--glow-primary), var(--shadow-sm);
     transform: translateZ(0);
-    transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease, opacity 180ms ease, border-color 180ms ease;
+    transition:
+      transform var(--motion-base) var(--ease-out-fluid),
+      filter var(--motion-base) var(--ease-out-fluid),
+      box-shadow var(--motion-base) var(--ease-out-fluid),
+      opacity var(--motion-base) var(--ease-out-fluid),
+      border-color var(--motion-base) var(--ease-out-fluid),
+      background-color var(--motion-base) var(--ease-out-fluid),
+      background-image var(--motion-base) var(--ease-out-fluid);
   }
 
   .btn-primary-glow::before {
@@ -310,6 +324,60 @@
     border-radius: inherit;
     background: linear-gradient(180deg, hsl(var(--brand-soft) / 0.24) 0%, transparent 46%);
     opacity: 0.78;
+  }
+
+  .btn-primary-glow::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.18) 0%,
+      rgba(255, 255, 255, 0.08) 24%,
+      rgba(255, 255, 255, 0) 56%
+    );
+    opacity: 0.86;
+  }
+
+  .btn-primary-brand-soft {
+    background-image: linear-gradient(
+      110deg,
+      hsl(var(--brand-1) / 0.82) 0%,
+      hsl(var(--brand-2) / 0.72) 100%
+    );
+    border-color: hsl(var(--brand-soft) / 0.32);
+    box-shadow: 0 0 16px rgba(101, 29, 203, 0.24), var(--shadow-sm);
+  }
+
+  .btn-primary-glass {
+    background:
+      linear-gradient(160deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.03) 58%),
+      rgba(18, 24, 54, 0.84);
+    border-color: hsl(var(--border) / 0.86);
+    color: hsl(var(--foreground));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      0 8px 18px rgba(8, 11, 26, 0.32);
+  }
+
+  .btn-depth-raised {
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.22) inset,
+      0 10px 22px rgba(7, 10, 28, 0.42),
+      0 3px 8px rgba(7, 10, 28, 0.28);
+  }
+
+  .btn-depth-flat {
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.12) inset,
+      0 3px 9px rgba(7, 10, 28, 0.22);
+  }
+
+  .btn-motion-none {
+    transition: none !important;
+    animation: none !important;
   }
 
   @media (hover: hover) {
@@ -341,7 +409,10 @@
       hsl(var(--brand-1) / 0.82) 58%,
       hsl(var(--brand-2) / 0.76) 100%
     );
-    box-shadow: 0 0 14px hsl(var(--brand-1) / 0.26), var(--shadow-sm);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.22) inset,
+      0 0 14px hsl(var(--brand-1) / 0.26),
+      0 10px 22px rgba(7, 10, 28, 0.38);
   }
 
   .btn-withdraw-gradient {
@@ -352,7 +423,10 @@
       hsl(var(--brand-2) / 0.82) 56%,
       hsl(var(--brand-2) / 0.94) 100%
     );
-    box-shadow: 0 0 14px hsl(var(--brand-2) / 0.24), var(--shadow-sm);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.2) inset,
+      0 0 14px hsl(var(--brand-2) / 0.24),
+      0 10px 22px rgba(7, 10, 28, 0.36);
   }
 
   .btn-secondary {
@@ -360,7 +434,11 @@
     color: hsl(var(--foreground));
     border: 1px solid hsl(var(--border) / 0.9);
     box-shadow: var(--shadow-sm);
-    transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease, opacity 180ms ease;
+    transition:
+      transform var(--motion-base) var(--ease-out-fluid),
+      border-color var(--motion-base) var(--ease-out-fluid),
+      background-color var(--motion-base) var(--ease-out-fluid),
+      opacity var(--motion-base) var(--ease-out-fluid);
   }
 
   @media (hover: hover) {
@@ -385,7 +463,123 @@
     background: linear-gradient(180deg, hsl(var(--surface-2) / 0.82) 0%, hsl(var(--surface-1) / 0.88) 100%);
     color: hsl(var(--muted-foreground));
     box-shadow: inset 0 1px 0 hsl(var(--brand-soft) / 0.1);
-    transition: transform 160ms ease, color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+    transition:
+      transform var(--motion-fast) var(--ease-out-fluid),
+      color var(--motion-fast) var(--ease-out-fluid),
+      border-color var(--motion-fast) var(--ease-out-fluid),
+      box-shadow var(--motion-fast) var(--ease-out-fluid),
+      background-color var(--motion-fast) var(--ease-out-fluid);
+  }
+
+  .glass-segmented {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 6px;
+    padding: 4px;
+    border-radius: 16px;
+    border: 1px solid rgba(var(--ui-rgb-text-primary), 0.14);
+    background:
+      linear-gradient(155deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 58%),
+      rgba(20, 26, 58, 0.84);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.13),
+      0 8px 20px rgba(8, 11, 26, 0.24);
+    backdrop-filter: blur(9px);
+    -webkit-backdrop-filter: blur(9px);
+  }
+
+  .glass-segmented[data-size="sm"] {
+    gap: 4px;
+    padding: 3px;
+    border-radius: 999px;
+  }
+
+  .glass-segmented-btn {
+    position: relative;
+    z-index: 1;
+    min-height: 40px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: transparent;
+    color: rgba(var(--ui-rgb-text-secondary), 0.92);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 670;
+    transition:
+      color var(--motion-fast) var(--ease-out-fluid),
+      border-color var(--motion-fast) var(--ease-out-fluid),
+      transform var(--motion-fast) var(--ease-out-fluid),
+      opacity var(--motion-fast) var(--ease-out-fluid);
+    cursor: pointer;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .glass-segmented[data-size="sm"] .glass-segmented-btn {
+    min-height: 30px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 0 12px;
+    gap: 6px;
+  }
+
+  .glass-segmented-btn:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+
+  .glass-segmented-btn[data-active="true"] {
+    color: rgba(var(--ui-rgb-text-primary), 0.98);
+    border-color: rgba(var(--ui-rgb-text-primary), 0.2);
+  }
+
+  .glass-segmented-btn:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  .glass-segmented-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 1px hsl(var(--brand-soft) / 0.4), 0 0 0 3px hsl(var(--ring) / 0.3);
+  }
+
+  .glass-segmented-indicator {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(var(--ui-rgb-text-primary), 0.2);
+    background:
+      linear-gradient(155deg, rgba(255, 255, 255, 0.17) 0%, rgba(255, 255, 255, 0.06) 58%),
+      rgba(109, 56, 224, 0.2);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      0 8px 18px rgba(77, 28, 179, 0.2);
+    pointer-events: none;
+  }
+
+  .glass-segmented-icon {
+    position: relative;
+    z-index: 1;
+    width: 14px;
+    height: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .glass-segmented-label {
+    position: relative;
+    z-index: 1;
+    white-space: nowrap;
   }
 
   .chip-control:active {

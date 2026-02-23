@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { startTransition, useCallback, useEffect, useRef, useState } from "react"
 import dynamic from "next/dynamic"
@@ -359,12 +359,12 @@ export default function ProfilePage() {
     [refreshLedger, refreshWallets, walletActionMode]
   )
   const shouldReduceMotion = useReducedMotion()
-  const tabEnter = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 10 }
-  const tabActive = { opacity: 1, y: 0 }
-  const tabExit = { opacity: 0, y: 0 }
+  const tabEnter = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, filter: "blur(6px)" }
+  const tabActive = { opacity: 1, filter: "blur(0px)" }
+  const tabExit = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, filter: "blur(4px)" }
   const tabTransition = shouldReduceMotion
     ? { duration: 0.1 }
-    : { duration: 0.2, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }
+    : { duration: 0.22, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }
 
   if (telegram.status === "error") {
     return (

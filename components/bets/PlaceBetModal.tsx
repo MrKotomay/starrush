@@ -11,9 +11,11 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Wallet, X } from "lucide-react";
+import { Gift, Sparkles, Wallet, X } from "lucide-react";
 import styles from "@/styles/place-bet-modal.module.css";
 import { RoundPhase } from "@/game/types";
+import { PrimaryButton } from "@/components/ui/primary-button";
+import { GlassSegmentedControl, type GlassSegmentedItem } from "@/components/ui/glass-segmented-control";
 
 export type PlaceBetTab = "GIFTS" | "TON" | "STARS";
 
@@ -36,7 +38,11 @@ interface PlaceBetModalProps {
 
 const TON_QUICK = [0.1, 0.5, 1, 5];
 const STARS_QUICK = [1, 5, 10, 25];
-const TAB_ORDER: PlaceBetTab[] = ["GIFTS", "TON", "STARS"];
+const TAB_ITEMS: Array<GlassSegmentedItem<PlaceBetTab>> = [
+  { id: "GIFTS", label: "Подарки", icon: Gift },
+  { id: "TON", label: "TON", icon: Wallet },
+  { id: "STARS", label: "Stars", icon: Sparkles },
+];
 const SHEET_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 const TOP_SAFE_MARGIN = 16;
 const BOTTOM_SAFE_MARGIN = 12;
@@ -117,7 +123,6 @@ export function PlaceBetModal({
   const measureGiftsRef = useRef<HTMLDivElement | null>(null);
   const measureTonRef = useRef<HTMLDivElement | null>(null);
   const measureStarsRef = useRef<HTMLDivElement | null>(null);
-  const activeTabIndex = TAB_ORDER.indexOf(tab);
 
   useEffect(() => {
     setMounted(true);
@@ -512,39 +517,15 @@ export function PlaceBetModal({
                 </button>
               </div>
 
-              <div className={styles.tabs}>
-                <motion.span
-                  className={styles.tabIndicator}
-                  aria-hidden="true"
-                  initial={false}
-                  animate={{ x: `${activeTabIndex * 100}%` }}
-                  transition={{ duration: 0.2, ease: SHEET_EASE }}
-                />
-                <button
-                  type="button"
-                  className={`${styles.tabButton} ${tab === "GIFTS" ? styles.tabButtonActive : ""}`}
-                  disabled={isSubmitting}
-                  onClick={() => setTab("GIFTS")}
-                >
-                  Подарки
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.tabButton} ${tab === "TON" ? styles.tabButtonActive : ""}`}
-                  disabled={isSubmitting}
-                  onClick={() => setTab("TON")}
-                >
-                  TON
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.tabButton} ${tab === "STARS" ? styles.tabButtonActive : ""}`}
-                  disabled={isSubmitting}
-                  onClick={() => setTab("STARS")}
-                >
-                  Stars
-                </button>
-              </div>
+              <GlassSegmentedControl
+                items={TAB_ITEMS}
+                value={tab}
+                onChange={(next) => setTab(next)}
+                ariaLabel="Валюта ставки"
+                className={styles.tabs}
+                layoutId="place-bet-tab-indicator"
+                disabled={isSubmitting}
+              />
               {nextRoundHint ? (
                 <p className={styles.modeHint}>{nextRoundHint}</p>
               ) : null}
@@ -566,7 +547,7 @@ export function PlaceBetModal({
             </div>
 
             <div ref={footerRef} className={styles.footer}>
-              <button
+              <PrimaryButton
                 type="button"
                 className={`${styles.submitButton} ${isSubmitting ? styles.submitButtonLoading : ""}`}
                 disabled={submitDisabled}
@@ -584,7 +565,7 @@ export function PlaceBetModal({
                   ) : null}
                   <span>{submitLabel}</span>
                 </span>
-              </button>
+              </PrimaryButton>
             </div>
           </motion.div>
 

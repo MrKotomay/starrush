@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { memo, useCallback, useMemo } from "react";
 import { FixedSizeList, ListChildComponentProps } from "react-window";

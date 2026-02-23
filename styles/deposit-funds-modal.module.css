@@ -38,13 +38,9 @@
     linear-gradient(180deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0) 32%);
 }
 
-.sheetInner {
+.handle {
   position: relative;
   z-index: 1;
-  padding: 10px 14px 14px;
-}
-
-.handle {
   margin: 0 auto 8px;
   width: 42px;
   height: 4px;
@@ -53,10 +49,13 @@
 }
 
 .header {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
+  padding: 0 14px;
   margin-bottom: 12px;
 }
 
@@ -105,82 +104,16 @@
 }
 
 .tabs {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-  padding: 5px;
-  border-radius: 16px;
-  border: 1px solid rgba(var(--ui-rgb-text-primary), 0.12);
-  background:
-    linear-gradient(155deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.03) 58%),
-    rgba(18, 24, 54, 0.82);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.11);
+  position: relative;
+  z-index: 1;
+  margin-inline: 14px;
   margin-bottom: 12px;
 }
 
-.tab {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  min-height: 42px;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  background: transparent;
-  color: rgba(var(--ui-rgb-text-secondary), 0.9);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  font-size: 13px;
-  font-weight: 650;
-  transition: color 0.16s ease, border-color 0.16s ease;
-}
-
-.tab > * {
+.content {
   position: relative;
   z-index: 1;
-}
-
-.tabPill {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  isolation: isolate;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background:
-    linear-gradient(155deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.06) 58%),
-    rgba(109, 56, 224, 0.22);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 8px 18px rgba(77, 28, 179, 0.22);
-}
-
-.tabShimmer {
-  position: absolute;
-  top: -18%;
-  bottom: -18%;
-  left: -56%;
-  width: 40%;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.34) 48%, transparent 100%);
-  transform: skewX(-20deg);
-  animation: tabShimmer 2.35s ease-in-out infinite;
-  pointer-events: none;
-}
-
-.tabActive {
-  color: rgba(var(--ui-rgb-text-primary), 0.98);
-  border-color: rgba(var(--ui-rgb-text-primary), 0.14);
-}
-
-.tabIcon {
-  width: 15px;
-  height: 15px;
-}
-
-.content {
+  margin: 0 14px;
   min-height: 272px;
   border-radius: 16px;
   border: 1px solid rgba(var(--ui-rgb-text-primary), 0.1);
@@ -256,67 +189,12 @@
   font-weight: 560;
 }
 
-.primaryBtn {
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
+.primaryActionBtn {
+  width: 100%;
   min-height: 44px;
   border-radius: 12px;
-  border: 1px solid hsl(var(--brand-soft) / 0.3);
-  background: var(--primary-gradient);
-  color: hsl(var(--foreground));
   font-size: 15px;
   font-weight: 720;
-  cursor: pointer;
-  box-shadow:
-    0 0 14px rgba(var(--ui-rgb-primary), 0.32),
-    0 8px 18px rgba(4, 7, 22, 0.34);
-  transition: filter 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
-  animation: buttonBreathe 2.8s ease-in-out infinite;
-}
-
-.primaryBtn::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 50%);
-  pointer-events: none;
-}
-
-.primaryBtn::after {
-  content: "";
-  position: absolute;
-  top: -34%;
-  bottom: -34%;
-  left: -70%;
-  width: 42%;
-  z-index: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.35) 50%, transparent 100%);
-  transform: skewX(-24deg);
-  animation: buttonShimmer 2.6s ease-in-out infinite;
-  pointer-events: none;
-}
-
-.primaryBtn > * {
-  position: relative;
-  z-index: 1;
-}
-
-.primaryBtn:hover:not(:disabled) {
-  filter: brightness(1.04);
-  transform: translateY(-1px);
-}
-
-.primaryBtn:active:not(:disabled) {
-  transform: translateY(1px);
-}
-
-.primaryBtn:disabled {
-  opacity: 0.64;
-  cursor: not-allowed;
-  box-shadow: none;
-  animation: none;
 }
 
 .ghostBtn {
@@ -332,10 +210,13 @@
 
 .statusInfo,
 .statusError {
+  position: relative;
+  z-index: 1;
   margin: 8px 2px 0;
   font-size: 12px;
   font-weight: 600;
   line-height: 1.35;
+  padding: 0 16px;
 }
 
 .statusInfo {
@@ -398,56 +279,6 @@
   letter-spacing: 0.02em;
 }
 
-@keyframes tabShimmer {
-  0% {
-    left: -62%;
-    opacity: 0;
-  }
-  16% {
-    opacity: 1;
-  }
-  52% {
-    left: 128%;
-    opacity: 0.95;
-  }
-  100% {
-    left: 128%;
-    opacity: 0;
-  }
-}
-
-@keyframes buttonShimmer {
-  0% {
-    left: -78%;
-    opacity: 0;
-  }
-  12% {
-    opacity: 0.95;
-  }
-  48% {
-    left: 130%;
-    opacity: 0.82;
-  }
-  100% {
-    left: 130%;
-    opacity: 0;
-  }
-}
-
-@keyframes buttonBreathe {
-  0%,
-  100% {
-    box-shadow:
-      0 0 14px rgba(var(--ui-rgb-primary), 0.32),
-      0 8px 18px rgba(4, 7, 22, 0.34);
-  }
-  50% {
-    box-shadow:
-      0 0 18px rgba(var(--ui-rgb-primary), 0.42),
-      0 10px 20px rgba(4, 7, 22, 0.38);
-  }
-}
-
 @media (max-width: 460px) {
   .overlay {
     padding: 10px 8px max(8px, var(--content-safe-bottom));
@@ -455,10 +286,6 @@
 
   .sheet {
     border-radius: 20px;
-  }
-
-  .sheetInner {
-    padding: 10px 10px 10px;
   }
 
   .title {
@@ -472,21 +299,28 @@
   .content {
     min-height: 260px;
     padding: 10px;
+    margin: 0 10px;
+  }
+
+  .header {
+    padding: 0 10px;
+  }
+
+  .tabs {
+    margin-inline: 10px;
+  }
+
+  .statusInfo,
+  .statusError {
+    padding: 0 12px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .closeBtn,
-  .tab,
   .input,
   .quickBtn,
-  .primaryBtn {
+  .primaryActionBtn {
     transition: none;
-  }
-
-  .tabShimmer,
-  .primaryBtn::after,
-  .primaryBtn {
-    animation: none !important;
   }
 }
