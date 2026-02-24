@@ -1,27 +1,13 @@
 import { db } from "@/lib/db"
 import { createSession, SESSION_COOKIE_NAME } from "@/lib/session"
 import { jsonUtf8 } from "@/lib/http"
+import { isEnabledByEnvWithDevDefault, parseBooleanEnv } from "@/lib/dev-flags"
 
 const DEV_TELEGRAM_ID = BigInt(123456789)
 const DEV_USERNAME = "dev_user"
 
-function parseBooleanEnv(value: string | undefined): boolean | null {
-  if (typeof value !== "string") return null
-  const normalized = value.trim().toLowerCase()
-  if (normalized === "1" || normalized === "true") return true
-  if (normalized === "0" || normalized === "false") return false
-  return null
-}
-
 function isDevAuthEnabled(): boolean {
-  if (process.env.NODE_ENV === "production") {
-    return false
-  }
-  const explicitToggle = parseBooleanEnv(process.env.DEV_AUTH_ENABLED)
-  if (explicitToggle !== null) {
-    return explicitToggle
-  }
-  return process.env.NODE_ENV === "development"
+  return isEnabledByEnvWithDevDefault(process.env.DEV_AUTH_ENABLED)
 }
 
 export async function POST() {
@@ -106,11 +92,10 @@ export async function POST() {
 }
 
 export async function GET() {
-  const explicitToggle = parseBooleanEnv(process.env.DEV_AUTH_ENABLED)
   return jsonUtf8({
     enabled: isDevAuthEnabled(),
     env: process.env.NODE_ENV,
     devAuthEnabledRaw: process.env.DEV_AUTH_ENABLED ?? null,
-    devAuthEnabledParsed: explicitToggle,
+    devAuthEnabledParsed: parseBooleanEnv(process.env.DEV_AUTH_ENABLED),
   })
 }

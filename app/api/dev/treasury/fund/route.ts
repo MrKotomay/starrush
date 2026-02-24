@@ -3,6 +3,7 @@ import { z } from "zod"
 import { creditHouse } from "@/lib/house-ledger.service"
 import { jsonUtf8 } from "@/lib/http"
 import { rateLimit } from "@/lib/rate-limit"
+import { isEnabledByEnvWithDevDefault } from "@/lib/dev-flags"
 
 const DEV_TREASURY_MAX_AMOUNT = new Prisma.Decimal("1000000")
 
@@ -12,7 +13,7 @@ const schema = z.object({
 })
 
 function isDevTreasuryEnabled() {
-  return process.env.NODE_ENV === "development" && process.env.ENABLE_DEV_TREASURY === "1"
+  return isEnabledByEnvWithDevDefault(process.env.ENABLE_DEV_TREASURY)
 }
 
 function parseFundAmount(value: string | number) {

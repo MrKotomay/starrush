@@ -46,6 +46,8 @@ const TAB_ITEMS: Array<GlassSegmentedItem<PlaceBetTab>> = [
 const SHEET_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 const TOP_SAFE_MARGIN = 16;
 const BOTTOM_SAFE_MARGIN = 12;
+const supportsResizeObserver = typeof window !== "undefined" && typeof window.ResizeObserver === "function";
+
 const INITIAL_TAB_HEIGHTS: Record<PlaceBetTab, number> = {
   GIFTS: 0,
   TON: 0,
@@ -256,6 +258,9 @@ export function PlaceBetModal({
   useEffect(() => {
     if (!open) return;
 
+    updateMeasuredHeights();
+    if (!supportsResizeObserver) return;
+
     const pairs: Array<[PlaceBetTab, HTMLDivElement | null]> = [
       ["GIFTS", measureGiftsRef.current],
       ["TON", measureTonRef.current],
@@ -277,8 +282,6 @@ export function PlaceBetModal({
       observer.observe(node);
       observers.push(observer);
     });
-
-    updateMeasuredHeights();
 
     return () => {
       observers.forEach((observer) => observer.disconnect());
@@ -339,13 +342,15 @@ export function PlaceBetModal({
     window.visualViewport?.addEventListener("scroll", onWindowResize);
 
     const observers: ResizeObserver[] = [];
-    const refs = [sheetRef.current, topSectionRef.current, footerRef.current];
-    refs.forEach((el) => {
-      if (!el) return;
-      const observer = new ResizeObserver(() => recalcLayout());
-      observer.observe(el);
-      observers.push(observer);
-    });
+    if (supportsResizeObserver) {
+      const refs = [sheetRef.current, topSectionRef.current, footerRef.current];
+      refs.forEach((el) => {
+        if (!el) return;
+        const observer = new ResizeObserver(() => recalcLayout());
+        observer.observe(el);
+        observers.push(observer);
+      });
+    }
 
     return () => {
       window.removeEventListener("resize", onWindowResize);

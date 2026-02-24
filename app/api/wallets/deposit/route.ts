@@ -7,6 +7,7 @@ import { db } from "@/lib/db"
 import { jsonUtf8 } from "@/lib/http"
 import { createTransaction, applyTransaction } from "@/lib/ledger.service"
 import { rateLimit } from "@/lib/rate-limit"
+import { isEnabledByEnvWithDevDefault } from "@/lib/dev-flags"
 import { applyReferralRewardForDeposit } from "@/lib/referrals"
 
 const schema = z.object({
@@ -15,7 +16,7 @@ const schema = z.object({
 })
 
 function isDevWalletActionsEnabled() {
-  return process.env.NODE_ENV === "development" && process.env.ENABLE_DEV_WALLET_ACTIONS === "1"
+  return isEnabledByEnvWithDevDefault(process.env.ENABLE_DEV_WALLET_ACTIONS)
 }
 
 function parseAmount(value: string | number) {
