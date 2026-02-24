@@ -18,6 +18,7 @@
   --motion-fast: 160ms;
   --motion-base: 220ms;
   --motion-slow: 280ms;
+  --motion-button-lg: 340ms;
   --ease-out-fluid: cubic-bezier(0.22, 1, 0.36, 1);
 
   /* ── Safe-area fallbacks (Telegram + browser) ──── */
@@ -290,6 +291,7 @@
     --motion-fast: 120ms;
     --motion-base: 170ms;
     --motion-slow: 220ms;
+    --motion-button-lg: 240ms;
   }
 }
 
@@ -546,14 +548,14 @@
     transform: translateZ(0);
     will-change: transform, filter, box-shadow, background-position;
     transition:
-      transform var(--motion-base) var(--ease-out-fluid),
-      filter var(--motion-base) var(--ease-out-fluid),
-      box-shadow var(--motion-base) var(--ease-out-fluid),
-      opacity var(--motion-base) var(--ease-out-fluid),
-      border-color var(--motion-base) var(--ease-out-fluid),
-      background-color var(--motion-base) var(--ease-out-fluid),
-      background-image var(--motion-base) var(--ease-out-fluid),
-      background-position var(--motion-base) var(--ease-out-fluid);
+      transform var(--motion-button-lg) var(--ease-out-fluid),
+      filter var(--motion-button-lg) var(--ease-out-fluid),
+      box-shadow var(--motion-button-lg) var(--ease-out-fluid),
+      opacity var(--motion-button-lg) var(--ease-out-fluid),
+      border-color var(--motion-button-lg) var(--ease-out-fluid),
+      background-color var(--motion-button-lg) var(--ease-out-fluid),
+      background-image var(--motion-button-lg) var(--ease-out-fluid),
+      background-position var(--motion-button-lg) var(--ease-out-fluid);
   }
 
   .btn-primary-glow::before {
@@ -565,8 +567,8 @@
     background: linear-gradient(180deg, hsl(var(--brand-soft) / 0.24) 0%, transparent 46%);
     opacity: 0.78;
     transition:
-      transform var(--motion-base) var(--ease-out-fluid),
-      opacity var(--motion-base) var(--ease-out-fluid);
+      transform var(--motion-button-lg) var(--ease-out-fluid),
+      opacity var(--motion-button-lg) var(--ease-out-fluid);
   }
 
   .btn-primary-glow::after {
@@ -589,7 +591,7 @@
         rgba(255, 255, 255, 0) 56%
       );
     opacity: 0.88;
-    animation: buttonSheen 3.2s var(--ease-out-fluid) infinite;
+    animation: buttonSheen 4.4s var(--ease-out-fluid) infinite;
   }
 
   .btn-primary-glow > * {
@@ -953,7 +955,7 @@
 
   /* ── Animation helpers ────────────────────────────── */
   .glow-breathe {
-    animation: glowBreathe 3.2s ease-in-out infinite;
+    animation: glowBreathe 4.2s ease-in-out infinite;
   }
 
   .nav-active-breathe {

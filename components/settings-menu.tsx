@@ -74,7 +74,7 @@ export function SettingsMenu({
           onClick={() => handleClick(item.id)}
           data-sheen="event"
           className={cn(
-            "focus-brand liquid-sheen flex w-full items-center justify-between p-4 text-left transition-all duration-200 hover:bg-surface-2/70 active:translate-y-[1px]",
+            "focus-brand liquid-sheen flex w-full items-center justify-between p-4 text-left transition-all duration-300 hover:bg-surface-2/70 active:translate-y-[1px]",
             index !== menuItems.length - 1 ? "border-b border-white/6" : "",
           )}
         >

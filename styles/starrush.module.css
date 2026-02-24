@@ -757,11 +757,11 @@
   text-shadow: 0 1px 0 rgba(5, 8, 22, 0.32);
   cursor: pointer;
   transition:
-    transform var(--motion-base) var(--ease-out-fluid),
-    filter var(--motion-base) var(--ease-out-fluid),
-    box-shadow var(--motion-base) var(--ease-out-fluid),
-    opacity var(--motion-base) var(--ease-out-fluid),
-    border-color var(--motion-base) var(--ease-out-fluid);
+    transform var(--motion-button-lg) var(--ease-out-fluid),
+    filter var(--motion-button-lg) var(--ease-out-fluid),
+    box-shadow var(--motion-button-lg) var(--ease-out-fluid),
+    opacity var(--motion-button-lg) var(--ease-out-fluid),
+    border-color var(--motion-button-lg) var(--ease-out-fluid);
   pointer-events: auto;
 }
 
@@ -808,7 +808,7 @@
     0 1px 0 rgba(255, 255, 255, 0.22) inset,
     0 0 14px rgba(101, 29, 203, 0.24),
     0 10px 22px rgba(7, 10, 28, 0.38);
-  animation: glowBreathe 3.4s ease-in-out infinite;
+  animation: glowBreathe 4.6s ease-in-out infinite;
 }
 
 .btnCashout,
@@ -828,7 +828,7 @@
     0 0 16px rgba(215, 97, 241, 0.26),
     0 10px 22px rgba(7, 10, 28, 0.38);
   color: hsl(var(--foreground));
-  animation: glowBreathe 3.4s ease-in-out infinite;
+  animation: glowBreathe 4.6s ease-in-out infinite;
 }
 
 .btnQueue,

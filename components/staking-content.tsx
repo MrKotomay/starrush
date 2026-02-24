@@ -14,6 +14,7 @@ import { GlassSegmentedControl } from "@/components/ui/glass-segmented-control"
 import styles from "@/styles/staking-safe.module.css"
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
+const STAKING_SORT_INDICATOR_SPRING = { type: "spring", stiffness: 360, damping: 34, mass: 0.85 } as const
 const LEADERBOARD_LIMIT = 50
 
 type LeaderboardSort = "gifts" | "ton" | "stars"
@@ -259,6 +260,7 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
             className={styles.sortSwitch}
             size="sm"
             layoutId="staking-sort-indicator"
+            indicatorTransition={shouldReduceMotion ? { duration: 0.12 } : STAKING_SORT_INDICATOR_SPRING}
           />
         </div>
 
