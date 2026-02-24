@@ -869,6 +869,11 @@
     filter: brightness(1.02);
   }
 
+  .glass-segmented[data-active-chrome="off"] .glass-segmented-btn[data-active="true"] {
+    border-color: transparent;
+    filter: none;
+  }
+
   @media (hover: hover) {
     .glass-segmented-btn:hover:not(:disabled) {
       color: rgba(var(--rgb-text-primary), 0.95);

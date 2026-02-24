@@ -105,10 +105,6 @@
   width: min(100%, 360px);
 }
 
-.sortSwitch :global(.glass-segmented-btn) {
-  overflow: visible;
-}
-
 .leaderboardCard {
   border-color: rgba(var(--rgb-text-primary), 0.12);
 }
@@ -312,4 +308,3 @@
     animation: none !important;
   }
 }
-

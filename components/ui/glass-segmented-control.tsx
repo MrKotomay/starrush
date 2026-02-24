@@ -23,12 +23,21 @@ interface GlassSegmentedControlProps<T extends string> {
   layoutId?: string
   indicatorTransition?: Transition
   indicatorSheen?: "on" | "off"
+  activeButtonChrome?: "on" | "off"
   className?: string
   disabled?: boolean
 }
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
 const INDICATOR_SPRING = { type: "spring", stiffness: 500, damping: 36, mass: 0.7 } as const
+
+type IndicatorMetrics = {
+  left: number
+  top: number
+  width: number
+  height: number
+  borderRadius: string
+} | null
 
 function renderIcon(icon: SegmentedIcon | undefined, className: string) {
   if (!icon) return null
@@ -56,6 +65,7 @@ export function GlassSegmentedControl<T extends string>({
   layoutId = "glass-segmented-indicator",
   indicatorTransition,
   indicatorSheen = "on",
+  activeButtonChrome = "on",
   className,
   disabled = false,
 }: GlassSegmentedControlProps<T>) {
@@ -64,21 +74,115 @@ export function GlassSegmentedControl<T extends string>({
     ? ({ duration: 0.12 } as const)
     : INDICATOR_SPRING)
   const pressScale = shouldReduceMotion ? 1 : 0.985
+  const rootRef = React.useRef<HTMLDivElement | null>(null)
+  const buttonRefs = React.useRef<Record<string, HTMLButtonElement | null>>({})
+  const [indicatorMetrics, setIndicatorMetrics] = React.useState<IndicatorMetrics>(null)
+  const itemIdsKey = React.useMemo(() => items.map((item) => item.id).join("|"), [items])
+
+  const updateIndicatorMetrics = React.useCallback(() => {
+    const root = rootRef.current
+    const activeButton = buttonRefs.current[value]
+    if (!root || !activeButton) {
+      setIndicatorMetrics(null)
+      return
+    }
+
+    const rootRect = root.getBoundingClientRect()
+    const buttonRect = activeButton.getBoundingClientRect()
+    const buttonStyles = window.getComputedStyle(activeButton)
+    const next: Exclude<IndicatorMetrics, null> = {
+      left: Number((buttonRect.left - rootRect.left).toFixed(3)),
+      top: Number((buttonRect.top - rootRect.top).toFixed(3)),
+      width: Number(buttonRect.width.toFixed(3)),
+      height: Number(buttonRect.height.toFixed(3)),
+      borderRadius: buttonStyles.borderRadius,
+    }
+
+    setIndicatorMetrics((prev) => {
+      if (
+        prev &&
+        prev.left === next.left &&
+        prev.top === next.top &&
+        prev.width === next.width &&
+        prev.height === next.height &&
+        prev.borderRadius === next.borderRadius
+      ) {
+        return prev
+      }
+      return next
+    })
+  }, [value])
+
+  React.useLayoutEffect(() => {
+    updateIndicatorMetrics()
+  }, [updateIndicatorMetrics, itemIdsKey, size])
+
+  React.useEffect(() => {
+    const root = rootRef.current
+    if (!root || typeof window === "undefined" || typeof window.ResizeObserver === "undefined") {
+      return
+    }
+
+    const observer = new ResizeObserver(() => updateIndicatorMetrics())
+    observer.observe(root)
+    items.forEach((item) => {
+      const node = buttonRefs.current[item.id]
+      if (node) observer.observe(node)
+    })
+
+    window.addEventListener("resize", updateIndicatorMetrics, { passive: true })
+    window.visualViewport?.addEventListener("resize", updateIndicatorMetrics)
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener("resize", updateIndicatorMetrics)
+      window.visualViewport?.removeEventListener("resize", updateIndicatorMetrics)
+    }
+  }, [items, updateIndicatorMetrics])
 
   return (
     <div
+      ref={rootRef}
       className={cn("glass-segmented", className)}
       data-size={size}
+      data-layout-id={layoutId}
       data-indicator-sheen={indicatorSheen}
+      data-active-chrome={activeButtonChrome}
       role="tablist"
       aria-label={ariaLabel}
     >
+      {indicatorMetrics ? (
+        <motion.span
+          className="glass-segmented-indicator"
+          style={{
+            inset: "auto",
+            left: indicatorMetrics.left,
+            top: indicatorMetrics.top,
+            width: indicatorMetrics.width,
+            height: indicatorMetrics.height,
+            borderRadius: indicatorMetrics.borderRadius,
+          }}
+          initial={false}
+          animate={{
+            left: indicatorMetrics.left,
+            top: indicatorMetrics.top,
+            width: indicatorMetrics.width,
+            height: indicatorMetrics.height,
+          }}
+          transition={resolvedIndicatorTransition}
+          aria-hidden="true"
+        />
+      ) : null}
+
       {items.map((item) => {
         const active = item.id === value
         const itemDisabled = disabled || item.disabled
         return (
           <motion.button
             key={item.id}
+            ref={(node) => {
+              buttonRefs.current[item.id] = node
+            }}
             type="button"
             role="tab"
             aria-selected={active}
@@ -89,14 +193,6 @@ export function GlassSegmentedControl<T extends string>({
             whileTap={{ scale: pressScale }}
             transition={{ duration: shouldReduceMotion ? 0.1 : 0.16, ease: EASE }}
           >
-            {active ? (
-              <motion.span
-                layoutId={layoutId}
-                className="glass-segmented-indicator"
-                transition={resolvedIndicatorTransition}
-                aria-hidden="true"
-              />
-            ) : null}
             {renderIcon(item.icon, "glass-segmented-icon")}
             <span className="glass-segmented-label">{item.label}</span>
           </motion.button>

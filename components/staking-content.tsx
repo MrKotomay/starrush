@@ -266,6 +266,7 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
             size="sm"
             layoutId="staking-sort-indicator"
             indicatorSheen="off"
+            activeButtonChrome="off"
             indicatorTransition={shouldReduceMotion ? { duration: 0.12 } : STAKING_SORT_INDICATOR_MOTION}
           />
         </div>
