@@ -15,9 +15,10 @@ import styles from "@/styles/staking-safe.module.css"
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
 const STAKING_SORT_INDICATOR_MOTION = {
-  type: "tween",
-  duration: 0.28,
-  ease: EASE,
+  type: "spring",
+  stiffness: 500,
+  damping: 36,
+  mass: 0.7,
 } as const
 const LEADERBOARD_LIMIT = 50
 
