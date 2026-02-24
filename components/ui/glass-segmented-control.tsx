@@ -22,6 +22,7 @@ interface GlassSegmentedControlProps<T extends string> {
   size?: "sm" | "md"
   layoutId?: string
   indicatorTransition?: Transition
+  indicatorSheen?: "on" | "off"
   className?: string
   disabled?: boolean
 }
@@ -54,6 +55,7 @@ export function GlassSegmentedControl<T extends string>({
   size = "md",
   layoutId = "glass-segmented-indicator",
   indicatorTransition,
+  indicatorSheen = "on",
   className,
   disabled = false,
 }: GlassSegmentedControlProps<T>) {
@@ -65,7 +67,13 @@ export function GlassSegmentedControl<T extends string>({
 
   return (
     <LayoutGroup id={layoutId}>
-      <div className={cn("glass-segmented", className)} data-size={size} role="tablist" aria-label={ariaLabel}>
+      <div
+        className={cn("glass-segmented", className)}
+        data-size={size}
+        data-indicator-sheen={indicatorSheen}
+        role="tablist"
+        aria-label={ariaLabel}
+      >
         {items.map((item) => {
           const active = item.id === value
           const itemDisabled = disabled || item.disabled

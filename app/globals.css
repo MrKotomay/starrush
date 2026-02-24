@@ -920,6 +920,11 @@
     animation: liquidSheenSweep 2.9s var(--ease-out-fluid) infinite;
   }
 
+  .glass-segmented[data-indicator-sheen="off"] .glass-segmented-indicator::after {
+    animation: none;
+    opacity: 0;
+  }
+
   .glass-segmented-icon {
     position: relative;
     z-index: 1;
