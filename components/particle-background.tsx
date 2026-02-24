@@ -3,7 +3,11 @@
 import { useEffect, useRef } from "react"
 import { avatarPalette } from "@/theme/colors"
 
-export function ParticleBackground() {
+interface ParticleBackgroundProps {
+  active?: boolean
+}
+
+export function ParticleBackground({ active = true }: ParticleBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -49,9 +53,9 @@ export function ParticleBackground() {
       })
     }
 
-    let animationId: number
+    let animationId: number | null = null
 
-    const animate = () => {
+    const drawFrame = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
       particles.forEach((particle) => {
@@ -71,16 +75,63 @@ export function ParticleBackground() {
       })
 
       ctx.globalAlpha = 1
+    }
+
+    const shouldPause = () =>
+      document.hidden || !active || document.body.dataset.placeBetModalOpen === "true"
+
+    const animate = () => {
+      if (shouldPause()) {
+        animationId = null
+        return
+      }
+      drawFrame()
       animationId = requestAnimationFrame(animate)
     }
 
-    animate()
+    const start = () => {
+      if (animationId !== null) return
+      animate()
+    }
+
+    const stop = () => {
+      if (animationId !== null) {
+        cancelAnimationFrame(animationId)
+        animationId = null
+      }
+    }
+
+    const onVisibilityChange = () => {
+      if (shouldPause()) {
+        stop()
+        return
+      }
+      start()
+    }
+
+    if (!shouldPause()) {
+      start()
+    } else {
+      drawFrame()
+    }
+
+    document.addEventListener("visibilitychange", onVisibilityChange)
+
+    const placeModalObserver = new MutationObserver(() => {
+      onVisibilityChange()
+    })
+    placeModalObserver.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["data-place-bet-modal-open"],
+    })
 
     return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange)
+      placeModalObserver.disconnect()
       window.removeEventListener("resize", resizeCanvas)
-      cancelAnimationFrame(animationId)
+      stop()
     }
-  }, [])
+  }, [active])
 
   return (
     <canvas

@@ -130,6 +130,8 @@
 }
 
 .leaderboardRow {
+  position: relative;
+  overflow: hidden;
   display: grid;
   grid-template-columns: 48px 1fr 86px;
   align-items: center;
@@ -143,6 +145,24 @@
     background-color 0.2s ease,
     transform 0.2s ease,
     box-shadow 0.2s ease;
+}
+
+.leaderboardRow::after {
+  content: "";
+  position: absolute;
+  inset: -120% auto -120% -42%;
+  width: 42%;
+  pointer-events: none;
+  transform: translateX(-180%) rotate(24deg);
+  background: linear-gradient(
+    120deg,
+    transparent 16%,
+    rgba(238, 243, 255, 0.14) 34%,
+    rgba(238, 243, 255, 0.72) 52%,
+    rgba(238, 243, 255, 0.18) 72%,
+    transparent 92%
+  );
+  opacity: 0;
 }
 
 .leaderboardRowTop {
@@ -166,6 +186,11 @@
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.12),
       0 10px 20px rgba(8, 11, 26, 0.24);
+  }
+
+  .leaderboardRow:hover::after {
+    opacity: 0.84;
+    animation: stakingRowSheen 0.9s cubic-bezier(0.22, 1, 0.36, 1) 1 both;
   }
 }
 
@@ -277,5 +302,23 @@
   .rightGlow,
   .safeFloat {
     animation: none;
+  }
+
+  .leaderboardRow::after {
+    animation: none !important;
+  }
+}
+
+@keyframes stakingRowSheen {
+  0% {
+    transform: translateX(-185%) rotate(24deg);
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(330%) rotate(24deg);
+    opacity: 0;
   }
 }

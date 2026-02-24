@@ -76,6 +76,8 @@ type HistoryPopoverPosition = {
   top: number;
 };
 
+type MainCtaState = "bet-ready" | "cashout-ready" | "waiting-round" | "submitting";
+
 type WalletsApiResponse = {
   ok?: boolean;
   wallets?: Array<{
@@ -232,6 +234,7 @@ export function StarRushPanel({
   const [openHistoryKey, setOpenHistoryKey] = useState<string | null>(null);
   const [historyPopoverPos, setHistoryPopoverPos] = useState<HistoryPopoverPosition | null>(null);
   const [copiedHistoryField, setCopiedHistoryField] = useState<"hash" | "seed" | null>(null);
+  const [waitingSweepTick, setWaitingSweepTick] = useState(0);
 
   // Separate fast-changing coefficient from structural snapshot
   // so the bets list doesn't re-render at ~15fps during RUNNING.
@@ -487,6 +490,13 @@ export function StarRushPanel({
   }, [isActive]);
 
   useEffect(() => {
+    if (typeof document === "undefined") return;
+    const hidden = document.hidden || !isPanelActiveRef.current || isPlaceModalOpen;
+    roundAdapterRef.current?.setDocumentHidden(hidden);
+    rendererRef.current?.setLowPowerMode(hidden);
+  }, [isPlaceModalOpen]);
+
+  useEffect(() => {
     if (process.env.NODE_ENV === "production" || typeof window === "undefined") {
       return;
     }
@@ -632,13 +642,48 @@ export function StarRushPanel({
     () => Math.max(0, walletStarsBalance - walletStarsLocked),
     [walletStarsBalance, walletStarsLocked],
   );
+  const waitingReason = useMemo(() => {
+    if (snapshot.queuedBet) return "Ставка уже принята, применим её в следующем раунде.";
+    if (snapshot.phase === RoundPhase.RUNNING && !snapshot.canPlaceBet) {
+      return "Раунд уже идет, ожидаем открытие следующего раунда.";
+    }
+    if (snapshot.phase === RoundPhase.CRASHED || snapshot.phase === RoundPhase.RESETTING) {
+      return "Раунд переключается, ожидаем старт.";
+    }
+    return "Прием ставок временно закрыт.";
+  }, [snapshot.canPlaceBet, snapshot.phase, snapshot.queuedBet]);
+  const ctaState = useMemo<MainCtaState>(() => {
+    if (isActionBusy) return "submitting";
+    if (canCashOutNow) return "cashout-ready";
+    if (canPlaceBetNow) return "bet-ready";
+    return "waiting-round";
+  }, [canCashOutNow, canPlaceBetNow, isActionBusy]);
   const mainBetLabel = useMemo(() => {
-    if (isCashoutSubmitting) return "Вывод...";
-    if (canCashOutNow) return `Забрать ${cashoutAmount.toFixed(2)} TON`;
-    if (isBetSubmitting) return "Отправка...";
+    if (ctaState === "submitting") {
+      return isCashoutSubmitting ? "Вывод..." : "Отправка...";
+    }
+    if (ctaState === "cashout-ready") return `Забрать ${cashoutAmount.toFixed(2)} TON`;
+    if (ctaState === "waiting-round") return "Ожидание следующего раунда";
     return "Сделать ставку";
-  }, [canCashOutNow, cashoutAmount, isBetSubmitting, isCashoutSubmitting]);
-  const isMainActionDisabled = canCashOutNow ? isActionBusy : isActionBusy || !canPlaceBetNow;
+  }, [cashoutAmount, ctaState, isCashoutSubmitting]);
+  const isMainActionDisabled = ctaState === "waiting-round" || ctaState === "submitting";
+  const ctaStateClass = ctaState === "cashout-ready"
+    ? styles.btnStateCashout
+    : ctaState === "waiting-round"
+      ? styles.btnStateWaiting
+      : ctaState === "submitting"
+        ? styles.btnStateSubmitting
+        : styles.btnStateBetReady;
+  const ctaSheenMode = ctaState === "waiting-round"
+    ? "once"
+    : ctaState === "submitting"
+      ? "off"
+      : "always";
+
+  useEffect(() => {
+    if (ctaState !== "waiting-round") return;
+    setWaitingSweepTick((prev) => prev + 1);
+  }, [ctaState]);
   const statusChipLabel = isRunning
     ? `x${coefficient.toFixed(2)}`
     : isSettling
@@ -838,14 +883,14 @@ export function StarRushPanel({
   }, [snapshot.phase, snapshot.roundId]);
 
   const onMainAction = useCallback(() => {
-    if (canCashOutNow) {
+    if (ctaState === "cashout-ready") {
       void onCashOut();
       return;
     }
 
-    if (!canPlaceBetNow || isActionBusy) return;
+    if (ctaState !== "bet-ready") return;
     setPlaceModalOpen(true);
-  }, [canCashOutNow, canPlaceBetNow, isActionBusy, onCashOut]);
+  }, [ctaState, onCashOut]);
   const getRocketPose = useCallback(() => rendererRef.current?.getRocketPose() ?? null, []);
   const onHistoryWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
     const rail = historyRailRef.current;
@@ -1026,14 +1071,20 @@ export function StarRushPanel({
 
         <section className={styles.betSection}>
           <button
+            key={ctaState === "waiting-round" ? `waiting-${waitingSweepTick}` : ctaState}
             type="button"
-            className={`${styles.actionButton} ${canCashOutNow ? styles.btnCashout : styles.btnBet}`}
+            className={`${styles.actionButton} ${ctaStateClass} liquid-sheen`}
             disabled={isMainActionDisabled}
+            data-sheen={ctaSheenMode}
+            data-cta-state={ctaState}
             aria-busy={isActionBusy}
             onClick={onMainAction}
           >
             {mainBetLabel}
           </button>
+          {ctaState === "waiting-round" ? (
+            <p className={styles.queueHint}>{waitingReason}</p>
+          ) : null}
         </section>
       </div>
 

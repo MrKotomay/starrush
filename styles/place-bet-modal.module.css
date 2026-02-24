@@ -3,8 +3,9 @@
   inset: 0;
   z-index: 70;
   background: rgba(4, 7, 18, 0.72);
-  backdrop-filter: blur(7px);
-  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  will-change: opacity;
 }
 
 .sheet {
@@ -26,6 +27,8 @@
     linear-gradient(180deg, hsl(var(--surface-2) / 0.96) 0%, hsl(var(--surface-1) / 0.94) 52%, hsl(var(--bg-0) / 0.98) 100%);
   box-shadow: 0 26px 56px rgba(4, 7, 22, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   padding: 18px 18px 16px;
+  contain: layout paint;
+  will-change: transform, opacity;
 }
 
 .sheet::before {
@@ -235,6 +238,9 @@
 }
 
 .quickButton {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -259,6 +265,24 @@
     color 160ms ease,
     border-color 160ms ease;
   border: 1px solid transparent;
+}
+
+.quickButton::after {
+  content: "";
+  position: absolute;
+  inset: -120% auto -120% -40%;
+  width: 42%;
+  pointer-events: none;
+  transform: translateX(-180%) rotate(24deg);
+  background: linear-gradient(
+    120deg,
+    transparent 16%,
+    rgba(238, 243, 255, 0.14) 34%,
+    rgba(238, 243, 255, 0.72) 52%,
+    rgba(238, 243, 255, 0.18) 72%,
+    transparent 92%
+  );
+  opacity: 0;
 }
 
 .quickButton:focus-visible {
@@ -297,6 +321,11 @@
     box-shadow:
       inset 0 0 0 1px hsl(var(--brand-soft) / 0.2),
       0 8px 18px rgba(8, 11, 26, 0.2);
+  }
+
+  .quickButton:hover:not(:disabled)::after {
+    opacity: 0.85;
+    animation: placeQuickSheen 0.82s cubic-bezier(0.22, 1, 0.36, 1) 1 both;
   }
 }
 
@@ -384,5 +413,23 @@
   .submitButton,
   .closeButton {
     transition-duration: 0ms !important;
+  }
+
+  .quickButton::after {
+    animation: none !important;
+  }
+}
+
+@keyframes placeQuickSheen {
+  0% {
+    transform: translateX(-185%) rotate(24deg);
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(320%) rotate(24deg);
+    opacity: 0;
   }
 }

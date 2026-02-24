@@ -26,6 +26,7 @@ interface GlassSegmentedControlProps<T extends string> {
 }
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
+const INDICATOR_SPRING = { type: "spring", stiffness: 500, damping: 36, mass: 0.7 } as const
 
 function renderIcon(icon: SegmentedIcon | undefined, className: string) {
   if (!icon) return null
@@ -57,7 +58,7 @@ export function GlassSegmentedControl<T extends string>({
   const shouldReduceMotion = useReducedMotion()
   const indicatorTransition = shouldReduceMotion
     ? ({ duration: 0.12 } as const)
-    : ({ type: "spring", stiffness: 500, damping: 36, mass: 0.7 } as const)
+    : INDICATOR_SPRING
   const pressScale = shouldReduceMotion ? 1 : 0.985
 
   return (
@@ -68,6 +69,7 @@ export function GlassSegmentedControl<T extends string>({
         return (
           <motion.button
             key={item.id}
+            layout="position"
             type="button"
             role="tab"
             aria-selected={active}
@@ -80,6 +82,7 @@ export function GlassSegmentedControl<T extends string>({
           >
             {active ? (
               <motion.span
+                layout="position"
                 layoutId={layoutId}
                 className="glass-segmented-indicator"
                 transition={indicatorTransition}

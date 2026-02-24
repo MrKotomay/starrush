@@ -72,13 +72,14 @@ export function SettingsMenu({
           key={item.id}
           type="button"
           onClick={() => handleClick(item.id)}
+          data-sheen="event"
           className={cn(
-            "focus-brand flex w-full items-center justify-between p-4 text-left transition-colors duration-200 hover:bg-surface-2/70",
+            "focus-brand liquid-sheen flex w-full items-center justify-between p-4 text-left transition-all duration-200 hover:bg-surface-2/70 active:translate-y-[1px]",
             index !== menuItems.length - 1 ? "border-b border-white/6" : "",
           )}
         >
           <div className="flex items-center gap-3">
-            <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", item.iconClassName)}>
+            <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl border border-white/12 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]", item.iconClassName)}>
               {item.icon}
             </div>
             <span className="font-medium text-foreground">{item.label}</span>
@@ -94,4 +95,3 @@ export function SettingsMenu({
     </GlassCard>
   )
 }
-

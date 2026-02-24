@@ -1,6 +1,6 @@
 "use client"
 
-import { startTransition, useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import dynamic from "next/dynamic"
 import { AnimatePresence, LayoutGroup, MotionConfig, motion, useReducedMotion } from "framer-motion"
 import { useTelegramUser } from "@/lib/use-telegram-user"
@@ -359,12 +359,27 @@ export default function ProfilePage() {
     [refreshLedger, refreshWallets, walletActionMode]
   )
   const shouldReduceMotion = useReducedMotion()
-  const tabEnter = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, filter: "blur(6px)" }
-  const tabActive = { opacity: 1, filter: "blur(0px)" }
-  const tabExit = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, filter: "blur(4px)" }
+  const hasHeavyOverlay = isDepositModalOpen || isWalletOverviewOpen || walletActionMode !== null
+  const isMineSceneActive = activeTab === "mine" && !hasHeavyOverlay
+  const tabEnter = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 12 }
+  const tabActive = { opacity: 1, y: 0 }
+  const tabExit = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }
   const tabTransition = shouldReduceMotion
     ? { duration: 0.1 }
-    : { duration: 0.22, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }
+    : { duration: 0.2, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }
+
+  useEffect(() => {
+    if (typeof document === "undefined") return
+    if (hasHeavyOverlay) {
+      document.body.dataset.adaptiveMotion = "reduced"
+    } else {
+      delete document.body.dataset.adaptiveMotion
+    }
+
+    return () => {
+      delete document.body.dataset.adaptiveMotion
+    }
+  }, [hasHeavyOverlay])
 
   if (telegram.status === "error") {
     return (
@@ -403,9 +418,7 @@ export default function ProfilePage() {
   const starsBalance = toNumber(starsWallet?.balance)
 
   const handleTabChange = (nextTab: TabId) => {
-    startTransition(() => {
-      setActiveTab(nextTab)
-    })
+    setActiveTab(nextTab)
   }
   const sharedAvatarLayoutId = "shared-profile-avatar"
   const topHudProps = {
@@ -426,7 +439,7 @@ export default function ProfilePage() {
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-background bg-cosmic-radial">
-      <ParticleBackground />
+      <ParticleBackground active={!hasHeavyOverlay} />
 
       {activeTab === "mine" ? (
         <div className="pointer-events-none absolute inset-x-0 top-0 z-30 mx-auto w-full max-w-md">
@@ -443,7 +456,7 @@ export default function ProfilePage() {
               <TopHud {...topHudProps} />
             ) : null}
 
-            <AnimatePresence mode="wait" initial={false}>
+            <AnimatePresence mode="sync" initial={false}>
               {activeTab === "staking" ? (
                 <motion.section
                   key="tab-staking"
@@ -469,6 +482,7 @@ export default function ProfilePage() {
                       demoMode={true}
                       tonBalance={tonBalance}
                       starsBalance={starsBalance}
+                      isActive={isMineSceneActive}
                       onOnlineCountChange={setRushOnlineCount}
                       onWalletNeedsRefresh={handleWalletsRefresh}
                     />
@@ -586,4 +600,3 @@ export default function ProfilePage() {
     </div>
   )
 }
-

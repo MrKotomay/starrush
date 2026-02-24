@@ -228,9 +228,66 @@
     -webkit-backdrop-filter: none !important;
     filter: none !important;
   }
+
+  body[data-adaptive-motion="reduced"] {
+    --motion-fast: 120ms;
+    --motion-base: 170ms;
+    --motion-slow: 220ms;
+  }
 }
 
 @layer utilities {
+  .liquid-sheen {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .liquid-sheen::after {
+    content: "";
+    position: absolute;
+    inset: -120% auto -120% -45%;
+    width: 48%;
+    transform: translateX(-170%) rotate(24deg);
+    pointer-events: none;
+    background: linear-gradient(
+      120deg,
+      transparent 10%,
+      rgba(230, 241, 255, 0.08) 24%,
+      rgba(235, 246, 255, 0.72) 48%,
+      rgba(230, 241, 255, 0.14) 72%,
+      transparent 92%
+    );
+    opacity: 0;
+  }
+
+  .liquid-sheen[data-sheen="always"]::after {
+    opacity: 0.82;
+    animation: liquidSheenSweep 3.25s var(--ease-out-fluid) infinite;
+  }
+
+  .liquid-sheen[data-sheen="once"]::after {
+    opacity: 0.84;
+    animation: liquidSheenSweepOnce 0.86s var(--ease-out-fluid) 1 both;
+  }
+
+  .liquid-sheen[data-sheen="off"]::after {
+    animation: none;
+    opacity: 0;
+  }
+
+  .liquid-sheen[data-sheen="event"]::after {
+    animation: none;
+    opacity: 0;
+  }
+
+  @media (hover: hover) {
+    .liquid-sheen[data-sheen="event"]:hover::after {
+      opacity: 0.82;
+      animation: liquidSheenSweepOnce 0.82s var(--ease-out-fluid) 1 both;
+    }
+  }
+
   .glass-card {
     background: hsl(var(--glass-bg));
     background-image: var(--glass-gradient);
@@ -339,13 +396,21 @@
     inset: 1px;
     border-radius: inherit;
     pointer-events: none;
-    background: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.18) 0%,
-      rgba(255, 255, 255, 0.08) 24%,
-      rgba(255, 255, 255, 0) 56%
-    );
-    opacity: 0.86;
+    background:
+      linear-gradient(
+        118deg,
+        transparent 28%,
+        rgba(236, 243, 255, 0.58) 50%,
+        transparent 72%
+      ) -170% 0 / 50% 100% no-repeat,
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.18) 0%,
+        rgba(255, 255, 255, 0.08) 24%,
+        rgba(255, 255, 255, 0) 56%
+      );
+    opacity: 0.88;
+    animation: buttonSheen 3.2s var(--ease-out-fluid) infinite;
   }
 
   .btn-primary-glow > * {
@@ -601,6 +666,7 @@
     position: absolute;
     inset: 0;
     z-index: 0;
+    overflow: hidden;
     border-radius: inherit;
     border: 1px solid rgba(var(--ui-rgb-text-primary), 0.2);
     background:
@@ -611,6 +677,25 @@
       0 8px 18px rgba(77, 28, 179, 0.2),
       0 0 18px rgba(109, 56, 224, 0.2);
     pointer-events: none;
+  }
+
+  .glass-segmented-indicator::after {
+    content: "";
+    position: absolute;
+    inset: -120% auto -120% -44%;
+    width: 44%;
+    pointer-events: none;
+    transform: translateX(-175%) rotate(24deg);
+    background: linear-gradient(
+      120deg,
+      transparent 16%,
+      rgba(236, 243, 255, 0.18) 32%,
+      rgba(236, 243, 255, 0.76) 52%,
+      rgba(236, 243, 255, 0.22) 70%,
+      transparent 90%
+    );
+    opacity: 0.78;
+    animation: liquidSheenSweep 2.9s var(--ease-out-fluid) infinite;
   }
 
   .glass-segmented-icon {
@@ -686,6 +771,47 @@
   }
 }
 
+@keyframes liquidSheenSweep {
+  0%,
+  22% {
+    transform: translateX(-175%) rotate(24deg);
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.84;
+  }
+  58%,
+  100% {
+    transform: translateX(330%) rotate(24deg);
+    opacity: 0;
+  }
+}
+
+@keyframes liquidSheenSweepOnce {
+  0% {
+    transform: translateX(-185%) rotate(24deg);
+    opacity: 0;
+  }
+  28% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(340%) rotate(24deg);
+    opacity: 0;
+  }
+}
+
+@keyframes buttonSheen {
+  0%,
+  26% {
+    background-position: -170% 0, 0 0;
+  }
+  58%,
+  100% {
+    background-position: 230% 0, 0 0;
+  }
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -711,4 +837,19 @@
   .nav-active-breathe {
     animation: none !important;
   }
+
+  .liquid-sheen::after,
+  .glass-segmented-indicator::after,
+  .btn-primary-glow::after {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+}
+
+body[data-adaptive-motion="reduced"] .liquid-sheen[data-sheen="always"]::after,
+body[data-adaptive-motion="reduced"] .glass-segmented-indicator::after,
+body[data-adaptive-motion="reduced"] .btn-primary-glow::after,
+body[data-place-bet-modal-open="true"] .glass-segmented-indicator::after,
+body[data-place-bet-modal-open="true"] .btn-primary-glow::after {
+  animation: none !important;
 }

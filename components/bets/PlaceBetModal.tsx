@@ -125,6 +125,8 @@ export function PlaceBetModal({
   const measureGiftsRef = useRef<HTMLDivElement | null>(null);
   const measureTonRef = useRef<HTMLDivElement | null>(null);
   const measureStarsRef = useRef<HTMLDivElement | null>(null);
+  const safeInsetsRef = useRef({ top: 0, bottom: 0 });
+  const recalcLayoutRafRef = useRef<number | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -215,20 +217,15 @@ export function PlaceBetModal({
     };
   }, [anchorStyle, maxSheetHeightPx]);
 
-  const readSafeInsetPx = useCallback((side: "top" | "bottom") => {
-    if (typeof document === "undefined") return 0;
-    const probe = document.createElement("div");
-    probe.style.position = "fixed";
-    probe.style.visibility = "hidden";
-    probe.style.pointerEvents = "none";
-    if (side === "top") probe.style.paddingTop = "var(--safe-top)";
-    if (side === "bottom") probe.style.paddingBottom = "var(--content-safe-bottom)";
-    document.body.appendChild(probe);
-    const computed = getComputedStyle(probe);
-    const raw = side === "top" ? computed.paddingTop : computed.paddingBottom;
-    probe.remove();
-    const value = Number.parseFloat(raw);
-    return Number.isFinite(value) ? value : 0;
+  const refreshSafeInsets = useCallback(() => {
+    if (typeof document === "undefined") return;
+    const styles = getComputedStyle(document.documentElement);
+    const top = Number.parseFloat(styles.getPropertyValue("--safe-top"));
+    const bottom = Number.parseFloat(styles.getPropertyValue("--content-safe-bottom"));
+    safeInsetsRef.current = {
+      top: Number.isFinite(top) ? top : 0,
+      bottom: Number.isFinite(bottom) ? bottom : 0,
+    };
   }, []);
 
   const updateMeasuredHeights = useCallback(() => {
@@ -250,10 +247,61 @@ export function PlaceBetModal({
     });
   }, []);
 
+  const maxMeasuredTabHeight = useMemo(() => {
+    return Math.max(tabHeights.GIFTS, tabHeights.TON, tabHeights.STARS);
+  }, [tabHeights.GIFTS, tabHeights.TON, tabHeights.STARS]);
+
+  const recalcLayout = useCallback(() => {
+    if (!open) return;
+    const viewportHeight = Math.floor(window.visualViewport?.height ?? window.innerHeight);
+    const { top: safeTop, bottom: safeBottom } = safeInsetsRef.current;
+
+    const nextMaxSheetHeight = Math.max(
+      260,
+      Math.floor(
+        viewportHeight - TOP_SAFE_MARGIN - safeTop - BOTTOM_SAFE_MARGIN - safeBottom,
+      ),
+    );
+    setMaxSheetHeightPx((prev) => (prev === nextMaxSheetHeight ? prev : nextMaxSheetHeight));
+
+    const sheetEl = sheetRef.current;
+    const topSectionEl = topSectionRef.current;
+    const footerEl = footerRef.current;
+    if (!sheetEl || !topSectionEl || !footerEl) return;
+
+    const sheetStyles = getComputedStyle(sheetEl);
+    const padTop = Number.parseFloat(sheetStyles.paddingTop) || 0;
+    const padBottom = Number.parseFloat(sheetStyles.paddingBottom) || 0;
+    const topHeight = topSectionEl.offsetHeight;
+    const footerHeight = footerEl.offsetHeight;
+
+    const availableContentHeight = Math.max(
+      0,
+      Math.floor(nextMaxSheetHeight - padTop - padBottom - topHeight - footerHeight),
+    );
+    const reserved = Math.max(
+      0,
+      Math.min(maxMeasuredTabHeight + 2, availableContentHeight),
+    );
+
+    setClampedContentHeightPx((prev) => (prev === reserved ? prev : reserved));
+  }, [maxMeasuredTabHeight, open]);
+
+  const scheduleRecalcLayout = useCallback(() => {
+    if (!open) return;
+    if (recalcLayoutRafRef.current !== null) return;
+    recalcLayoutRafRef.current = window.requestAnimationFrame(() => {
+      recalcLayoutRafRef.current = null;
+      recalcLayout();
+    });
+  }, [open, recalcLayout]);
+
   useLayoutEffect(() => {
     if (!open) return;
     updateMeasuredHeights();
-  }, [open, anchorStyle?.width, updateMeasuredHeights]);
+    refreshSafeInsets();
+    scheduleRecalcLayout();
+  }, [open, anchorStyle?.width, refreshSafeInsets, scheduleRecalcLayout, updateMeasuredHeights]);
 
   useEffect(() => {
     if (!open) return;
@@ -288,65 +336,27 @@ export function PlaceBetModal({
     };
   }, [open, anchorStyle?.width, updateMeasuredHeights]);
 
-  const maxMeasuredTabHeight = useMemo(() => {
-    return Math.max(tabHeights.GIFTS, tabHeights.TON, tabHeights.STARS);
-  }, [tabHeights.GIFTS, tabHeights.TON, tabHeights.STARS]);
-
-  const recalcLayout = useCallback(() => {
-    if (!open) return;
-    const viewportHeight = Math.floor(window.visualViewport?.height ?? window.innerHeight);
-    const safeTop = readSafeInsetPx("top");
-    const safeBottom = readSafeInsetPx("bottom");
-
-    const nextMaxSheetHeight = Math.max(
-      260,
-      Math.floor(
-        viewportHeight - TOP_SAFE_MARGIN - safeTop - BOTTOM_SAFE_MARGIN - safeBottom,
-      ),
-    );
-    setMaxSheetHeightPx((prev) => (prev === nextMaxSheetHeight ? prev : nextMaxSheetHeight));
-
-    const sheetEl = sheetRef.current;
-    const topSectionEl = topSectionRef.current;
-    const footerEl = footerRef.current;
-    if (!sheetEl || !topSectionEl || !footerEl) return;
-
-    const sheetStyles = getComputedStyle(sheetEl);
-    const padTop = Number.parseFloat(sheetStyles.paddingTop) || 0;
-    const padBottom = Number.parseFloat(sheetStyles.paddingBottom) || 0;
-    const topHeight = topSectionEl.offsetHeight;
-    const footerHeight = footerEl.offsetHeight;
-
-    const availableContentHeight = Math.max(
-      0,
-      Math.floor(nextMaxSheetHeight - padTop - padBottom - topHeight - footerHeight),
-    );
-    const reserved = Math.max(
-      0,
-      Math.min(maxMeasuredTabHeight + 2, availableContentHeight),
-    );
-
-    setClampedContentHeightPx((prev) => (prev === reserved ? prev : reserved));
-  }, [maxMeasuredTabHeight, open, readSafeInsetPx]);
-
   useLayoutEffect(() => {
-    recalcLayout();
-  }, [recalcLayout, anchorStyle?.width]);
+    if (!open) return;
+    scheduleRecalcLayout();
+  }, [open, anchorStyle?.width, maxMeasuredTabHeight, scheduleRecalcLayout]);
 
   useEffect(() => {
     if (!open) return;
 
-    const onWindowResize = () => recalcLayout();
+    const onWindowResize = () => {
+      refreshSafeInsets();
+      scheduleRecalcLayout();
+    };
     window.addEventListener("resize", onWindowResize, { passive: true });
     window.visualViewport?.addEventListener("resize", onWindowResize);
-    window.visualViewport?.addEventListener("scroll", onWindowResize);
 
     const observers: ResizeObserver[] = [];
     if (supportsResizeObserver) {
       const refs = [sheetRef.current, topSectionRef.current, footerRef.current];
       refs.forEach((el) => {
         if (!el) return;
-        const observer = new ResizeObserver(() => recalcLayout());
+        const observer = new ResizeObserver(() => scheduleRecalcLayout());
         observer.observe(el);
         observers.push(observer);
       });
@@ -355,10 +365,24 @@ export function PlaceBetModal({
     return () => {
       window.removeEventListener("resize", onWindowResize);
       window.visualViewport?.removeEventListener("resize", onWindowResize);
-      window.visualViewport?.removeEventListener("scroll", onWindowResize);
       observers.forEach((observer) => observer.disconnect());
     };
-  }, [open, recalcLayout]);
+  }, [open, refreshSafeInsets, scheduleRecalcLayout]);
+
+  useEffect(() => {
+    return () => {
+      if (recalcLayoutRafRef.current === null) return;
+      cancelAnimationFrame(recalcLayoutRafRef.current);
+      recalcLayoutRafRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (open) return;
+    if (recalcLayoutRafRef.current === null) return;
+    cancelAnimationFrame(recalcLayoutRafRef.current);
+    recalcLayoutRafRef.current = null;
+  }, [open]);
 
   const contentViewportStyle = useMemo<CSSProperties | undefined>(() => {
     const fallback = tabHeights[tab] > 0 ? tabHeights[tab] : 160;
@@ -537,7 +561,7 @@ export function PlaceBetModal({
             </div>
 
             <div className={styles.contentViewport} style={contentViewportStyle}>
-              <AnimatePresence mode="wait" initial={false}>
+              <AnimatePresence mode="sync" initial={false}>
                 <motion.div
                   key={tab}
                   className={styles.contentPane}

@@ -405,7 +405,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
             />
 
             <div className={styles.content}>
-              <AnimatePresence mode="wait" initial={false}>
+              <AnimatePresence mode="sync" initial={false}>
                 {method === "GIFTS" ? (
                   <motion.div
                     key="deposit-gifts"

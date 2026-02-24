@@ -20,14 +20,16 @@ export function ProfileHeader({
     <div className="flex flex-col items-center pb-6 pt-0">
       <div className="mb-6 flex w-full items-center justify-between px-4">
         <button
-          className="focus-brand inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/80 bg-surface-2/90 text-muted-foreground shadow-[var(--shadow-sm)] transition-colors duration-200 hover:border-brand-soft/40 hover:text-foreground"
+          className="btn-secondary focus-brand liquid-sheen inline-flex h-11 w-11 items-center justify-center rounded-full border-white/14 bg-surface-2/88 px-0 py-0 text-muted-foreground hover:text-foreground"
+          data-sheen="event"
           aria-label="Settings"
           type="button"
         >
           <Settings className="h-5 w-5" />
         </button>
         <button
-          className="focus-brand inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/80 bg-surface-2/90 text-muted-foreground shadow-[var(--shadow-sm)] transition-colors duration-200 hover:border-brand-soft/40 hover:text-foreground"
+          className="btn-secondary focus-brand liquid-sheen inline-flex h-11 w-11 items-center justify-center rounded-full border-white/14 bg-surface-2/88 px-0 py-0 text-muted-foreground hover:text-foreground"
+          data-sheen="event"
           aria-label="QR Code"
           type="button"
         >
