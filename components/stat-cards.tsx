@@ -24,7 +24,7 @@ export function StatCards({
         iconVariant="plain"
         icon={
           <StatIcon tone="gold">
-            <img src="/stars.svg" alt="Stars" className="h-6 w-6 object-contain" />
+            <img src="/stars.svg" alt="Stars" className="h-5 w-5 object-contain" />
           </StatIcon>
         }
         label="Звезды"
@@ -44,7 +44,7 @@ export function StatCards({
         iconVariant="plain"
         icon={
           <StatIcon tone="mint">
-            <Users className="h-6 w-6" strokeWidth={2} />
+            <Users className="h-6 w-6" />
           </StatIcon>
         }
         label="Рефералы"
@@ -54,7 +54,7 @@ export function StatCards({
         iconVariant="plain"
         icon={
           <StatIcon tone="violet">
-            <Trophy className="h-6 w-6" strokeWidth={2} />
+            <Trophy className="h-6 w-6" />
           </StatIcon>
         }
         label="Награды"

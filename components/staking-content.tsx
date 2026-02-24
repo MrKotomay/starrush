@@ -118,7 +118,7 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
   const [isLeaderboardLoading, setLeaderboardLoading] = useState(true)
   const [leaderboardError, setLeaderboardError] = useState<string | null>(null)
   const shouldReduceMotion = useReducedMotion()
-  const sectionInitial = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 14 }
+  const sectionInitial = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 12 }
   const sectionAnimate = { opacity: 1, y: 0 }
 
   const activeSortLabel = useMemo(
@@ -207,12 +207,12 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
           </div>
 
           <div className={styles.vaultContent}>
-            <div className="relative z-20 flex items-center justify-between rounded-2xl border border-white/10 bg-surface-1/92 p-3 shadow-[var(--shadow-md)] backdrop-blur-[10px]">
+            <div className="relative z-20 flex items-center justify-between rounded-2xl border border-border/80 bg-surface-2/88 p-3 shadow-[var(--shadow-sm)]">
               <div>
-                <p className="mb-1 text-sm font-medium text-muted-foreground">Ты заработал:</p>
+                <p className="mb-1 text-sm text-muted-foreground">Ты заработал:</p>
                 <div className="flex items-center gap-2">
                   <img src="/ton.svg" alt="TON" className="h-5 w-5 rounded-full" />
-                  <span className="text-base font-bold tabular-nums text-foreground">{stakingAmountLabel} TON</span>
+                  <span className="text-base font-semibold text-foreground">{stakingAmountLabel} TON</span>
                 </div>
               </div>
               <PrimaryButton breathing depth="raised" variant="brandSoft" className="h-10 min-w-28 rounded-xl px-5 text-sm">
@@ -227,7 +227,7 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
         className="mb-6 grid grid-cols-2 gap-3"
         initial={sectionInitial}
         animate={sectionAnimate}
-        transition={{ duration: shouldReduceMotion ? 0.1 : 0.26, ease: EASE, delay: shouldReduceMotion ? 0 : 0.05 }}
+        transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE, delay: shouldReduceMotion ? 0 : 0.03 }}
       >
         <StatCard
           icon={<Vault className="h-5 w-5 text-foreground" />}
@@ -247,7 +247,7 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
         className="mb-6"
         initial={sectionInitial}
         animate={sectionAnimate}
-        transition={{ duration: shouldReduceMotion ? 0.1 : 0.26, ease: EASE, delay: shouldReduceMotion ? 0 : 0.1 }}
+        transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE, delay: shouldReduceMotion ? 0 : 0.06 }}
       >
         <div className={styles.leaderboardHeader}>
           <h2 className={styles.leaderboardTitle}>Лидерборд</h2>

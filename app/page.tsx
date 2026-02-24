@@ -359,12 +359,12 @@ export default function ProfilePage() {
     [refreshLedger, refreshWallets, walletActionMode]
   )
   const shouldReduceMotion = useReducedMotion()
-  const tabEnter = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 6, filter: "blur(5px)" }
-  const tabActive = { opacity: 1, y: 0, filter: "blur(0px)" }
-  const tabExit = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -4, filter: "blur(3px)" }
+  const tabEnter = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, filter: "blur(6px)" }
+  const tabActive = { opacity: 1, filter: "blur(0px)" }
+  const tabExit = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, filter: "blur(4px)" }
   const tabTransition = shouldReduceMotion
     ? { duration: 0.1 }
-    : { duration: 0.24, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }
+    : { duration: 0.22, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }
 
   if (telegram.status === "error") {
     return (
@@ -439,7 +439,7 @@ export default function ProfilePage() {
       <MotionConfig reducedMotion="user">
         <LayoutGroup id="profile-avatar-layout">
           <main className="safe-bottom-pad relative z-10 mx-auto max-w-md">
-            {activeTab === "staking" || activeTab === "profile" ? (
+            {activeTab === "staking" ? (
               <TopHud {...topHudProps} />
             ) : null}
 
@@ -479,67 +479,39 @@ export default function ProfilePage() {
               {activeTab === "profile" ? (
                 <motion.section
                   key="tab-profile"
+                  className="pt-[calc(var(--content-safe-top)+48px)]"
                   initial={tabEnter}
                   animate={tabActive}
                   exit={tabExit}
                   transition={tabTransition}
                 >
-                  <motion.div
-                    initial={shouldReduceMotion ? undefined : { opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={shouldReduceMotion ? { duration: 0.05 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1], delay: 0 }}
-                  >
-                    <ProfileHeader
-                      username={username}
-                      bio={bio}
-                      avatarUrl={avatarUrl}
-                      avatarLayoutId={sharedAvatarLayoutId}
-                    />
-                  </motion.div>
+                  <ProfileHeader
+                    username={username}
+                    bio={bio}
+                    avatarUrl={avatarUrl}
+                    avatarLayoutId={sharedAvatarLayoutId}
+                  />
 
-                  <motion.div
-                    initial={shouldReduceMotion ? undefined : { opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={shouldReduceMotion ? { duration: 0.05 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1], delay: 0.04 }}
-                  >
-                    <StatCards
-                      starsBalance={starsBalance}
-                      tonBalance={tonBalance}
-                      referrals={referralSummary?.invitedCount ?? 0}
-                      rewards={8}
-                    />
-                  </motion.div>
+                  <StatCards
+                    starsBalance={starsBalance}
+                    tonBalance={tonBalance}
+                    referrals={referralSummary?.invitedCount ?? 0}
+                    rewards={8}
+                  />
 
-                  <motion.div
-                    initial={shouldReduceMotion ? undefined : { opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={shouldReduceMotion ? { duration: 0.05 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
-                  >
-                    <ActionButtons
-                      onDeposit={() => setDepositModalOpen(true)}
-                      onWithdraw={() => setWalletActionMode("withdraw")}
-                      isDepositLoading={false}
-                      isWithdrawLoading={isWalletActionSubmitting && walletActionMode === "withdraw"}
-                    />
-                  </motion.div>
+                  <ActionButtons
+                    onDeposit={() => setDepositModalOpen(true)}
+                    onWithdraw={() => setWalletActionMode("withdraw")}
+                    isDepositLoading={false}
+                    isWithdrawLoading={isWalletActionSubmitting && walletActionMode === "withdraw"}
+                  />
 
-                  <motion.div
-                    initial={shouldReduceMotion ? undefined : { opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={shouldReduceMotion ? { duration: 0.05 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1], delay: 0.12 }}
-                  >
-                    <Achievements
-                      achievements={mockAchievements}
-                      onViewAll={() => setToast("Экран достижений пока в работе")}
-                    />
-                  </motion.div>
+                  <Achievements
+                    achievements={mockAchievements}
+                    onViewAll={() => setToast("Экран достижений пока в работе")}
+                  />
 
-                  <motion.div
-                    className="mt-4 px-4"
-                    initial={shouldReduceMotion ? undefined : { opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={shouldReduceMotion ? { duration: 0.05 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1], delay: 0.16 }}
-                  >
+                  <div className="mt-4 px-4">
                     <ReferralProgram
                       invitedCount={referralSummary?.invitedCount ?? 0}
                       earnedTon={referralSummary?.earnedTon ?? "0"}
@@ -547,20 +519,15 @@ export default function ProfilePage() {
                       referralLink={referralSummary?.referralLink ?? "https://t.me/starrush_bot"}
                       commissionRate={referralSummary?.commissionRate ?? "0.10"}
                     />
-                  </motion.div>
+                  </div>
 
-                  <motion.div
-                    className="mt-4 px-4"
-                    initial={shouldReduceMotion ? undefined : { opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={shouldReduceMotion ? { duration: 0.05 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-                  >
+                  <div className="mt-4 px-4">
                     <SettingsMenu
                       onWalletClick={openWalletOverview}
                       onStakingClick={() => handleTabChange("staking")}
                       onSettingsClick={() => setToast("Настройки будут подключены следующим шагом")}
                     />
-                  </motion.div>
+                  </div>
                 </motion.section>
               ) : null}
             </AnimatePresence>

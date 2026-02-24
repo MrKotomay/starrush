@@ -35,7 +35,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
 
   const indicatorTransition = shouldReduceMotion
     ? ({ duration: 0.1 } as const)
-    : ({ type: "spring", stiffness: 440, damping: 34, mass: 0.65 } as const)
+    : ({ type: "spring", stiffness: 500, damping: 36, mass: 0.7 } as const)
 
   const handleTabClick = (tab: TabId) => {
     onTabChange(tab)
@@ -58,8 +58,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                 key={tab.id}
                 onClick={() => handleTabClick(tab.id)}
                 className={cn(
-                  "focus-brand relative flex min-w-[95px] flex-col items-center gap-0.5 rounded-[16px] px-4 py-1.5",
-                  "transition-colors duration-[var(--motion-fast)] ease-[var(--ease-out-fluid)]",
+                  "focus-brand relative flex min-w-[95px] flex-col items-center gap-0.5 rounded-[16px] px-4 py-1.5 transition-colors duration-200 ease-out",
                   isActive ? "text-foreground" : "text-text-tertiary",
                 )}
                 aria-current={isActive ? "page" : undefined}
@@ -69,44 +68,44 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                   <motion.span
                     layoutId="bottom-nav-active-pill"
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 rounded-[16px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07)_0%,rgba(255,255,255,0.02)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]"
+                    className="pointer-events-none absolute inset-0 rounded-[16px] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.08)_0%,rgba(255,255,255,0.03)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]"
                     transition={indicatorTransition}
-                    style={{ willChange: "transform" }}
                   />
                 ) : null}
 
                 <span className="relative z-10">
-                  <span className="relative inline-flex rounded-full p-1.5">
+                  <span
+                    className={cn(
+                      "relative inline-flex rounded-full p-1.5 transition-all duration-200 ease-out",
+                    )}
+                  >
                     {isActive ? (
                       <motion.span
                         aria-hidden="true"
-                        className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-brand-1 to-brand-2 shadow-[0_4px_14px_rgba(101,29,203,0.4)]"
-                        initial={shouldReduceMotion ? { opacity: 0 } : { scale: 0.7, opacity: 0 }}
+                        className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-brand-1 to-brand-2 shadow-[0_6px_18px_rgba(101,29,203,0.44)]"
+                        initial={{ scale: 0.82, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        transition={shouldReduceMotion
-                          ? { duration: 0.08 }
-                          : { duration: 0.2, ease: [0.22, 1, 0.36, 1] }
-                        }
+                        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                       />
                     ) : null}
                     <Icon
                       className={cn(
-                        "relative z-10 h-3.5 w-3.5 transition-colors duration-[var(--motion-fast)]",
+                        "relative z-10 h-3.5 w-3.5 transition-colors duration-200",
                         isActive ? "text-foreground" : "text-text-tertiary",
                       )}
-                      strokeWidth={isActive ? 2.2 : 1.8}
                     />
                   </span>
                 </span>
 
                 <span
                   className={cn(
-                    "relative z-10 text-[9px] font-medium tracking-wide transition-colors duration-[var(--motion-fast)]",
+                    "relative z-10 text-[9px] font-medium tracking-wide transition-colors duration-200",
                     isActive ? "text-foreground" : "text-text-tertiary",
                   )}
                 >
                   {tab.label}
                 </span>
+
               </button>
             )
           })}

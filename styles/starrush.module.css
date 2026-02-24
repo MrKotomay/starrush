@@ -724,29 +724,21 @@
 
 .quickChip {
   flex: 0 0 auto;
-  border: 1px solid hsl(var(--brand-1) / 0.3);
-  background:
-    linear-gradient(155deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 60%),
-    hsl(var(--surface-1) / 0.7);
+  border: 1px solid hsl(var(--border) / 0.88);
+  background: linear-gradient(180deg, hsl(var(--surface-2) / 0.9) 0%, hsl(var(--surface-1) / 0.88) 100%);
   color: hsl(var(--muted-foreground));
   border-radius: 999px;
   padding: 5px 10px;
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: transform 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+  transition: transform 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
 }
 
 .quickChip:active {
   transform: translateY(1px);
   border-color: hsl(var(--brand-soft) / 0.5);
   color: hsl(var(--foreground));
-  background:
-    linear-gradient(145deg, hsl(var(--brand-1) / 0.28) 0%, hsl(var(--brand-2) / 0.18) 100%),
-    hsl(var(--surface-1) / 0.78);
-  box-shadow: 0 0 10px rgba(101, 29, 203, 0.18);
 }
 
 .actionButton {
