@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { LayoutGroup, motion, useReducedMotion, type Transition } from "framer-motion"
+import { motion, useReducedMotion, type Transition } from "framer-motion"
 
 import { cn } from "@/lib/utils"
 
@@ -66,46 +66,42 @@ export function GlassSegmentedControl<T extends string>({
   const pressScale = shouldReduceMotion ? 1 : 0.985
 
   return (
-    <LayoutGroup id={layoutId}>
-      <div
-        className={cn("glass-segmented", className)}
-        data-size={size}
-        data-indicator-sheen={indicatorSheen}
-        role="tablist"
-        aria-label={ariaLabel}
-      >
-        {items.map((item) => {
-          const active = item.id === value
-          const itemDisabled = disabled || item.disabled
-          return (
-            <motion.button
-              key={item.id}
-              layout="position"
-              type="button"
-              role="tab"
-              aria-selected={active}
-              disabled={itemDisabled}
-              className="glass-segmented-btn"
-              data-active={active ? "true" : "false"}
-              onClick={() => onChange(item.id)}
-              whileTap={{ scale: pressScale }}
-              transition={{ duration: shouldReduceMotion ? 0.1 : 0.16, ease: EASE }}
-            >
-              {active ? (
-                <motion.span
-                  layout="position"
-                  layoutId={layoutId}
-                  className="glass-segmented-indicator"
-                  transition={resolvedIndicatorTransition}
-                  aria-hidden="true"
-                />
-              ) : null}
-              {renderIcon(item.icon, "glass-segmented-icon")}
-              <span className="glass-segmented-label">{item.label}</span>
-            </motion.button>
-          )
-        })}
-      </div>
-    </LayoutGroup>
+    <div
+      className={cn("glass-segmented", className)}
+      data-size={size}
+      data-indicator-sheen={indicatorSheen}
+      role="tablist"
+      aria-label={ariaLabel}
+    >
+      {items.map((item) => {
+        const active = item.id === value
+        const itemDisabled = disabled || item.disabled
+        return (
+          <motion.button
+            key={item.id}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            disabled={itemDisabled}
+            className="glass-segmented-btn"
+            data-active={active ? "true" : "false"}
+            onClick={() => onChange(item.id)}
+            whileTap={{ scale: pressScale }}
+            transition={{ duration: shouldReduceMotion ? 0.1 : 0.16, ease: EASE }}
+          >
+            {active ? (
+              <motion.span
+                layoutId={layoutId}
+                className="glass-segmented-indicator"
+                transition={resolvedIndicatorTransition}
+                aria-hidden="true"
+              />
+            ) : null}
+            {renderIcon(item.icon, "glass-segmented-icon")}
+            <span className="glass-segmented-label">{item.label}</span>
+          </motion.button>
+        )
+      })}
+    </div>
   )
 }
