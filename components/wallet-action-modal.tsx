@@ -51,39 +51,34 @@ export function WalletActionModal({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={onClose}
-      style={{ background: "rgba(6,9,22,0.72)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" } as React.CSSProperties}
+      style={{ background: "rgba(5,8,24,0.76)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" } as React.CSSProperties}
     >
       <div
-        className="w-full max-w-sm rounded-[18px] p-5"
+        className="glass-sheet w-full max-w-sm p-5"
         onClick={(event) => event.stopPropagation()}
-        style={{
-          background: "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%), var(--ui-surface-1, #141A3A)",
-          border: "1px solid rgba(255,255,255,0.10)",
-          boxShadow: "0 18px 48px rgba(4,7,22,0.54), 0 6px 18px rgba(11,17,38,0.30)",
-        }}
       >
-        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+        <h3 className="text-lg font-bold text-foreground">{title}</h3>
         <p className="text-xs text-muted-foreground mt-1">
           Доступно только при включенном dev-флаге `ENABLE_DEV_WALLET_ACTIONS=1`.
         </p>
 
         <div className="mt-4 space-y-3">
           <div>
-            <label className="text-xs text-muted-foreground">Сумма</label>
+            <label className="text-xs font-medium text-muted-foreground">Сумма</label>
             <input
               type="number"
               min={0}
               step="0.000001"
               value={amountInput}
               onChange={(event) => setAmountInput(event.target.value)}
-              className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/40"
+              className="mt-1 w-full rounded-xl border border-white/10 bg-background/60 px-3 py-2.5 text-sm font-semibold text-foreground outline-none transition-[border-color,box-shadow] duration-150 focus-visible:border-brand-soft/50 focus-visible:shadow-[0_0_0_2px_hsl(var(--brand-1)/0.14)]"
               placeholder="0.00"
               disabled={isSubmitting}
             />
           </div>
 
           <div>
-            <label className="text-xs text-muted-foreground">Валюта</label>
+            <label className="text-xs font-medium text-muted-foreground">Валюта</label>
             <div className="mt-1 grid grid-cols-2 gap-2">
               {(["TON", "STARS"] as const).map((entry) => (
                 <button
@@ -91,10 +86,10 @@ export function WalletActionModal({
                   type="button"
                   onClick={() => setCurrency(entry)}
                   disabled={isSubmitting}
-                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                  className={`rounded-xl border px-3 py-2.5 text-sm font-semibold transition-all duration-150 ${
                     currency === entry
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border bg-secondary text-foreground"
+                      ? "border-brand-soft/40 bg-brand-1/20 text-foreground shadow-[0_0_12px_rgba(101,29,203,0.14)]"
+                      : "border-white/8 bg-surface-2/60 text-muted-foreground hover:border-white/14"
                   }`}
                 >
                   {entry}
@@ -103,7 +98,7 @@ export function WalletActionModal({
             </div>
           </div>
 
-          {error ? <p className="text-xs text-red-400">{error}</p> : null}
+          {error ? <p className="text-xs font-medium text-danger">{error}</p> : null}
         </div>
 
         <div className="mt-5 flex gap-2">
@@ -111,7 +106,7 @@ export function WalletActionModal({
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="flex-1 rounded-xl border border-border px-3 py-2 text-sm text-foreground disabled:opacity-60"
+            className="btn-secondary focus-brand flex-1 rounded-xl px-3 py-2.5 text-sm font-semibold disabled:opacity-50"
           >
             Отмена
           </button>
@@ -121,7 +116,7 @@ export function WalletActionModal({
               void handleSubmit()
             }}
             disabled={isSubmitting}
-            className="flex-1 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+            className="btn-primary-glow focus-brand flex-1 rounded-xl px-3 py-2.5 text-sm font-bold disabled:opacity-50"
           >
             {isSubmitting ? "Обработка..." : submitLabel}
           </button>

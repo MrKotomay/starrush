@@ -30,7 +30,7 @@ export function StatCard({
         <div
           className={cn(
             iconVariant === "plain"
-              ? "mb-3 flex h-11 w-11 items-center justify-center"
+              ? "mb-3 flex h-12 w-12 items-center justify-center"
               : "mb-3 flex h-10 w-10 items-center justify-center rounded-xl",
             iconClassName,
           )}
@@ -38,8 +38,8 @@ export function StatCard({
           {icon}
         </div>
       ) : null}
-      <p className="mb-1 text-xs text-muted-foreground">{label}</p>
-      <p className="text-xl font-semibold leading-tight text-foreground">{value}</p>
+      <p className="mb-1 text-xs font-medium tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-xl font-bold leading-tight tracking-tight text-foreground tabular-nums">{value}</p>
     </GlassCard>
   )
 }

@@ -3,6 +3,7 @@
   overflow: hidden;
   isolation: isolate;
   min-height: 312px;
+  border-color: transparent;
 }
 
 .vaultCard::after {
@@ -11,7 +12,7 @@
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent 48%, hsl(var(--surface-1) / 0.88) 78%, hsl(var(--surface-1) / 0.96) 100%);
+  background: linear-gradient(180deg, transparent 42%, hsl(var(--surface-1) / 0.9) 72%, hsl(var(--surface-1) / 0.98) 100%);
 }
 
 .safeHero {
@@ -80,7 +81,7 @@
 
 .vaultContent {
   position: relative;
-  z-index: 2;
+  z-index: 10;
   padding-top: 198px;
 }
 
@@ -106,7 +107,7 @@
 }
 
 .leaderboardCard {
-  border-color: rgba(var(--ui-rgb-text-primary), 0.12);
+  border-color: hsl(var(--border) / 0.5);
 }
 
 .leaderboardHeadRow {

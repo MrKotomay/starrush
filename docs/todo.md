@@ -567,3 +567,78 @@ Full visual redesign of all client-side components to achieve a premium "wow" da
 - Apply the same gradient artifact hardening to any remaining custom gradient buttons outside shared primitives.
 - Consider extracting a shared "active chip" primitive for parity between modal quick chips and game history pills.
 - Optional: add lightweight visual regression snapshots for nav indicator + staking hero layering to catch future UI regressions.
+
+## 11) UI Polish Pass — Glass Treatment & Motion Refinements (2026-02-22)
+
+### Summary
+Continuation of premium UI polish: wallet modals upgraded to glass system, micro-interactions added across all interactive elements, staggered content reveal for profile tab, tab transition refinements, and remaining issue fixes.
+
+### What changed and why
+
+#### Wallet modals glass treatment
+- `wallet-action-modal.tsx`: replaced inline `style={{...}}` objects with `glass-sheet` class. Backdrop blur increased 4→8px, overlay tint deepened. Input focus uses new subtle brand-soft border instead of generic focus ring. Currency selector chips use glass treatment with brand accents. Buttons use `btn-primary-glow` and `btn-secondary` classes.
+- `wallet-overview-modal.tsx`: same glass-sheet migration. Card sections use `border-white/8 bg-surface-2/40 backdrop-blur-sm`. Close button uses glass chip styling. All amounts display with `tabular-nums`. Refresh buttons use `text-brand-soft`.
+- Why: removed hard-coded inline `rgba()` and `var(--ui-*)` references, unified with design token system.
+
+#### Bottom nav shell softening (issue #4 stray line)
+- `components/ui/bottom-nav-shell.tsx`: reduced border from `white/8` → `white/6`, softened `before:` pseudo-element gradient from sharp 38% cutoff to smooth 50% transition with reduced peak opacity (0.16→0.12). Added `before:rounded-[20px]` + `before:opacity-80`.
+- Why: eliminated potential visible "line" artifact where the glass highlight gradient had a perceptible transition boundary.
+
+#### Micro-interactions & press feedback (issue #5)
+- `globals.css`: `btn-secondary:active` now uses `scale(0.98) + brightness(0.96)` (was plain `translateY(1px)`). New `btn-deposit-gradient:active` / `btn-withdraw-gradient:active` states with `scale(0.98) + brightness(0.94)`. `chip-control:active` now scales to 0.96. New `.press-scale` utility class for interactive glass cards.
+- Why: every tappable surface now provides immediate physical feedback, matching premium iOS/Android tactility expectations.
+
+#### Staggered content reveal (issue #6)
+- `app/page.tsx` (profile tab): each child section (ProfileHeader, StatCards, ActionButtons, Achievements, ReferralProgram, SettingsMenu) is now wrapped in `motion.div` with cascading delays (0→0.04→0.08→0.12→0.16→0.2s) and 14px y-slide + fade.
+- `components/staking-content.tsx`: increased section y-offset from 12→14px. Stagger delays bumped: stat cards delay 0.03→0.05s, leaderboard delay 0.06→0.1s.
+- Why: content now "waterfall" reveals when switching tabs, creating a premium cascade effect. All animations respect `useReducedMotion`.
+
+#### Tab transition refinements
+- `app/page.tsx`: tab enter/exit now includes subtle y-shift (enter: +6px, exit: -4px) alongside blur transition. Duration refined 0.22→0.24s.
+- Why: adds spatial directionality to tab switches for a more grounded premium feel.
+
+### Files touched
+- `app/globals.css` — active states, press-scale utility
+- `app/page.tsx` — profile stagger wrappers, tab transition y-shift
+- `components/wallet-action-modal.tsx` — glass-sheet migration
+- `components/wallet-overview-modal.tsx` — glass-sheet migration
+- `components/ui/bottom-nav-shell.tsx` — gradient softening
+- `components/staking-content.tsx` — stagger timing refinements
+
+### What was NOT changed (preserved exactly)
+- All API routes, request/response contracts
+- All game services, round/betting/settlement/fairness logic
+- All state management (React state, WebSocket adapter, backend adapter)
+- Component props interfaces and callback signatures
+- Tab switching logic, modal open/close logic
+- Currency formatting, balance display logic
+- Prisma schema, migrations, DB queries
+
+### How to test
+1. Run checks:
+   - `npm run lint`
+   - `npm run build`
+2. Start app:
+   - `npm run dev`
+3. Verify wallet modals:
+   - Profile → Wallet settings entry → verify glass overlay with blur backdrop
+   - Profile → Withdraw → verify glass card with brand-soft input focus + chip selection
+4. Verify micro-interactions:
+   - Tap any button → verify subtle scale-down press feedback
+   - Tap deposit/withdraw gradient buttons → verify press feedback
+   - Tap quick bet chips → verify scale feedback
+5. Verify content reveal:
+   - Switch to Profile tab → verify sections cascade-reveal from top to bottom
+   - Switch to Staking tab → verify vault card, stats, leaderboard stagger in
+6. Verify tab transitions:
+   - Rapidly switch between tabs → verify smooth y-shift + blur transitions
+   - No jarring jumps or layout shifts
+7. Verify reduced motion:
+   - Enable OS reduced motion
+   - Re-check all above → animations should be minimal/instant
+
+### Follow-ups / TODOs
+- [ ] Replace remaining `--ui-*` CSS variable references in `starrush.module.css` with pure semantic tokens
+- [ ] Add visual regression snapshots for wallet modals glass treatment
+- [ ] Consider adding haptic feedback via Telegram WebApp API on button presses
+- [ ] Profile stagger could optionally use `staggerChildren` variant pattern instead of manual delays for DRYer code

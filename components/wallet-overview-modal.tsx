@@ -59,39 +59,34 @@ export function WalletOverviewModal({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={onClose}
-      style={{ background: "rgba(6,9,22,0.72)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" } as React.CSSProperties}
+      style={{ background: "rgba(5,8,24,0.76)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" } as React.CSSProperties}
     >
       <div
-        className="w-full max-w-lg rounded-[18px] p-5 max-h-[85vh] overflow-y-auto"
+        className="glass-sheet w-full max-w-lg p-5 max-h-[85vh] overflow-y-auto"
         onClick={(event) => event.stopPropagation()}
-        style={{
-          background: "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%), var(--ui-surface-1, #141A3A)",
-          border: "1px solid rgba(255,255,255,0.10)",
-          boxShadow: "0 18px 48px rgba(4,7,22,0.54), 0 6px 18px rgba(11,17,38,0.30)",
-        }}
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-lg font-semibold text-foreground">Кошелек</h3>
+            <h3 className="text-lg font-bold text-foreground">Кошелек</h3>
             <p className="text-xs text-muted-foreground mt-1">Актуальные балансы и последние операции.</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-border px-2 py-1 text-xs text-muted-foreground"
+            className="rounded-xl border border-white/10 bg-surface-2/60 px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors duration-150 hover:border-white/16"
           >
             Закрыть
           </button>
         </div>
 
-        <div className="mt-4 rounded-xl border border-border p-3">
+        <div className="mt-4 rounded-xl border border-white/8 bg-surface-2/40 p-3 backdrop-blur-sm">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-medium text-foreground">Балансы</h4>
+            <h4 className="text-sm font-semibold text-foreground">Балансы</h4>
             <button
               type="button"
               onClick={onRefreshWallets}
               disabled={isWalletsLoading}
-              className="text-xs text-primary disabled:opacity-60"
+              className="text-xs font-medium text-brand-soft disabled:opacity-50 transition-opacity duration-150"
             >
               {isWalletsLoading ? "Обновление..." : "Обновить"}
             </button>
@@ -104,10 +99,10 @@ export function WalletOverviewModal({
               wallets.map((wallet) => (
                 <div
                   key={wallet.id}
-                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm flex items-center justify-between"
+                  className="rounded-xl border border-white/8 bg-background/60 px-3 py-2.5 text-sm flex items-center justify-between"
                 >
-                  <span className="font-medium">{wallet.currency}</span>
-                  <span>
+                  <span className="font-semibold">{wallet.currency}</span>
+                  <span className="tabular-nums">
                     {formatAmount(wallet.balance)} (locked: {formatAmount(wallet.lockedBalance)})
                   </span>
                 </div>
@@ -116,14 +111,14 @@ export function WalletOverviewModal({
           </div>
         </div>
 
-        <div className="mt-4 rounded-xl border border-border p-3">
+        <div className="mt-4 rounded-xl border border-white/8 bg-surface-2/40 p-3 backdrop-blur-sm">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-medium text-foreground">Последние операции</h4>
+            <h4 className="text-sm font-semibold text-foreground">Последние операции</h4>
             <button
               type="button"
               onClick={onRefreshLedger}
               disabled={isLedgerLoading}
-              className="text-xs text-primary disabled:opacity-60"
+              className="text-xs font-medium text-brand-soft disabled:opacity-50 transition-opacity duration-150"
             >
               {isLedgerLoading ? "Обновление..." : "Обновить"}
             </button>
@@ -134,10 +129,10 @@ export function WalletOverviewModal({
               <p className="text-xs text-muted-foreground">Операций пока нет.</p>
             ) : (
               ledger.map((entry) => (
-                <div key={entry.id} className="rounded-lg border border-border bg-background px-3 py-2 text-xs">
-                  <div className="flex items-center justify-between text-foreground">
+                <div key={entry.id} className="rounded-xl border border-white/8 bg-background/60 px-3 py-2.5 text-xs">
+                  <div className="flex items-center justify-between text-foreground font-medium">
                     <span>{entry.type}</span>
-                    <span>{entry.currency} {formatAmount(entry.amount)}</span>
+                    <span className="tabular-nums">{entry.currency} {formatAmount(entry.amount)}</span>
                   </div>
                   <div className="mt-1 flex items-center justify-between text-muted-foreground">
                     <span>{entry.status}</span>

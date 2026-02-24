@@ -151,8 +151,14 @@
 }
 
 .input:focus {
-  border-color: rgba(var(--ui-rgb-primary-soft), 0.8);
-  box-shadow: 0 0 0 3px rgba(var(--ui-rgb-primary-soft), 0.2);
+  border-color: hsl(var(--brand-soft) / 0.52);
+  box-shadow: 0 0 0 2px hsl(var(--brand-1) / 0.14);
+}
+
+.input:focus-visible {
+  border-color: hsl(var(--brand-soft) / 0.58);
+  box-shadow: 0 0 0 2px hsl(var(--brand-1) / 0.18);
+  outline: none;
 }
 
 .quickRow {

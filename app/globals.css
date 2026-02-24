@@ -5,10 +5,11 @@
 
 :root {
   --bottom-nav-h: 72px;
-  --motion-fast: 160ms;
+  --motion-fast: 150ms;
   --motion-base: 220ms;
-  --motion-slow: 280ms;
+  --motion-slow: 320ms;
   --ease-out-fluid: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* Safe-area fallbacks (Telegram + browser env). */
   --safe-top: max(env(safe-area-inset-top, 0px), var(--tg-safe-area-inset-top, 0px));
@@ -20,7 +21,7 @@
   --content-safe-bottom: max(var(--safe-bottom), var(--tg-content-safe-area-inset-bottom, 0px));
   --content-safe-left: max(var(--safe-left), var(--tg-content-safe-area-inset-left, 0px));
 
-  /* Brand palette (HSL triples). */
+  /* ── Brand palette (HSL triples) ────────────────────── */
   --bg-0: 228 53% 9%;
   --bg-1: 230 53% 7%;
   --bg-glow: 231 53% 15%;
@@ -48,7 +49,7 @@
   --danger: 349 100% 65%;
   --info: 211 100% 65%;
 
-  /* shadcn semantic tokens. */
+  /* ── shadcn semantic tokens ─────────────────────────── */
   --background: var(--bg-0);
   --foreground: var(--text-1);
   --card: var(--surface-1);
@@ -84,28 +85,39 @@
   --sidebar-border: var(--border-base);
   --sidebar-ring: var(--ring);
 
+  /* ── Radii ──────────────────────────────────────────── */
   --radius: 1rem;
   --radius-card: 1.125rem;
   --radius-control: 0.8125rem;
   --radius-pill: 9999px;
 
-  --glass-bg: 231 49% 15% / 0.82;
+  /* ── Glass material tokens ──────────────────────────── */
+  --glass-bg: 231 49% 15% / 0.78;
+  --glass-bg-strong: 231 49% 15% / 0.88;
   --glass-border: 0 0% 100% / 0.1;
+  --glass-highlight: 0 0% 100% / 0.14;
+  --glass-blur: 14px;
+  --glass-blur-subtle: 8px;
 
+  /* ── Shadows (tinted violet, not pure black) ────────── */
   --shadow-sm: 0 4px 14px rgba(8, 11, 26, 0.35), 0 1px 4px rgba(4, 7, 22, 0.2);
   --shadow-md: 0 10px 28px rgba(8, 11, 26, 0.44), 0 2px 8px rgba(4, 7, 22, 0.3);
   --shadow-lg: 0 22px 52px rgba(8, 11, 26, 0.56), 0 8px 20px rgba(4, 7, 22, 0.34);
+  --shadow-sheet: 0 -8px 40px rgba(6, 10, 28, 0.5), 0 24px 60px rgba(4, 8, 22, 0.56);
 
+  /* ── Glow ───────────────────────────────────────────── */
   --glow-primary: 0 0 16px rgba(101, 29, 203, 0.28), 0 0 36px rgba(101, 29, 203, 0.12);
   --glow-accent: 0 0 14px rgba(215, 97, 241, 0.26), 0 0 30px rgba(215, 97, 241, 0.1);
 
+  /* ── Gradients ──────────────────────────────────────── */
   --primary-gradient: linear-gradient(
     104deg,
     hsl(var(--brand-1) / 0.98) 0%,
-    hsl(var(--brand-1) / 0.82) 44%,
+    hsl(265 68% 52% / 0.9) 44%,
     hsl(var(--brand-2) / 0.96) 100%
   );
-  --glass-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.04) 100%);
+  --glass-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%);
+  --glass-highlight-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 50%);
   --bg-radial: radial-gradient(60% 40% at 50% 10%, rgba(122, 92, 255, 0.22) 0%, transparent 60%);
 }
 
@@ -231,23 +243,35 @@
 }
 
 @layer utilities {
+  /* ── Glass materials ─────────────────────────────────── */
   .glass-card {
     background: hsl(var(--glass-bg));
     background-image: var(--glass-gradient);
     border: 1px solid hsl(var(--glass-border));
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-md);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    position: relative;
+  }
+
+  .glass-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background: var(--glass-highlight-gradient);
+    opacity: 0.7;
   }
 
   .glass-card-hero {
-    background: linear-gradient(160deg, hsl(var(--surface-2) / 0.9) 0%, hsl(var(--surface-1) / 0.9) 55%, hsl(var(--bg-glow) / 0.92) 100%);
+    background: linear-gradient(160deg, hsl(var(--surface-2) / 0.92) 0%, hsl(var(--surface-1) / 0.9) 55%, hsl(var(--bg-glow) / 0.92) 100%);
     border: 1px solid hsl(var(--glass-border));
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-lg);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
     position: relative;
     overflow: hidden;
   }
@@ -278,7 +302,9 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 50%);
+    border-radius: inherit;
+    background: var(--glass-highlight-gradient);
+    opacity: 0.5;
   }
 
   @media (hover: hover) {
@@ -293,6 +319,28 @@
     transform: translateY(1px);
   }
 
+  /* ── Glass sheet (modals/bottom sheets) ──────────────── */
+  .glass-sheet {
+    background:
+      linear-gradient(160deg, hsl(var(--surface-2) / 0.94) 0%, hsl(var(--surface-1) / 0.96) 54%, hsl(var(--bg-0) / 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 24px;
+    box-shadow: var(--shadow-sheet);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-sheet::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(56% 34% at 14% 0%, rgba(214, 116, 248, 0.14) 0%, transparent 68%),
+      radial-gradient(48% 32% at 86% 100%, rgba(105, 53, 226, 0.12) 0%, transparent 70%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0) 32%);
+  }
+
   .btn-primary-glow {
     position: relative;
     isolation: isolate;
@@ -301,23 +349,20 @@
     border: 1px solid hsl(var(--brand-soft) / 0.25);
     background-color: hsl(var(--brand-1));
     background-image: var(--primary-gradient);
-    background-size: 130% 130%;
-    background-position: 0% 50%;
+    background-size: 100% 100%;
+    background-position: center;
     background-repeat: no-repeat;
-    background-origin: border-box;
+    background-origin: padding-box;
     background-clip: padding-box;
     box-shadow: var(--glow-primary), var(--shadow-sm);
     transform: translateZ(0);
-    will-change: transform, filter, box-shadow, background-position;
+    will-change: transform, filter, box-shadow;
     transition:
       transform var(--motion-base) var(--ease-out-fluid),
       filter var(--motion-base) var(--ease-out-fluid),
       box-shadow var(--motion-base) var(--ease-out-fluid),
       opacity var(--motion-base) var(--ease-out-fluid),
-      border-color var(--motion-base) var(--ease-out-fluid),
-      background-color var(--motion-base) var(--ease-out-fluid),
-      background-image var(--motion-base) var(--ease-out-fluid),
-      background-position var(--motion-base) var(--ease-out-fluid);
+      border-color var(--motion-base) var(--ease-out-fluid);
   }
 
   .btn-primary-glow::before {
@@ -396,8 +441,7 @@
     .btn-primary-glow:hover {
       transform: translateY(-1px);
       border-color: hsl(var(--brand-soft) / 0.34);
-      filter: brightness(1.03);
-      background-position: 100% 50%;
+      filter: brightness(1.06);
       box-shadow: 0 0 18px rgba(101, 29, 203, 0.32), 0 8px 20px rgba(4, 7, 22, 0.32);
     }
 
@@ -422,40 +466,46 @@
   .btn-deposit-gradient {
     border-color: hsl(var(--brand-soft) / 0.26);
     background-image: linear-gradient(
-      102deg,
-      hsl(var(--brand-1) / 0.9) 0%,
-      hsl(var(--brand-1) / 0.82) 58%,
-      hsl(var(--brand-2) / 0.76) 100%
+      104deg,
+      hsl(var(--brand-1) / 0.92) 0%,
+      hsl(265 68% 52% / 0.88) 50%,
+      hsl(var(--brand-2) / 0.82) 100%
     );
     box-shadow:
       0 1px 0 rgba(255, 255, 255, 0.22) inset,
       0 0 14px hsl(var(--brand-1) / 0.26),
       0 10px 22px rgba(7, 10, 28, 0.38);
-    background-size: 145% 145%;
-    background-position: 0% 50%;
+    background-size: 100% 100%;
+    background-position: center;
   }
 
   .btn-withdraw-gradient {
     border-color: hsl(var(--brand-soft) / 0.28);
     background-image: linear-gradient(
-      102deg,
-      hsl(var(--brand-1) / 0.8) 0%,
-      hsl(var(--brand-2) / 0.82) 56%,
+      104deg,
+      hsl(var(--brand-1) / 0.82) 0%,
+      hsl(var(--brand-2) / 0.85) 50%,
       hsl(var(--brand-2) / 0.94) 100%
     );
     box-shadow:
       0 1px 0 rgba(255, 255, 255, 0.2) inset,
       0 0 14px hsl(var(--brand-2) / 0.24),
       0 10px 22px rgba(7, 10, 28, 0.36);
-    background-size: 145% 145%;
-    background-position: 0% 50%;
+    background-size: 100% 100%;
+    background-position: center;
   }
 
   @media (hover: hover) {
     .btn-deposit-gradient:hover,
     .btn-withdraw-gradient:hover {
-      background-position: 100% 50%;
+      filter: brightness(1.06);
     }
+  }
+
+  .btn-deposit-gradient:active,
+  .btn-withdraw-gradient:active {
+    transform: translateY(1px) scale(0.98);
+    filter: brightness(0.94);
   }
 
   .btn-secondary {
@@ -478,7 +528,8 @@
   }
 
   .btn-secondary:active {
-    transform: translateY(1px);
+    transform: translateY(1px) scale(0.98);
+    filter: brightness(0.96);
   }
 
   .btn-secondary:disabled {
@@ -488,16 +539,34 @@
 
   .chip-control {
     border-radius: var(--radius-pill);
-    border: 1px solid hsl(var(--brand-soft) / 0.18);
-    background: linear-gradient(180deg, hsl(var(--surface-2) / 0.82) 0%, hsl(var(--surface-1) / 0.88) 100%);
+    border: 1px solid hsl(var(--brand-1) / 0.28);
+    background:
+      linear-gradient(155deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 60%),
+      hsl(var(--surface-1) / 0.72);
     color: hsl(var(--muted-foreground));
-    box-shadow: inset 0 1px 0 hsl(var(--brand-soft) / 0.1);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 2px 8px rgba(4, 7, 22, 0.2);
+    backdrop-filter: blur(var(--glass-blur-subtle));
+    -webkit-backdrop-filter: blur(var(--glass-blur-subtle));
     transition:
       transform var(--motion-fast) var(--ease-out-fluid),
       color var(--motion-fast) var(--ease-out-fluid),
       border-color var(--motion-fast) var(--ease-out-fluid),
       box-shadow var(--motion-fast) var(--ease-out-fluid),
-      background-color var(--motion-fast) var(--ease-out-fluid);
+      background var(--motion-fast) var(--ease-out-fluid);
+  }
+
+  .chip-control:active {
+    transform: scale(0.96);
+  }
+
+  /* Utility: subtle press feedback for interactive glass surfaces */
+  .press-scale {
+    transition: transform var(--motion-fast) var(--ease-out-fluid);
+  }
+  .press-scale:active {
+    transform: scale(0.98);
   }
 
   .glass-segmented {
@@ -636,9 +705,14 @@
 
   .chip-control[data-active="true"] {
     color: hsl(var(--foreground));
-    border-color: hsl(var(--brand-soft) / 0.52);
-    background: linear-gradient(145deg, hsl(var(--brand-1) / 0.34) 0%, hsl(var(--brand-2) / 0.24) 100%);
-    box-shadow: inset 0 0 0 1px hsl(var(--brand-soft) / 0.2), inset 0 1px 0 hsl(var(--brand-soft) / 0.24), 0 0 12px rgba(101, 29, 203, 0.18);
+    border-color: hsl(var(--brand-soft) / 0.48);
+    background:
+      linear-gradient(145deg, hsl(var(--brand-1) / 0.32) 0%, hsl(var(--brand-2) / 0.22) 100%),
+      hsl(var(--surface-1) / 0.8);
+    box-shadow:
+      inset 0 1px 0 hsl(var(--brand-soft) / 0.22),
+      0 0 14px rgba(101, 29, 203, 0.22),
+      0 4px 12px rgba(4, 7, 22, 0.2);
   }
 
   .focus-brand:focus-visible {
