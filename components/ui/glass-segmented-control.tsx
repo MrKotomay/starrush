@@ -29,10 +29,18 @@ const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
 
 function renderIcon(icon: SegmentedIcon | undefined, className: string) {
   if (!icon) return null
-  if (typeof icon === "function") {
-    const Icon = icon
+  if (React.isValidElement(icon)) {
+    return <span className={className}>{icon}</span>
+  }
+
+  if (
+    typeof icon === "function" ||
+    (typeof icon === "object" && icon !== null && "$$typeof" in icon)
+  ) {
+    const Icon = icon as React.ComponentType<{ className?: string }>
     return <Icon className={className} />
   }
+
   return <span className={className}>{icon}</span>
 }
 
@@ -81,4 +89,3 @@ export function GlassSegmentedControl<T extends string>({
     </div>
   )
 }
-
