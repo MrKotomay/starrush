@@ -55,7 +55,10 @@ export function GlassSegmentedControl<T extends string>({
   disabled = false,
 }: GlassSegmentedControlProps<T>) {
   const shouldReduceMotion = useReducedMotion()
-  const transition = shouldReduceMotion ? { duration: 0.1 } : { duration: 0.24, ease: EASE }
+  const indicatorTransition = shouldReduceMotion
+    ? ({ duration: 0.12 } as const)
+    : ({ type: "spring", stiffness: 500, damping: 36, mass: 0.7 } as const)
+  const pressScale = shouldReduceMotion ? 1 : 0.985
 
   return (
     <div className={cn("glass-segmented", className)} data-size={size} role="tablist" aria-label={ariaLabel}>
@@ -63,7 +66,7 @@ export function GlassSegmentedControl<T extends string>({
         const active = item.id === value
         const itemDisabled = disabled || item.disabled
         return (
-          <button
+          <motion.button
             key={item.id}
             type="button"
             role="tab"
@@ -72,18 +75,20 @@ export function GlassSegmentedControl<T extends string>({
             className="glass-segmented-btn"
             data-active={active ? "true" : "false"}
             onClick={() => onChange(item.id)}
+            whileTap={{ scale: pressScale }}
+            transition={{ duration: shouldReduceMotion ? 0.1 : 0.16, ease: EASE }}
           >
             {active ? (
               <motion.span
                 layoutId={layoutId}
                 className="glass-segmented-indicator"
-                transition={transition}
+                transition={indicatorTransition}
                 aria-hidden="true"
               />
             ) : null}
             {renderIcon(item.icon, "glass-segmented-icon")}
             <span className="glass-segmented-label">{item.label}</span>
-          </button>
+          </motion.button>
         )
       })}
     </div>

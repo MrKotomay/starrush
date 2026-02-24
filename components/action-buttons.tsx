@@ -24,6 +24,7 @@ export function ActionButtons({
         onClick={onDeposit}
         disabled={isBusy}
         aria-busy={isDepositLoading}
+        breathing
         depth="raised"
         variant="brand"
         className="btn-deposit-gradient h-12 rounded-[15px] text-base font-semibold"
@@ -36,6 +37,7 @@ export function ActionButtons({
         onClick={onWithdraw}
         disabled={isBusy}
         aria-busy={isWithdrawLoading}
+        breathing
         depth="raised"
         variant="brandSoft"
         className="btn-withdraw-gradient h-12 rounded-[15px] text-base font-semibold"

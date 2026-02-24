@@ -459,17 +459,21 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                       />
 
                       <motion.div className={styles.quickRow} variants={itemVariants}>
-                        {TON_PRESETS.map((value) => (
-                          <motion.button
-                            key={value}
-                            type="button"
-                            className={styles.quickBtn}
-                            disabled={isSubmitting}
-                            onClick={() => setTonAmountRaw(value)}
-                          >
-                            {value} TON
-                          </motion.button>
-                        ))}
+                        {TON_PRESETS.map((value) => {
+                          const active = toPositiveTon(tonAmountRaw) === value
+                          return (
+                            <motion.button
+                              key={value}
+                              type="button"
+                              className={styles.quickBtn}
+                              data-active={active ? "true" : "false"}
+                              disabled={isSubmitting}
+                              onClick={() => setTonAmountRaw(value)}
+                            >
+                              {value} TON
+                            </motion.button>
+                          )
+                        })}
                       </motion.div>
 
                       <motion.p className={styles.walletHint} variants={itemVariants}>
@@ -519,17 +523,21 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                       />
 
                       <motion.div className={styles.quickRow} variants={itemVariants}>
-                        {STARS_PRESETS.map((value) => (
-                          <motion.button
-                            key={value}
-                            type="button"
-                            className={styles.quickBtn}
-                            disabled={isSubmitting}
-                            onClick={() => setStarsAmountRaw(String(value))}
-                          >
-                            {value}
-                          </motion.button>
-                        ))}
+                        {STARS_PRESETS.map((value) => {
+                          const active = starsAmountRaw.trim() === String(value)
+                          return (
+                            <motion.button
+                              key={value}
+                              type="button"
+                              className={styles.quickBtn}
+                              data-active={active ? "true" : "false"}
+                              disabled={isSubmitting}
+                              onClick={() => setStarsAmountRaw(String(value))}
+                            >
+                              {value}
+                            </motion.button>
+                          )
+                        })}
                       </motion.div>
 
                       <motion.p className={styles.walletHint} variants={itemVariants}>

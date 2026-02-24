@@ -8,6 +8,7 @@ import { TonConnectProvider } from "@/components/providers/tonconnect-provider"
 import './globals.css'
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
+const ENABLE_VERCEL_ANALYTICS = process.env.NEXT_PUBLIC_ENABLE_VERCEL_ANALYTICS === "1"
 
 export const metadata: Metadata = {
   title: 'StarRush - Telegram Mini App',
@@ -57,7 +58,7 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`}>
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
         <TonConnectProvider>{children}</TonConnectProvider>
-        <Analytics />
+        {ENABLE_VERCEL_ANALYTICS ? <Analytics /> : null}
       </body>
     </html>
   )
