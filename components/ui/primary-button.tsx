@@ -7,6 +7,7 @@ interface PrimaryButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   variant?: "brand" | "brandSoft" | "glass"
   depth?: "flat" | "raised"
   motion?: "none" | "subtle"
+  loading?: boolean
 }
 
 export const PrimaryButton = React.forwardRef<HTMLButtonElement, PrimaryButtonProps>(
@@ -19,6 +20,8 @@ export const PrimaryButton = React.forwardRef<HTMLButtonElement, PrimaryButtonPr
       variant = "brand",
       depth = "raised",
       motion = "subtle",
+      loading = false,
+      children,
       ...props
     },
     ref,
@@ -28,17 +31,21 @@ export const PrimaryButton = React.forwardRef<HTMLButtonElement, PrimaryButtonPr
       <button
         ref={ref}
         type={type}
-        disabled={disabled}
+        disabled={disabled || loading}
         className={cn(
-          "btn-primary-glow focus-brand inline-flex items-center justify-center gap-2 rounded-[14px] px-4 py-3 text-sm font-semibold tracking-wide",
+          "btn-primary-glow focus-brand inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] px-4 py-3 text-sm font-semibold tracking-wide",
           variantClass,
           depth === "flat" ? "btn-depth-flat" : "btn-depth-raised",
           motion === "none" ? "btn-motion-none" : "",
-          breathing && !disabled && motion !== "none" ? "glow-breathe" : "",
+          breathing && !disabled && !loading && motion !== "none" ? "glow-breathe" : "",
+          loading ? "btn-loading" : "",
           className,
         )}
         {...props}
-      />
+      >
+        {loading ? <span className="btn-spinner" aria-hidden="true" /> : null}
+        {children}
+      </button>
     )
   },
 )

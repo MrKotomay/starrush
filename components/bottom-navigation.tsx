@@ -58,7 +58,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                 key={tab.id}
                 onClick={() => handleTabClick(tab.id)}
                 className={cn(
-                  "focus-brand relative flex min-w-[95px] flex-col items-center gap-0.5 rounded-[16px] px-4 py-1.5 transition-colors duration-200 ease-out",
+                  "focus-brand relative flex min-w-[95px] flex-col items-center gap-0.5 rounded-[var(--radius-lg)] px-4 py-1.5 transition-colors duration-200 ease-out",
                   isActive ? "text-foreground" : "text-text-tertiary",
                 )}
                 aria-current={isActive ? "page" : undefined}
@@ -68,7 +68,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                   <motion.span
                     layoutId="bottom-nav-active-pill"
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 rounded-[16px] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.08)_0%,rgba(255,255,255,0.03)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]"
+                    className="pointer-events-none absolute inset-0 rounded-[var(--radius-lg)] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.08)_0%,rgba(255,255,255,0.03)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]"
                     transition={indicatorTransition}
                   />
                 ) : null}

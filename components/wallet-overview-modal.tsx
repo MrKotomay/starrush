@@ -72,7 +72,7 @@ export function WalletOverviewModal({
           transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
         >
           <motion.section
-            className="w-full max-w-lg max-h-[86vh] overflow-y-auto rounded-[22px] border border-white/12 p-4 shadow-[0_24px_58px_rgba(4,8,22,0.52)]"
+            className="w-full max-w-lg max-h-[86vh] overflow-y-auto rounded-[var(--radius-xl)] border border-white/12 p-4 shadow-[0_24px_58px_rgba(4,8,22,0.52)]"
             onClick={(event) => event.stopPropagation()}
             style={{
               background:

@@ -23,7 +23,7 @@ export function StatCard({
   return (
     <GlassCard
       variant="elevated"
-      className={cn("rounded-[18px] p-4", className)}
+      className={cn("rounded-[var(--radius-lg)] p-4", className)}
       {...props}
     >
       {icon ? (

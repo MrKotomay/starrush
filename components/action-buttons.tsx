@@ -18,16 +18,17 @@ export function ActionButtons({
   const isBusy = isDepositLoading || isWithdrawLoading
 
   return (
-    <div className="mt-4 grid grid-cols-2 gap-3 px-4">
+    <div className="mt-4 grid grid-cols-2 gap-[var(--card-gap)] px-[var(--page-px)]">
       <PrimaryButton
         type="button"
         onClick={onDeposit}
         disabled={isBusy}
         aria-busy={isDepositLoading}
+        loading={isDepositLoading}
         breathing
         depth="raised"
         variant="brand"
-        className="btn-deposit-gradient h-12 rounded-[15px] text-base font-semibold"
+        className="btn-deposit-gradient h-12 rounded-[var(--radius-md)] text-base font-semibold"
       >
         {isDepositLoading ? "Пополнение..." : "Пополнить"}
       </PrimaryButton>
@@ -37,10 +38,11 @@ export function ActionButtons({
         onClick={onWithdraw}
         disabled={isBusy}
         aria-busy={isWithdrawLoading}
+        loading={isWithdrawLoading}
         breathing
         depth="raised"
         variant="brandSoft"
-        className="btn-withdraw-gradient h-12 rounded-[15px] text-base font-semibold"
+        className="btn-withdraw-gradient h-12 rounded-[var(--radius-md)] text-base font-semibold"
       >
         {isWithdrawLoading ? "Вывод..." : "Вывод"}
       </PrimaryButton>

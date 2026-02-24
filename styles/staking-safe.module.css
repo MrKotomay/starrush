@@ -94,8 +94,8 @@
 
 .leaderboardTitle {
   margin: 0;
-  font-size: 1.56rem;
-  font-weight: 780;
+  font-size: 1.375rem;
+  font-weight: 700;
   letter-spacing: -0.02em;
   color: hsl(var(--foreground));
   text-align: center;
@@ -106,7 +106,7 @@
 }
 
 .leaderboardCard {
-  border-color: rgba(var(--ui-rgb-text-primary), 0.12);
+  border-color: rgba(var(--rgb-text-primary), 0.12);
 }
 
 .leaderboardHeadRow {
@@ -116,7 +116,7 @@
   align-items: center;
   gap: 8px;
   padding: 0 10px;
-  color: rgba(var(--ui-rgb-text-secondary), 0.86);
+  color: rgba(var(--rgb-text-secondary), 0.86);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -136,7 +136,7 @@
   grid-template-columns: 48px 1fr 86px;
   align-items: center;
   gap: 8px;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   border: 1px solid transparent;
   background: linear-gradient(165deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 58%, rgba(18, 24, 50, 0.7) 100%);
   padding: 10px;
@@ -175,7 +175,7 @@
 }
 
 .leaderboardRowCurrent {
-  border-color: rgba(var(--ui-rgb-text-primary), 0.32);
+  border-color: rgba(var(--rgb-text-primary), 0.32);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
 }
 
@@ -190,7 +190,7 @@
 
   .leaderboardRow:hover::after {
     opacity: 0.84;
-    animation: stakingRowSheen 0.9s cubic-bezier(0.22, 1, 0.36, 1) 1 both;
+    animation: liquidSheenSweepOnce 0.9s cubic-bezier(0.22, 1, 0.36, 1) 1 both;
   }
 }
 
@@ -225,19 +225,19 @@
 }
 
 .leaderboardState {
-  border-radius: 14px;
-  border: 1px solid rgba(var(--ui-rgb-text-primary), 0.1);
-  background: rgba(var(--ui-rgb-text-primary), 0.03);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(var(--rgb-text-primary), 0.1);
+  background: rgba(var(--rgb-text-primary), 0.03);
   padding: 18px 12px;
   text-align: center;
-  color: rgba(var(--ui-rgb-text-secondary), 0.9);
+  color: rgba(var(--rgb-text-secondary), 0.9);
   font-size: 13px;
   font-weight: 600;
 }
 
 .leaderboardMeta {
   margin: 8px 6px 0;
-  color: rgba(var(--ui-rgb-text-secondary), 0.76);
+  color: rgba(var(--rgb-text-secondary), 0.76);
   font-size: 11px;
   font-weight: 600;
 }
@@ -309,16 +309,4 @@
   }
 }
 
-@keyframes stakingRowSheen {
-  0% {
-    transform: translateX(-185%) rotate(24deg);
-    opacity: 0;
-  }
-  35% {
-    opacity: 0.9;
-  }
-  100% {
-    transform: translateX(330%) rotate(24deg);
-    opacity: 0;
-  }
-}
+

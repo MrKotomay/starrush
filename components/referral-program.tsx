@@ -76,8 +76,8 @@ export function ReferralProgram({
   }
 
   return (
-    <div className="relative rounded-[20px] p-[1px]" style={{ backgroundImage: "var(--primary-gradient)" }}>
-      <GlassCard variant="elevated" className="rounded-[19px] p-4">
+    <div className="relative rounded-[var(--radius-xl)] p-[1px]" style={{ backgroundImage: "var(--primary-gradient)" }}>
+      <GlassCard variant="elevated" className="rounded-[calc(var(--radius-xl)-1px)] p-4">
         <div className="mb-3 flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-brand-1 to-brand-2 shadow-[var(--shadow-sm)]">
             <Users className="h-5 w-5 text-foreground" />

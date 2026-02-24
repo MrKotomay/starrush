@@ -78,7 +78,7 @@ export function TopHud({
 
   return (
     <div
-      className="relative z-20 w-full px-4 pt-[calc(var(--content-safe-top)+48px)] pb-2"
+      className="relative z-20 w-full px-[var(--page-px)] pt-[calc(var(--content-safe-top)+48px)] pb-2"
       data-ui="shared-top-hud"
     >
       <div className="flex items-center justify-between">

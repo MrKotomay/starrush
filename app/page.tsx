@@ -525,7 +525,7 @@ export default function ProfilePage() {
                     onViewAll={() => setToast("Экран достижений пока в работе")}
                   />
 
-                  <div className="mt-4 px-4">
+                  <div className="mt-[var(--section-gap)] px-[var(--page-px)]">
                     <ReferralProgram
                       invitedCount={referralSummary?.invitedCount ?? 0}
                       earnedTon={referralSummary?.earnedTon ?? "0"}
@@ -535,7 +535,7 @@ export default function ProfilePage() {
                     />
                   </div>
 
-                  <div className="mt-4 px-4">
+                  <div className="mt-[var(--section-gap)] px-[var(--page-px)]">
                     <SettingsMenu
                       onWalletClick={openWalletOverview}
                       onStakingClick={() => handleTabChange("staking")}
@@ -588,7 +588,7 @@ export default function ProfilePage() {
 
       {toast ? (
         <div
-          className="glass-card fixed left-1/2 z-50 -translate-x-1/2 rounded-xl px-4 py-2.5 text-xs font-medium text-foreground shadow-[var(--shadow-md)]"
+          className="glass-card fixed left-1/2 z-50 -translate-x-1/2 rounded-[var(--radius-md)] px-4 py-2.5 text-xs font-medium text-foreground shadow-[var(--shadow-md)]"
           style={{
             bottom: "calc(var(--bottom-nav-h) + var(--content-safe-bottom) + 12px)",
             animation: "fadeInUp 0.25s ease-out",

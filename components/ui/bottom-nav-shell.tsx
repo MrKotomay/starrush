@@ -9,7 +9,7 @@ export function BottomNavShell({
   return (
     <div
       className={cn(
-        "relative isolate overflow-hidden rounded-[20px] border border-white/8 bg-[hsl(var(--surface-1)/0.38)] shadow-[0_14px_36px_rgba(4,7,22,0.42)] backdrop-blur-[14px] backdrop-saturate-150 supports-[backdrop-filter]:bg-[hsl(var(--surface-1)/0.3)] before:pointer-events-none before:absolute before:inset-0 before:bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_38%,rgba(255,255,255,0)_100%)]",
+        "glass-pill relative isolate overflow-hidden rounded-[var(--radius-xl)] border border-white/8 shadow-[0_14px_36px_rgba(4,7,22,0.42)] before:pointer-events-none before:absolute before:inset-0 before:bg-[linear-gradient(180deg,rgba(255,255,255,0.14)_0%,rgba(255,255,255,0.05)_40%,transparent_100%)]",
         className,
       )}
       {...props}

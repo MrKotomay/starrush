@@ -10,6 +10,9 @@ interface ProfileHeaderProps {
   avatarLayoutId?: string
 }
 
+const ICON_BTN =
+  "glass-pill focus-brand liquid-sheen inline-flex h-11 w-11 items-center justify-center rounded-full px-0 py-0 text-muted-foreground transition-colors duration-150 hover:text-foreground active:scale-95" as const
+
 export function ProfileHeader({
   username,
   bio,
@@ -18,9 +21,10 @@ export function ProfileHeader({
 }: ProfileHeaderProps) {
   return (
     <div className="flex flex-col items-center pb-6 pt-0">
-      <div className="mb-6 flex w-full items-center justify-between px-4">
+      {/* Icon row */}
+      <div className="mb-6 flex w-full items-center justify-between px-[var(--page-px)]">
         <button
-          className="btn-secondary focus-brand liquid-sheen inline-flex h-11 w-11 items-center justify-center rounded-full border-white/14 bg-surface-2/88 px-0 py-0 text-muted-foreground hover:text-foreground"
+          className={ICON_BTN}
           data-sheen="event"
           aria-label="Settings"
           type="button"
@@ -28,7 +32,7 @@ export function ProfileHeader({
           <Settings className="h-5 w-5" />
         </button>
         <button
-          className="btn-secondary focus-brand liquid-sheen inline-flex h-11 w-11 items-center justify-center rounded-full border-white/14 bg-surface-2/88 px-0 py-0 text-muted-foreground hover:text-foreground"
+          className={ICON_BTN}
           data-sheen="event"
           aria-label="QR Code"
           type="button"
@@ -37,6 +41,7 @@ export function ProfileHeader({
         </button>
       </div>
 
+      {/* Avatar */}
       <div className="relative mb-4">
         <motion.div
           layoutId={avatarLayoutId}
@@ -56,7 +61,7 @@ export function ProfileHeader({
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-1/36 to-brand-2/24">
-                <span className="text-3xl font-bold text-foreground">
+                <span className="type-title text-foreground">
                   {username.charAt(0).toUpperCase()}
                 </span>
               </div>
@@ -65,8 +70,8 @@ export function ProfileHeader({
         </motion.div>
       </div>
 
-      <h1 className="mb-1 text-xl font-bold text-foreground">{username}</h1>
-      <p className="text-sm text-muted-foreground">{bio}</p>
+      <h1 className="type-title mb-0.5 text-foreground">{username}</h1>
+      <p className="type-caption text-muted-foreground">{bio}</p>
     </div>
   )
 }

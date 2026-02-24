@@ -2,7 +2,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-type GlassCardVariant = "default" | "hero" | "elevated"
+type GlassCardVariant = "default" | "hero" | "elevated" | "sheet"
 
 interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: GlassCardVariant
@@ -12,6 +12,7 @@ const variantClassMap: Record<GlassCardVariant, string> = {
   default: "glass-card",
   hero: "glass-card-hero",
   elevated: "card-elevated",
+  sheet: "glass-sheet",
 }
 
 export function GlassCard({

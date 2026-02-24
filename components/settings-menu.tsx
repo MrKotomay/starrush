@@ -66,7 +66,7 @@ export function SettingsMenu({
   }
 
   return (
-    <GlassCard variant="elevated" className="overflow-hidden rounded-[18px] p-0">
+    <GlassCard variant="elevated" className="overflow-hidden rounded-[var(--radius-lg)] p-0">
       {menuItems.map((item, index) => (
         <button
           key={item.id}
@@ -79,7 +79,7 @@ export function SettingsMenu({
           )}
         >
           <div className="flex items-center gap-3">
-            <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl border border-white/12 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]", item.iconClassName)}>
+            <div className={cn("flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] border border-white/12 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]", item.iconClassName)}>
               {item.icon}
             </div>
             <span className="font-medium text-foreground">{item.label}</span>

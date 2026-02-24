@@ -19,7 +19,7 @@ export function StatCards({
   rewards,
 }: StatCardsProps) {
   return (
-    <div className="grid grid-cols-2 gap-3 px-4">
+    <div className="grid grid-cols-2 gap-[var(--card-gap)] px-[var(--page-px)]">
       <StatCard
         iconVariant="plain"
         icon={

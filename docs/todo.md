@@ -567,3 +567,81 @@ Full visual redesign of all client-side components to achieve a premium "wow" da
 - Apply the same gradient artifact hardening to any remaining custom gradient buttons outside shared primitives.
 - Consider extracting a shared "active chip" primitive for parity between modal quick chips and game history pills.
 - Optional: add lightweight visual regression snapshots for nav indicator + staking hero layering to catch future UI regressions.
+
+---
+
+## UI Redesign — "Apple Liquid Glass" Pass (2026-02-XX)
+
+### Goal
+MVP-ready UI with premium "Apple liquid glass" feel: layered translucent materials, subtle blur + vibrancy, controlled glow, strong visual hierarchy, consistent typography/spacing, clean iconography, smooth micro-animations and page transitions.
+
+### Design System Foundation (`app/globals.css :root`)
+
+**Canonical source of truth** for all design tokens. `theme/colors.ts` provides JS-consumable values and backward-compat `--ui-*` aliases.
+
+| Token Category | Tokens | Values |
+|---|---|---|
+| **Radius** | `--radius-sm/md/lg/xl/pill` | 10 / 14 / 18 / 22px / 999px |
+| **Typography** | `--text-display` through `--text-micro` | 7 steps: 28→10px with tracking |
+| **Layout** | `--page-px`, `--section-gap`, `--card-gap` | 16px, 20px, 12px |
+| **Materials** | `--surface-glass`, `--surface-glass-strong`, `--surface-glass-soft` | Translucent surface layers |
+| **Glass** | `--glass-highlight`, `--overlay` | Top-edge highlight, backdrop overlay |
+| **RGB Channels** | `--rgb-primary`, `--rgb-text-primary`, etc. | For `rgba()` usage without alpha functions |
+
+### Typography Utilities
+`.type-display`, `.type-title`, `.type-body`, `.type-label`, `.type-caption`, `.type-small`, `.type-micro` — each sets `font-size`, `line-height`, `letter-spacing`, and `font-weight`.
+
+### New Primitives
+- **GlassSheet** (`components/ui/glass-sheet.tsx`) — Framer Motion bottom-sheet with overlay, drag handle, reduced-motion support.
+- **GlassCard** `"sheet"` variant — maps to `.glass-sheet` CSS class.
+- **PrimaryButton** `loading` prop — shows spinner, hides children, disables interaction.
+- **SecondaryButton** `loading` prop — same pattern.
+- **BottomNavShell** — now uses `.glass-pill` utility for consistent frosted glass.
+
+### CSS Utilities Added
+`.glass-sheet`, `.glass-pill`, `.glass-input`, `.gradient-border`, `.sheet-overlay`, `.btn-loading`, `.btn-spinner`, `.stagger-enter`
+
+### Normalization Applied
+| File | Changes |
+|---|---|
+| `app/globals.css` | Full `:root` rewrite, `@theme inline` updated, `@layer utilities` rebuilt |
+| `theme/colors.ts` | Marked canonical source, `--ui-rgb-*` as backward compat |
+| `styles/staking-safe.module.css` | Deduped `stakingRowSheen`, font-weights 780→700, `--ui-rgb-*`→`--rgb-*`, radius→tokens |
+| `styles/deposit-funds-modal.module.css` | Deduped `depositQuickSheen`, radii→tokens, font-weights normalized (630→600, 680→700, 720→700, 740→700, 650→600, 560→500) |
+| `styles/place-bet-modal.module.css` | Deduped `placeQuickSheen`, radii→tokens |
+| `styles/starrush.module.css` | Font-weight 680→700, 5 radii→tokens (.gameArea, .historyInfoPopover, .amountInputWrap, .toast) |
+| `components/profile-header.tsx` | Extracted icon button constant, typography tokens, `--page-px` |
+| `components/action-buttons.tsx` | Radius→token, `--card-gap`/`--page-px`, `loading` prop wired |
+| `components/achievements.tsx` | Radius→token, `--section-gap`/`--page-px`, typography |
+| `components/referral-program.tsx` | Radius→`--radius-xl`, inner radius `calc()` |
+| `components/settings-menu.tsx` | Radius→tokens |
+| `components/stat-cards.tsx` | `--card-gap`/`--page-px` tokens |
+| `components/staking-content.tsx` | `--page-px`, `--section-gap`, `--card-gap`, `--radius-xl` |
+| `components/top-hud.tsx` | `--page-px` token |
+| `components/bottom-navigation.tsx` | Radius→`--radius-lg` |
+| `components/wallet-action-modal.tsx` | Radius→`--radius-xl` |
+| `components/wallet-overview-modal.tsx` | Radius→`--radius-xl` |
+| `components/ui/glass-card.tsx` | Added `"sheet"` variant |
+| `components/ui/primary-button.tsx` | Added `loading` prop, radius→token |
+| `components/ui/secondary-button.tsx` | Added `loading` prop, radius→token, typed interface |
+| `components/ui/stat-card.tsx` | Radius→`--radius-lg` |
+| `components/ui/stat-icon.tsx` | Radius→`--radius-md` |
+| `components/ui/bottom-nav-shell.tsx` | Uses `.glass-pill`, radius→`--radius-xl` |
+| `app/page.tsx` | Profile section uses `--section-gap`/`--page-px`, toast radius→token |
+
+### Dead Code Removed
+- `components/top-panel.tsx` — unused duplicate of `top-hud.tsx` with hardcoded hex colors.
+- `components/game/BetControls.tsx` — unused; `PlaceBetModal` is the active bet UI.
+
+### QA Test Steps
+1. `npm run lint` — verify no lint errors
+2. `npm run build` — verify no build errors
+3. Open app in Telegram Mini App or browser:
+   - **Profile tab**: Verify stat cards, action buttons, referral card, settings menu all use consistent rounded corners and spacing.
+   - **Game tab**: Verify bet modal, history popover, toast all use token radii. Verify CTA button loading states.
+   - **Staking tab**: Verify vault hero, leaderboard, stat cards render correctly.
+   - **Tab switching**: Verify smooth `AnimatePresence` fade/slide transitions between all 3 tabs.
+   - **Bottom nav**: Verify active pill slides with spring animation, icon glow pulses.
+4. **Reduced motion**: Enable `prefers-reduced-motion: reduce` in system settings. Verify all animations are dampened/disabled.
+5. **Typography**: Verify no `font-weight: 680/720/740/760` remains anywhere in computed styles.
+6. **Spacing**: Verify consistent 16px page padding across all tabs.

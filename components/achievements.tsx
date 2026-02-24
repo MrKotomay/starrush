@@ -18,10 +18,10 @@ interface AchievementsProps {
 
 export function Achievements({ achievements, onViewAll }: AchievementsProps) {
   return (
-    <div className="mt-6 px-4">
-      <GlassCard variant="elevated" className="rounded-[18px] p-4">
+    <div className="mt-[var(--section-gap)] px-[var(--page-px)]">
+      <GlassCard variant="elevated" className="rounded-[var(--radius-lg)] p-4">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-foreground">Инвентарь</h2>
+          <h2 className="type-body font-semibold text-foreground">Инвентарь</h2>
           <button
             onClick={onViewAll}
             type="button"

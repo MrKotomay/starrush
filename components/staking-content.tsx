@@ -182,7 +182,7 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
   }, [sortBy])
 
   return (
-    <div className="px-4 pb-2">
+    <div className="px-[var(--page-px)] pb-2">
       <motion.div
         initial={sectionInitial}
         animate={sectionAnimate}
@@ -224,7 +224,7 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
       </motion.div>
 
       <motion.div
-        className="mb-6 grid grid-cols-2 gap-3"
+        className="mb-[var(--section-gap)] grid grid-cols-2 gap-[var(--card-gap)]"
         initial={sectionInitial}
         animate={sectionAnimate}
         transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE, delay: shouldReduceMotion ? 0 : 0.03 }}
@@ -244,7 +244,7 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
       </motion.div>
 
       <motion.div
-        className="mb-6"
+        className="mb-[var(--section-gap)]"
         initial={sectionInitial}
         animate={sectionAnimate}
         transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE, delay: shouldReduceMotion ? 0 : 0.06 }}
@@ -270,7 +270,7 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
             exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
             transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
           >
-            <GlassCard variant="elevated" className={cn("rounded-[20px] p-2.5", styles.leaderboardCard)}>
+            <GlassCard variant="elevated" className={cn("rounded-[var(--radius-xl)] p-2.5", styles.leaderboardCard)}>
           <div className={styles.leaderboardHeadRow}>
             <span>Место</span>
             <span>Игрок</span>

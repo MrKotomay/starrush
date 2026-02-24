@@ -1,6 +1,8 @@
 /* ────────────────────────────────────────────────────────
-   StarRush Design System — Brand Palette (v2)
-   Cosmic violet / pink  •  BattleRoll-level polish
+   StarRush Design System — Brand Palette (v3)
+   Cosmic violet / pink  •  Apple liquid-glass polish
+   Canonical source: app/globals.css :root
+   This file provides JS-consumable values & legacy --ui-* CSS aliases.
    ──────────────────────────────────────────────────────── */
 
 export const colors = {
@@ -57,6 +59,15 @@ export const gradients = {
   sheet: "linear-gradient(180deg, rgba(101,29,203,0.18) 0%, rgba(11,16,36,0.96) 30%, #0B1024 100%)",
 } as const;
 
+/**
+ * --ui-* backward-compat aliases.
+ * These map to the same values as the canonical :root tokens in globals.css.
+ * CSS modules that still reference --ui-* will work without changes.
+ *
+ * NEW CODE should use the canonical vars:
+ *   hsl(var(--surface-1))   instead of   var(--ui-surface-1)
+ *   rgba(var(--rgb-primary), 0.5)   instead of   rgba(var(--ui-rgb-primary), 0.5)
+ */
 export const appColorCssVariables: Record<`--${string}`, string> = {
   /* ── core palette ──────────────────────────────── */
   "--ui-primary": colors.brand1,
@@ -116,7 +127,7 @@ export const appColorCssVariables: Record<`--${string}`, string> = {
   "--ui-border-strong": "rgba(255,255,255,0.16)",
   "--ui-divider": colors.divider,
 
-  /* ── RGB channels (for rgba() compositing) ─────── */
+  /* ── RGB channels (backward compat — canonical is --rgb-* in :root) ── */
   "--ui-rgb-primary": "101, 29, 203",
   "--ui-rgb-primary-soft": "236, 204, 249",
   "--ui-rgb-accent": "215, 97, 241",
