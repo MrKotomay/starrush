@@ -13,6 +13,11 @@ x-app-common: &app-common
     NODE_ENV: production
     DATABASE_URL: ${DOCKER_DATABASE_URL:?DOCKER_DATABASE_URL is required for docker-compose.yml (DBaaS mode)}
     REDIS_URL: ${DOCKER_REDIS_URL:?DOCKER_REDIS_URL is required for docker-compose.yml (DBaaS mode)}
+  logging: &default-logging
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
   restart: unless-stopped
 
 services:
@@ -45,6 +50,7 @@ services:
   edge:
     image: caddy:2.10-alpine
     restart: unless-stopped
+    logging: *default-logging
     environment:
       APP_DOMAIN: ${APP_DOMAIN:-localhost}
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:-admin@example.com}

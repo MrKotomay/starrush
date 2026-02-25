@@ -74,3 +74,26 @@ What happens on each push to `main`:
 3. Re-run deploy script.
 
 No changes are needed in application code for this switch.
+
+## 4) VDS disk usage (Docker cache/log growth)
+
+If your VDS disk usage keeps growing over time, the usual sources are Docker image/build cache and container logs.
+`infra/deploy/deploy-vds.sh` now prunes stale images and builder cache at the end of deploy, but you can also inspect manually:
+
+```bash
+df -h
+docker system df -v
+sudo du -xh /var/lib/docker --max-depth=2 | sort -h | tail -n 30
+journalctl --disk-usage
+```
+
+One-time cleanup commands:
+
+```bash
+docker image prune -a -f
+docker builder prune -a -f
+docker container prune -f
+```
+
+Compose logging is capped with `json-file` rotation (`10m` x `3` files per container) in `docker-compose.yml`.
+
