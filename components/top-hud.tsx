@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { ChevronUp, Wallet } from "lucide-react"
 
@@ -25,6 +25,7 @@ type TopHudProps = {
 }
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
+const BALANCE_DROPDOWN_CLOSE_MS = 180
 
 function formatStarsBalance(value: number): string {
   if (!Number.isFinite(value)) return "0"
@@ -50,6 +51,7 @@ export function TopHud({
   avatarLayoutId = "shared-profile-avatar",
 }: TopHudProps) {
   const [isBalanceSelectorOpen, setBalanceSelectorOpen] = useState(false)
+  const currencySwitchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const shouldReduceMotion = useReducedMotion()
   const tonBalanceLabel = useMemo(() => tonBalance.toFixed(2), [tonBalance])
   const starsBalanceLabel = useMemo(() => formatStarsBalance(starsBalance), [starsBalance])
@@ -63,9 +65,32 @@ export function TopHud({
     setBalanceSelectorOpen(false)
   }, [activeTab])
 
+  useEffect(() => {
+    return () => {
+      if (currencySwitchTimerRef.current) {
+        clearTimeout(currencySwitchTimerRef.current)
+      }
+    }
+  }, [])
+
   const switchBalanceCurrency = (nextCurrency: "TON" | "STARS") => {
     setBalanceSelectorOpen(false)
-    onActiveBalanceCurrencyChange?.(nextCurrency)
+    if (!onActiveBalanceCurrencyChange || nextCurrency === activeBalanceCurrency) return
+
+    if (currencySwitchTimerRef.current) {
+      clearTimeout(currencySwitchTimerRef.current)
+      currencySwitchTimerRef.current = null
+    }
+
+    if (shouldReduceMotion) {
+      onActiveBalanceCurrencyChange(nextCurrency)
+      return
+    }
+
+    currencySwitchTimerRef.current = setTimeout(() => {
+      currencySwitchTimerRef.current = null
+      onActiveBalanceCurrencyChange(nextCurrency)
+    }, BALANCE_DROPDOWN_CLOSE_MS)
   }
 
   const hudTransition = shouldReduceMotion
