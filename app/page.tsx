@@ -441,7 +441,7 @@ export default function ProfilePage() {
     <div className="relative min-h-screen overflow-x-hidden bg-background bg-cosmic-radial">
       <ParticleBackground active={!hasHeavyOverlay} />
 
-      {activeTab === "mine" ? (
+      {activeTab === "mine" || activeTab === "staking" ? (
         <div className="pointer-events-none absolute inset-x-0 top-0 z-30 mx-auto w-full max-w-md">
           <div className="pointer-events-auto">
             <TopHud {...topHudProps} />
@@ -452,14 +452,11 @@ export default function ProfilePage() {
       <MotionConfig reducedMotion="user">
         <LayoutGroup id="profile-avatar-layout">
           <main className="safe-bottom-pad relative z-10 mx-auto max-w-md">
-            {activeTab === "staking" ? (
-              <TopHud {...topHudProps} />
-            ) : null}
-
             <AnimatePresence mode="wait" initial={false}>
               {activeTab === "staking" ? (
                 <motion.section
                   key="tab-staking"
+                  className="pt-[calc(var(--content-safe-top)+112px)]"
                   initial={tabEnter}
                   animate={tabActive}
                   exit={tabExit}
