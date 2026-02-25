@@ -361,9 +361,9 @@ export default function ProfilePage() {
   const shouldReduceMotion = useReducedMotion()
   const hasHeavyOverlay = isDepositModalOpen || isWalletOverviewOpen || walletActionMode !== null
   const isMineSceneActive = activeTab === "mine" && !hasHeavyOverlay
-  const tabEnter = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 12 }
-  const tabActive = { opacity: 1, y: 0 }
-  const tabExit = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }
+  const tabEnter = { opacity: 0 }
+  const tabActive = { opacity: 1 }
+  const tabExit = { opacity: 0 }
   const tabTransition = shouldReduceMotion
     ? { duration: 0.1 }
     : { duration: 0.2, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }
@@ -456,7 +456,7 @@ export default function ProfilePage() {
               <TopHud {...topHudProps} />
             ) : null}
 
-            <AnimatePresence mode="sync" initial={false}>
+            <AnimatePresence mode="wait" initial={false}>
               {activeTab === "staking" ? (
                 <motion.section
                   key="tab-staking"
