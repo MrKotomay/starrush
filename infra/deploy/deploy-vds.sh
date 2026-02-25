@@ -28,3 +28,7 @@ docker compose -f "${COMPOSE_FILE}" up -d edge
 
 echo "[deploy] Current service status"
 docker compose -f "${COMPOSE_FILE}" ps
+
+echo "[deploy] Pruning stale Docker cache and dangling images"
+docker image prune -f || true
+docker builder prune -f --filter "until=168h" || true
