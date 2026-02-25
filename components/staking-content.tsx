@@ -124,8 +124,8 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
   const [isLeaderboardLoading, setLeaderboardLoading] = useState(true)
   const [leaderboardError, setLeaderboardError] = useState<string | null>(null)
   const shouldReduceMotion = useReducedMotion()
-  const sectionInitial = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 12 }
-  const sectionAnimate = { opacity: 1, y: 0 }
+  const sectionInitial = { opacity: 0 }
+  const sectionAnimate = { opacity: 1 }
 
   const activeSortLabel = useMemo(
     () => SORT_OPTIONS.find((option) => option.id === sortBy)?.label ?? "Подарки",
@@ -233,7 +233,7 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
         className="mb-[var(--section-gap)] grid grid-cols-2 gap-[var(--card-gap)]"
         initial={sectionInitial}
         animate={sectionAnimate}
-        transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE, delay: shouldReduceMotion ? 0 : 0.03 }}
+        transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
       >
         <StatCard
           icon={<Vault className="h-5 w-5 text-foreground" />}
@@ -253,7 +253,7 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
         className="mb-[var(--section-gap)]"
         initial={sectionInitial}
         animate={sectionAnimate}
-        transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE, delay: shouldReduceMotion ? 0 : 0.06 }}
+        transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
       >
         <div className={styles.leaderboardHeader}>
           <h2 className={styles.leaderboardTitle}>Лидерборд</h2>
