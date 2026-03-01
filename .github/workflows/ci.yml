@@ -72,5 +72,6 @@ jobs:
         run: |
           npm run test:fairness
           npm run test:cashout-math
+          npm run test:referrals
           npm run test:round-growth
           npm run test:snapshot-schema

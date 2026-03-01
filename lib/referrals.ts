@@ -46,7 +46,15 @@ export function parseReferralStartParam(startParam: string | null | undefined): 
 export function buildReferralLink(referrerUserId: string): string {
   const botUsername = normalizeBotUsername(process.env.TELEGRAM_BOT_USERNAME)
   const startParam = buildReferralStartParam(referrerUserId)
-  return `https://t.me/${botUsername}?start=${encodeURIComponent(startParam)}`
+  return `https://t.me/${botUsername}?startapp=${encodeURIComponent(startParam)}`
+}
+
+export function resolveReferralAssignment(
+  existingReferredById: string | null | undefined,
+  candidateReferredById: string | null | undefined
+): string | null {
+  if (existingReferredById) return existingReferredById
+  return candidateReferredById ?? null
 }
 
 export function isReferralRewardReference(referenceId: string): boolean {
@@ -133,4 +141,3 @@ export async function applyReferralRewardForDeposit(
     currency: applied.currency,
   }
 }
-
