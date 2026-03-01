@@ -12,12 +12,67 @@ const REDIS_CONNECT_TIMEOUT_MS = Number(process.env.REDIS_CONNECT_TIMEOUT_MS ?? 
 const REDIS_MAX_RETRY_DELAY_MS = Number(process.env.REDIS_MAX_RETRY_DELAY_MS ?? 2000)
 
 let lastErrorLogAt = 0
+let connectPromise: Promise<void> | null = null
 
 function logRedisError(error: unknown) {
   const now = Date.now()
   if (now - lastErrorLogAt < 10_000) return
   lastErrorLogAt = now
   logger.error("redis_error", { error })
+}
+
+function waitForReady(client: Redis) {
+  return new Promise<void>((resolve, reject) => {
+    const cleanup = () => {
+      client.off("ready", onReady)
+      client.off("error", onError)
+      client.off("end", onEnd)
+    }
+
+    const onReady = () => {
+      cleanup()
+      resolve()
+    }
+
+    const onError = (error: unknown) => {
+      cleanup()
+      reject(error)
+    }
+
+    const onEnd = () => {
+      cleanup()
+      reject(new Error("REDIS_CONNECTION_ENDED"))
+    }
+
+    client.on("ready", onReady)
+    client.on("error", onError)
+    client.on("end", onEnd)
+  })
+}
+
+async function ensureRedisReady(client: Redis) {
+  if (client.status === "ready") return
+
+  if (client.status === "connect" || client.status === "connecting" || client.status === "reconnecting") {
+    await waitForReady(client)
+    return
+  }
+
+  if (client.status === "wait" || client.status === "close" || client.status === "end") {
+    if (!connectPromise) {
+      connectPromise = client
+        .connect()
+        .catch((error) => {
+          logRedisError(error)
+          throw error
+        })
+        .finally(() => {
+          connectPromise = null
+        })
+    }
+
+    await connectPromise
+  }
 }
 
 function createRedisClient(url: string) {
@@ -54,6 +109,10 @@ function createRedisClient(url: string) {
   client.on("error", (error) => {
     logRedisError(error)
   })
+
+  const originalSendCommand = client.sendCommand.bind(client)
+  client.sendCommand = ((command, stream) =>
+    ensureRedisReady(client).then(() => originalSendCommand(command, stream))) as Redis["sendCommand"]
 
   const originalQuit = client.quit.bind(client)
   client.quit = (async () => {
