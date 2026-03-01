@@ -803,10 +803,11 @@ export class BackendRoundStateAdapter {
       eventStatus === "RUNNING" &&
       this.snapshot.queuedBet?.isCurrentUser === true &&
       this.snapshot.userActiveBet === null;
-    const transitionActiveBet = carryQueuedBetIntoRunning
+    const queuedBetToActivate = carryQueuedBetIntoRunning ? this.snapshot.queuedBet : null;
+    const transitionActiveBet = queuedBetToActivate
       ? {
-          ...this.snapshot.queuedBet,
-          id: `queued:${roundId}:${this.snapshot.queuedBet.userId}`,
+          ...queuedBetToActivate,
+          id: `queued:${roundId}:${queuedBetToActivate.userId}`,
           status: "ACTIVE" as const,
           placedAt: Date.now(),
         }
