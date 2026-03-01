@@ -95,7 +95,7 @@ type HistoryPopoverPosition = {
   top: number;
 };
 
-type MainCtaState = "bet-ready" | "cashout-ready" | "waiting-round" | "submitting" | "connection-lost";
+type MainCtaState = "bet-ready" | "cashout-ready" | "submitting" | "connection-lost";
 
 type WalletsApiResponse = {
   ok?: boolean;
@@ -253,7 +253,6 @@ export function StarRushPanel({
   const [openHistoryKey, setOpenHistoryKey] = useState<string | null>(null);
   const [historyPopoverPos, setHistoryPopoverPos] = useState<HistoryPopoverPosition | null>(null);
   const [copiedHistoryField, setCopiedHistoryField] = useState<"hash" | "seed" | null>(null);
-  const [waitingSweepTick, setWaitingSweepTick] = useState(0);
   const [connectionState, setConnectionState] = useState<BackendRoundConnectionState>(INITIAL_CONNECTION_STATE);
 
   // Separate fast-changing coefficient from structural snapshot
@@ -658,13 +657,6 @@ export function StarRushPanel({
     snapshot.roundId,
   ]);
   const userActive = snapshot.userActiveBet?.status === "ACTIVE" ? snapshot.userActiveBet : null;
-  const canPlaceInTransition =
-    (snapshot.phase === RoundPhase.CRASHED || snapshot.phase === RoundPhase.RESETTING) &&
-    !snapshot.queuedBet;
-  const canPlaceBetNow =
-    ((snapshot.phase === RoundPhase.PREPARING || snapshot.phase === RoundPhase.RUNNING) &&
-      snapshot.canPlaceBet) ||
-    canPlaceInTransition;
   const canCashOutNow = snapshot.phase === RoundPhase.RUNNING && snapshot.canCashOut && !!userActive;
   const isActionBusy = isBetSubmitting || isCashoutSubmitting;
   const isConnectionInterrupted = connectionState.status !== "connected";
@@ -677,16 +669,6 @@ export function StarRushPanel({
     () => Math.max(0, walletStarsBalance - walletStarsLocked),
     [walletStarsBalance, walletStarsLocked],
   );
-  const waitingReason = useMemo(() => {
-    if (snapshot.queuedBet) return "Ставка уже принята, применим её в следующем раунде.";
-    if (snapshot.phase === RoundPhase.RUNNING && !snapshot.canPlaceBet) {
-      return "Раунд уже идет, ожидаем открытие следующего раунда.";
-    }
-    if (snapshot.phase === RoundPhase.CRASHED || snapshot.phase === RoundPhase.RESETTING) {
-      return "Раунд переключается, ожидаем старт.";
-    }
-    return "Прием ставок временно закрыт.";
-  }, [snapshot.canPlaceBet, snapshot.phase, snapshot.queuedBet]);
   const connectionHint = useMemo(() => {
     if (!isConnectionInterrupted) return "";
     if (connectionState.reconnectAttempt > 0) {
@@ -701,39 +683,28 @@ export function StarRushPanel({
     if (isConnectionInterrupted) return "connection-lost";
     if (isActionBusy) return "submitting";
     if (canCashOutNow) return "cashout-ready";
-    if (canPlaceBetNow) return "bet-ready";
-    return "waiting-round";
-  }, [canCashOutNow, canPlaceBetNow, isActionBusy, isConnectionInterrupted]);
+    return "bet-ready";
+  }, [canCashOutNow, isActionBusy, isConnectionInterrupted]);
   const mainBetLabel = useMemo(() => {
     if (ctaState === "connection-lost") return CONNECTION_CTA_LABEL;
     if (ctaState === "submitting") {
       return isCashoutSubmitting ? "Вывод..." : "Отправка...";
     }
     if (ctaState === "cashout-ready") return `Забрать ${cashoutAmount.toFixed(2)} TON`;
-    if (ctaState === "waiting-round") return "Ожидание следующего раунда";
     return "Сделать ставку";
   }, [cashoutAmount, ctaState, isCashoutSubmitting]);
   const isMainActionDisabled =
-    ctaState === "waiting-round" || ctaState === "submitting" || ctaState === "connection-lost";
+    ctaState === "submitting" || ctaState === "connection-lost";
   const ctaStateClass = ctaState === "cashout-ready"
     ? styles.btnStateCashout
     : ctaState === "connection-lost"
       ? styles.btnStateDisconnected
-    : ctaState === "waiting-round"
-      ? styles.btnStateWaiting
       : ctaState === "submitting"
         ? styles.btnStateSubmitting
         : styles.btnStateBetReady;
-  const ctaSheenMode = ctaState === "waiting-round"
-    ? "once"
-    : ctaState === "submitting" || ctaState === "connection-lost"
+  const ctaSheenMode = ctaState === "submitting" || ctaState === "connection-lost"
       ? "off"
       : "always";
-
-  useEffect(() => {
-    if (ctaState !== "waiting-round") return;
-    setWaitingSweepTick((prev) => prev + 1);
-  }, [ctaState]);
   const statusChipLabel = isRunning
     ? `x${coefficient.toFixed(2)}`
     : isSettling
@@ -1129,13 +1100,7 @@ export function StarRushPanel({
 
         <section className={styles.betSection}>
           <button
-            key={
-              ctaState === "waiting-round"
-                ? `waiting-${waitingSweepTick}`
-                : ctaState === "connection-lost"
-                  ? `offline-${connectionState.reconnectAttempt}`
-                  : ctaState
-            }
+            key={ctaState === "connection-lost" ? `offline-${connectionState.reconnectAttempt}` : ctaState}
             type="button"
             className={`${styles.actionButton} ${ctaStateClass} liquid-sheen`}
             disabled={isMainActionDisabled}
@@ -1146,9 +1111,7 @@ export function StarRushPanel({
           >
             {ctaState === "connection-lost" ? CONNECTION_CTA_LABEL : mainBetLabel}
           </button>
-          {ctaState === "waiting-round" ? (
-            <p className={styles.queueHint}>{waitingReason}</p>
-          ) : ctaState === "connection-lost" ? (
+          {ctaState === "connection-lost" ? (
             <p className={styles.queueHint}>{connectionStatusText}</p>
           ) : null}
         </section>
