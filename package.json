@@ -16,6 +16,7 @@
     "test:risk-parallel": "tsx scripts/risk_parallel_bet_integration_test.ts",
     "test:risk-queued": "tsx scripts/queued_bet_risk_integration_test.ts",
     "test:cashout-math": "tsx scripts/cashout_math_unit_test.ts",
+    "test:round-growth": "tsx scripts/round_growth_unit_test.ts",
     "test:house-bankroll-guard": "tsx scripts/house_bankroll_guard_test.ts",
     "test:ws-player-payload": "tsx scripts/ws_player_event_payload_test.ts",
     "test:snapshot-schema": "tsx scripts/snapshot_schema_compat_test.ts",

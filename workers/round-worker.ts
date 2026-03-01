@@ -2,6 +2,7 @@ import { RoundEventType, RoundStatus } from "@prisma/client"
 import { db } from "@/lib/db"
 import { redis } from "@/lib/redis"
 import { acquireLock, releaseLock } from "@/lib/redis-lock"
+import { computeRoundMultiplier } from "@/lib/round-multiplier"
 import { emitGameEvent } from "@/services/game-events.service"
 import { calculateCrashPoint, createRound, crashRound, finishRound, REDIS_KEYS, startRound } from "@/services/game-round.service"
 import { repairLockedBalances } from "@/services/reconciliation.service"
@@ -12,7 +13,6 @@ const LOCK_KEY = "round-worker-lock"
 const WAITING_PHASE_MS = Number(process.env.ROUND_WAITING_MS ?? 5000)
 const COOLDOWN_PHASE_MS = Number(process.env.ROUND_COOLDOWN_MS ?? 3000)
 const TICK_RATE_MS = Number(process.env.ROUND_TICK_MS ?? 100)
-const GROWTH_RATE = Number(process.env.ROUND_GROWTH_RATE ?? 0.15)
 const DEBUG_ROUND_LOOP = process.env.DEBUG_ROUND_LOOP === "1"
 
 const CRASHED_AT_KEY = (roundId: string) => `game:round:${roundId}:crashed_at`
@@ -133,7 +133,7 @@ async function tickRound() {
     }
 
     const elapsedSeconds = (Date.now() - startedAt.getTime()) / 1000
-    const multiplier = Math.exp(GROWTH_RATE * elapsedSeconds)
+    const multiplier = computeRoundMultiplier(elapsedSeconds)
     const serverTs = Date.now()
 
     await redis.set(REDIS_KEYS.multiplier(round.id), multiplier.toFixed(4))

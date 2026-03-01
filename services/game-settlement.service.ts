@@ -17,6 +17,7 @@ import { REDIS_KEYS } from "@/services/game-round.service"
 import { PublicPlayerProfile } from "@/lib/game/public-player"
 import { createPlayerCashoutEventPayload } from "@/services/game-player-events.service"
 import { loadPublicPlayerProfile } from "@/services/public-player-profile.service"
+import { computeRoundMultiplier } from "@/lib/round-multiplier"
 
 export class RoundNotRunningError extends Error {}
 export class PlayerAlreadyCashedOutError extends Error {}
@@ -37,7 +38,6 @@ export type CashoutResult = {
 }
 
 const BET_SAFETY_WINDOW_MS = Number(process.env.BET_SAFETY_WINDOW_MS ?? 200)
-const GROWTH_RATE = Number(process.env.ROUND_GROWTH_RATE ?? 0.15)
 export const CASHOUT_MULTIPLIER_SCALE = 4
 export const CASHOUT_MONEY_SCALE = 9
 
@@ -114,7 +114,7 @@ export async function cashoutPlayer(roundId: string, userId: string): Promise<Ca
 
     const multiplier = multiplierRaw
       ? Number.parseFloat(multiplierRaw)
-      : Math.exp(GROWTH_RATE * ((Date.now() - round.startedAt.getTime()) / 1000))
+      : computeRoundMultiplier((Date.now() - round.startedAt.getTime()) / 1000)
 
     const settlement = computeCashoutAmounts(player.betAmount, multiplier)
 

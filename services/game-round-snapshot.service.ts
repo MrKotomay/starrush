@@ -15,10 +15,10 @@ import {
 } from "@/lib/game/backend-round-types";
 import { DEFAULT_CLIENT_SEED } from "@/services/game-fairness.service";
 import { REDIS_KEYS } from "@/services/game-round.service";
+import { computeRoundMultiplier } from "@/lib/round-multiplier";
 
 const WAITING_PHASE_MS = Number(process.env.ROUND_WAITING_MS ?? 5000);
 const COOLDOWN_PHASE_MS = Number(process.env.ROUND_COOLDOWN_MS ?? 3000);
-const GROWTH_RATE = Number(process.env.ROUND_GROWTH_RATE ?? 0.15);
 const HISTORY_LIMIT = 14;
 const PLAYERS_LIMIT = 300;
 
@@ -87,7 +87,7 @@ async function resolveCurrentMultiplier(
 
     if (startedAt) {
       const elapsedSeconds = Math.max(0, (Date.now() - startedAt.getTime()) / 1000);
-      return Math.max(1, Number(Math.exp(GROWTH_RATE * elapsedSeconds).toFixed(4)));
+      return computeRoundMultiplier(elapsedSeconds);
     }
   }
 
