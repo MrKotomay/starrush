@@ -1,7 +1,52 @@
 import { redis } from "@/lib/redis"
 
-export async function rateLimit(key: string, limit: number, windowSeconds: number) {
-  if (!redis) return { allowed: true, remaining: limit }
+export type RateLimitMode = "redis" | "memory-fallback"
+
+type RateLimitResult = {
+  allowed: boolean
+  remaining: number
+  mode: RateLimitMode
+}
+
+type MemoryBucket = {
+  count: number
+  resetAt: number
+}
+
+const memoryBuckets = new Map<string, MemoryBucket>()
+
+function memoryRateLimit(key: string, limit: number, windowSeconds: number): RateLimitResult {
+  const now = Date.now()
+  const redisKey = `rate:${key}`
+  const existing = memoryBuckets.get(redisKey)
+  const windowMs = windowSeconds * 1000
+
+  if (!existing || existing.resetAt <= now) {
+    memoryBuckets.set(redisKey, {
+      count: 1,
+      resetAt: now + windowMs,
+    })
+
+    return {
+      allowed: true,
+      remaining: Math.max(limit - 1, 0),
+      mode: "memory-fallback",
+    }
+  }
+
+  existing.count += 1
+
+  return {
+    allowed: existing.count <= limit,
+    remaining: Math.max(limit - existing.count, 0),
+    mode: "memory-fallback",
+  }
+}
+
+export async function rateLimit(key: string, limit: number, windowSeconds: number): Promise<RateLimitResult> {
+  if (!redis) {
+    return memoryRateLimit(key, limit, windowSeconds)
+  }
 
   try {
     const redisKey = `rate:${key}`
@@ -11,8 +56,8 @@ export async function rateLimit(key: string, limit: number, windowSeconds: numbe
     }
 
     const remaining = Math.max(limit - current, 0)
-    return { allowed: current <= limit, remaining }
+    return { allowed: current <= limit, remaining, mode: "redis" }
   } catch {
-    return { allowed: true, remaining: limit }
+    return memoryRateLimit(key, limit, windowSeconds)
   }
 }

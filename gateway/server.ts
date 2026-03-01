@@ -1,7 +1,7 @@
 import http from "http"
 import WebSocket, { WebSocketServer } from "ws"
 import { db } from "@/lib/db"
-import { redis } from "@/lib/redis"
+import { getRedisStatus, isRedisConfigured, pingRedis, redis } from "@/lib/redis"
 import { authenticateWs } from "@/gateway/auth/ws-auth"
 import { createRedisSubscriber } from "@/gateway/redis/redis-subscriber"
 import { RoundRoomManager, RoomClient } from "@/gateway/rooms/round-room"
@@ -11,10 +11,17 @@ import { handleBet } from "@/gateway/handlers/bet.handler"
 import { handleCashout } from "@/gateway/handlers/cashout.handler"
 import { handlePing } from "@/gateway/handlers/ping.handler"
 import { REDIS_KEYS } from "@/services/game-round.service"
+import { jsonUtf8 } from "@/lib/http"
+import { createLogger } from "@/lib/logger"
 
 const PORT = Number(process.env.GATEWAY_PORT ?? 8081)
 const rooms = new RoundRoomManager()
 const limiter = new WsRateLimiter()
+const logger = createLogger("gateway")
+const gatewayState = {
+  bootedAt: Date.now(),
+  ready: false,
+}
 
 async function resolveCurrentRound() {
   if (redis) {
@@ -30,17 +37,67 @@ async function resolveCurrentRound() {
 }
 
 async function boot() {
-  const server = http.createServer()
-  const wss = new WebSocketServer({ server })
+  const subscriber = createRedisSubscriber({ redisUrl: process.env.REDIS_URL, rooms })
+  const server = http.createServer(async (req, res) => {
+    if (req.url !== "/healthz") {
+      res.statusCode = 404
+      res.end("Not Found")
+      return
+    }
 
-  createRedisSubscriber({ redisUrl: process.env.REDIS_URL, rooms })
+    let databaseOk = false
+    try {
+      await db.$queryRaw`SELECT 1`
+      databaseOk = true
+    } catch {
+      databaseOk = false
+    }
+
+    const redisOk = await pingRedis()
+    const subscriberStatus = subscriber?.status ?? "disabled"
+    const ready =
+      gatewayState.ready &&
+      databaseOk &&
+      redisOk &&
+      isRedisConfigured() &&
+      subscriberStatus !== "end"
+
+    const payload = jsonUtf8(
+      {
+        ok: ready,
+        status: ready ? "ready" : "degraded",
+        service: "gateway",
+        checks: {
+          database: databaseOk,
+          redis: redisOk,
+          redisConfigured: isRedisConfigured(),
+          redisStatus: getRedisStatus(),
+          subscriberStatus,
+        },
+        serverTime: Date.now(),
+      },
+      { status: ready ? 200 : 503 },
+    )
+
+    res.statusCode = payload.status
+    payload.headers.forEach((value, key) => {
+      res.setHeader(key, value)
+    })
+    res.end(await payload.text())
+  })
+  const wss = new WebSocketServer({ server })
 
   const currentRound = await resolveCurrentRound()
   if (currentRound) rooms.setCurrentRound(currentRound)
+  gatewayState.ready = true
 
   wss.on("connection", async (socket: WebSocket, req) => {
     const auth = await authenticateWs(req)
     if (!auth) {
+      logger.warn("ws_auth_rejected", {
+        route: "ws",
+        remoteAddress: req.socket.remoteAddress ?? null,
+      })
       socket.close(4001, "UNAUTHORIZED")
       return
     }
@@ -132,11 +189,11 @@ async function boot() {
   })
 
   server.listen(PORT, () => {
-    console.log(`[Gateway] WebSocket listening on :${PORT}`)
+    logger.info("gateway_listening", { port: PORT })
   })
 }
 
 boot().catch((error) => {
-  console.error("[Gateway] Fatal", error)
+  logger.error("gateway_fatal", { error })
   process.exit(1)
 })

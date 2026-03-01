@@ -18,6 +18,7 @@ import { PublicPlayerProfile } from "@/lib/game/public-player"
 import { createPlayerCashoutEventPayload } from "@/services/game-player-events.service"
 import { loadPublicPlayerProfile } from "@/services/public-player-profile.service"
 import { computeRoundMultiplier } from "@/lib/round-multiplier"
+import { createLogger } from "@/lib/logger"
 
 export class RoundNotRunningError extends Error {}
 export class PlayerAlreadyCashedOutError extends Error {}
@@ -40,6 +41,7 @@ export type CashoutResult = {
 const BET_SAFETY_WINDOW_MS = Number(process.env.BET_SAFETY_WINDOW_MS ?? 200)
 export const CASHOUT_MULTIPLIER_SCALE = 4
 export const CASHOUT_MONEY_SCALE = 9
+const logger = createLogger("game-settlement")
 
 function quantizeMoney(value: Prisma.Decimal) {
   return value.toDecimalPlaces(CASHOUT_MONEY_SCALE, Prisma.Decimal.ROUND_HALF_UP)
@@ -84,7 +86,7 @@ export async function cashoutPlayer(roundId: string, userId: string): Promise<Ca
     if (!round.startedAt) throw new RoundNotRunningError()
 
     if (Date.now() - round.startedAt.getTime() < BET_SAFETY_WINDOW_MS) {
-      console.info("[Cashout] Rejected by safety window", { roundId, userId, safetyWindowMs: BET_SAFETY_WINDOW_MS })
+      logger.warn("cashout_rejected", { roundId, userId, errorCode: "CASHOUT_CLOSED", safetyWindowMs: BET_SAFETY_WINDOW_MS })
       throw new CashoutClosedError()
     }
 
@@ -203,7 +205,7 @@ export async function cashoutPlayer(roundId: string, userId: string): Promise<Ca
     publicPlayer: result.publicPlayer,
   })
   emitGameEvent(roundId, RoundEventType.PLAYER_CASHOUT, eventPayload).catch((error) =>
-    console.error("[Cashout] Event emit failed", error)
+    logger.error("cashout_event_emit_failed", { roundId, userId, error })
   )
 
   return result
@@ -221,7 +223,7 @@ export async function settleLosses(
   let processed = 0
   let skipped = 0
 
-  console.log("[Settlement] settleLosses start", { roundId, batchSize, maxBatches, lockTimeoutMs })
+  logger.info("settle_losses_start", { roundId, batchSize, maxBatches, lockTimeoutMs })
 
   while (batch < maxBatches) {
     batch += 1
@@ -251,7 +253,7 @@ export async function settleLosses(
           })
 
           if (!wallet) {
-            console.warn("[Settlement] Wallet not found", { roundId, userId: player.userId })
+            logger.warn("settlement_wallet_missing", { roundId, userId: player.userId })
             return
           }
 
@@ -300,22 +302,22 @@ export async function settleLosses(
         batchProcessed += 1
       } catch (error) {
         batchSkipped += 1
-        console.error("[Settlement] Player settlement failed", { roundId, playerId: player.id, error })
+        logger.error("player_settlement_failed", { roundId, playerId: player.id, error })
       }
     }
 
     processed += batchProcessed
     skipped += batchSkipped
 
-    console.log("[Settlement] settleLosses batch", { roundId, batch, batchProcessed, batchSkipped })
+    logger.info("settle_losses_batch", { roundId, batch, batchProcessed, batchSkipped })
 
     if (batchProcessed === 0 && batchSkipped > 0) {
-      console.warn("[Settlement] settleLosses exit due to repeated skips", { roundId, batch })
+      logger.warn("settle_losses_repeated_skips", { roundId, batch })
       break
     }
   }
 
-  console.log("[Settlement] settleLosses complete", { roundId, processed, skipped, batches: batch })
+  logger.info("settle_losses_complete", { roundId, processed, skipped, batches: batch })
   return { processed, skipped, batches: batch }
 }
 
@@ -328,7 +330,7 @@ export async function settleRound(roundId: string) {
   })
 
   emitGameEvent(roundId, RoundEventType.ROUND_FINISHED, { roundId }).catch((error) =>
-    console.error("[Settlement] Round finished event emit failed", error)
+    logger.error("round_finished_event_emit_failed", { roundId, error })
   )
 
   return round

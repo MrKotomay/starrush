@@ -4,6 +4,7 @@ import { createTransaction, applyTransaction } from "@/lib/ledger.service"
 import { rateLimit } from "@/lib/rate-limit"
 import { jsonUtf8 } from "@/lib/http"
 import { applyReferralRewardForDeposit } from "@/lib/referrals"
+import { createLogger } from "@/lib/logger"
 
 const schema = z.object({
   userId: z.string().min(1),
@@ -18,15 +19,24 @@ const schema = z.object({
 })
 
 type Payload = z.infer<typeof schema>
+const logger = createLogger("ledger-internal-create")
 
 export async function POST(req: Request) {
   const internalKey = req.headers.get("x-internal-key")
   if (!process.env.INTERNAL_API_KEY || internalKey !== process.env.INTERNAL_API_KEY) {
+    logger.warn("internal_route_rejected", {
+      route: "/api/ledger/internal/create",
+      reason: "FORBIDDEN",
+    })
     return jsonUtf8({ ok: false, error: "FORBIDDEN" }, { status: 403 })
   }
 
   const rate = await rateLimit("ledger:internal", 30, 60)
   if (!rate.allowed) {
+    logger.warn("internal_route_rate_limited", {
+      route: "/api/ledger/internal/create",
+      mode: rate.mode,
+    })
     return jsonUtf8({ ok: false, error: "RATE_LIMIT" }, { status: 429 })
   }
 
@@ -56,7 +66,7 @@ export async function POST(req: Request) {
     try {
       await applyReferralRewardForDeposit(finalEntry.id)
     } catch (referralError) {
-      console.error("[LedgerInternalCreate] Referral reward apply failed", referralError)
+      logger.error("referral_reward_apply_failed", { error: referralError, ledgerId: finalEntry.id })
     }
   }
 

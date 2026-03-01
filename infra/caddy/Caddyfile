@@ -12,6 +12,13 @@
     Permissions-Policy "camera=(), microphone=(), geolocation=()"
   }
 
+  @internal_api {
+    path /api/ledger/internal/*
+    path /api/payments/ton/reconcile
+    path /api/dev/*
+  }
+  respond @internal_api 404
+
   @gateway_ws path /ws*
   reverse_proxy @gateway_ws gateway:8081
 

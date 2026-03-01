@@ -13,6 +13,7 @@ x-app-common: &app-common
     NODE_ENV: production
     DATABASE_URL: ${DOCKER_DATABASE_URL:?DOCKER_DATABASE_URL is required for docker-compose.yml (DBaaS mode)}
     REDIS_URL: ${DOCKER_REDIS_URL:?DOCKER_REDIS_URL is required for docker-compose.yml (DBaaS mode)}
+    APP_INTERNAL_BASE_URL: ${APP_INTERNAL_BASE_URL:-http://app:3000}
   logging: &default-logging
     driver: json-file
     options:
@@ -31,6 +32,18 @@ services:
     command: ["npm", "run", "start"]
     expose:
       - "3000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health/ready').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   gateway:
     <<: *app-common
@@ -42,10 +55,40 @@ services:
       GATEWAY_PORT: 8081
     expose:
       - "8081"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8081/healthz').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   worker:
     <<: *app-common
     command: ["npm", "run", "worker:round"]
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DOCKER_DATABASE_URL:?DOCKER_DATABASE_URL is required for docker-compose.yml (DBaaS mode)}
+      REDIS_URL: ${DOCKER_REDIS_URL:?DOCKER_REDIS_URL is required for docker-compose.yml (DBaaS mode)}
+      APP_INTERNAL_BASE_URL: ${APP_INTERNAL_BASE_URL:-http://app:3000}
+      WORKER_HEALTH_PORT: 8082
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8082/healthz').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   edge:
     image: caddy:2.10-alpine
@@ -61,11 +104,17 @@ services:
       - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- --header='Host: localhost' http://127.0.0.1/ >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     depends_on:
       app:
-        condition: service_started
+        condition: service_healthy
       gateway:
-        condition: service_started
+        condition: service_healthy
 
 volumes:
   caddy_data:

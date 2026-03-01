@@ -6,9 +6,11 @@ import {
   BackendPlayerCashoutEventPayload,
 } from "@/lib/game/backend-round-types"
 import { buildPublicPlayerProfile } from "@/lib/game/public-player"
+import { createLogger } from "@/lib/logger"
 
 const EVENTS_CHANNEL = "game:round:events"
 const MULTIPLIER_PATTERN = "game:round:*:multiplier"
+const logger = createLogger("gateway-redis-subscriber")
 
 type SubscriberOptions = {
   redisUrl?: string
@@ -20,15 +22,15 @@ export function createRedisSubscriber(options: SubscriberOptions) {
   const sub = new Redis(options.redisUrl)
 
   sub.on("error", (error) => {
-    console.error("[Gateway] Redis subscriber error", error)
+    logger.error("redis_subscriber_error", { error })
   })
 
   sub.subscribe(EVENTS_CHANNEL).catch((error) => {
-    console.error("[Gateway] Redis subscribe failed", error)
+    logger.error("redis_subscribe_failed", { channel: EVENTS_CHANNEL, error })
   })
 
   sub.psubscribe(MULTIPLIER_PATTERN).catch((error) => {
-    console.error("[Gateway] Redis psubscribe failed", error)
+    logger.error("redis_psubscribe_failed", { pattern: MULTIPLIER_PATTERN, error })
   })
 
   sub.on("message", (_channel, message) => {
@@ -67,7 +69,7 @@ function handleEventMessage(raw: string, rooms: RoundRoomManager) {
 
     room.broadcast(JSON.stringify(mapped))
   } catch (error) {
-    console.error("[Gateway] Invalid event message", error)
+    logger.error("invalid_event_message", { error, raw })
   }
 }
 

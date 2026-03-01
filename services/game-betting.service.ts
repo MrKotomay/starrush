@@ -9,6 +9,7 @@ import {
 } from "@/services/game-risk.service"
 import { PublicPlayerProfile } from "@/lib/game/public-player"
 import { loadPublicPlayerProfile } from "@/services/public-player-profile.service"
+import { createLogger } from "@/lib/logger"
 
 export class InsufficientBalanceError extends Error {}
 export class RoundNotAcceptingBetsError extends Error {}
@@ -34,6 +35,7 @@ const MAX_BET_STARS = new Prisma.Decimal(process.env.MAX_BET_STARS ?? "1000")
 const ROUND_WAITING_MS = Number(process.env.ROUND_WAITING_MS ?? 5000)
 const BET_SAFETY_WINDOW_MS = Number(process.env.BET_SAFETY_WINDOW_MS ?? 200)
 const CURRENT_ROUND_REDIS_KEY = "game:current_round"
+const logger = createLogger("game-betting")
 
 function getMaxBet(currency: Currency) {
   return currency === "TON" ? MAX_BET_TON : MAX_BET_STARS
@@ -96,15 +98,16 @@ async function placeBetForCurrentRound(input: {
     await tx.$queryRaw`SELECT id FROM "Round" WHERE id = ${input.roundId} FOR UPDATE`
     const lockedRound = await tx.round.findUnique({ where: { id: input.roundId } })
     if (!lockedRound || lockedRound.status !== RoundStatus.WAITING) {
-      console.info("[Betting] Round not accepting bets", { roundId: input.roundId, userId: input.userId })
+      logger.warn("bet_rejected", { roundId: input.roundId, userId: input.userId, errorCode: "ROUND_NOT_ACCEPTING_BETS" })
       throw new RoundNotAcceptingBetsError()
     }
 
     const plannedStartAt = lockedRound.createdAt.getTime() + ROUND_WAITING_MS
     if (Date.now() >= plannedStartAt - BET_SAFETY_WINDOW_MS) {
-      console.info("[Betting] Bet rejected by safety window", {
+      logger.warn("bet_rejected", {
         roundId: input.roundId,
         userId: input.userId,
+        errorCode: "BETTING_CLOSED",
         safetyWindowMs: BET_SAFETY_WINDOW_MS,
       })
       throw new BettingClosedError()
@@ -329,7 +332,7 @@ async function releaseQueuedStakeAndDelete(input: {
       tx: input.tx,
     })
   } else {
-    console.warn("[Betting] Queued bet wallet not found during release", {
+    logger.warn("queued_bet_release_wallet_missing", {
       queuedBetId: input.queuedBet.id,
       userId: input.queuedBet.userId,
       currency: input.queuedBet.currency,

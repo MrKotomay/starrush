@@ -1,3 +1,4 @@
+import http from "http"
 import { RoundEventType, RoundStatus } from "@prisma/client"
 import { db } from "@/lib/db"
 import { redis } from "@/lib/redis"
@@ -7,6 +8,7 @@ import { emitGameEvent } from "@/services/game-events.service"
 import { calculateCrashPoint, createRound, crashRound, finishRound, REDIS_KEYS, startRound } from "@/services/game-round.service"
 import { repairLockedBalances } from "@/services/reconciliation.service"
 import { settleLosses } from "@/services/game-settlement.service"
+import { createLogger } from "@/lib/logger"
 
 const LOCK_KEY = "round-worker-lock"
 
@@ -14,6 +16,18 @@ const WAITING_PHASE_MS = Number(process.env.ROUND_WAITING_MS ?? 5000)
 const COOLDOWN_PHASE_MS = Number(process.env.ROUND_COOLDOWN_MS ?? 3000)
 const TICK_RATE_MS = Number(process.env.ROUND_TICK_MS ?? 100)
 const DEBUG_ROUND_LOOP = process.env.DEBUG_ROUND_LOOP === "1"
+const WORKER_HEALTH_PORT = Number(process.env.WORKER_HEALTH_PORT ?? 8082)
+const WORKER_HEALTH_MAX_STALE_MS = Number(process.env.WORKER_HEALTH_MAX_STALE_MS ?? Math.max(TICK_RATE_MS * 20, 10_000))
+const logger = createLogger("round-worker")
+
+const workerState = {
+  bootedAt: Date.now(),
+  lastLoopAt: Date.now(),
+  lastSuccessfulTickAt: 0,
+  lastLockContentionAt: 0,
+  fatal: false,
+  fatalMessage: null as string | null,
+}
 
 const CRASHED_AT_KEY = (roundId: string) => `game:round:${roundId}:crashed_at`
 const LOSSES_SETTLED_KEY = (roundId: string) => `game:round:${roundId}:losses_settled`
@@ -25,10 +39,51 @@ function sleep(ms: number) {
 function debugRoundLog(message: string, details?: Record<string, unknown>) {
   if (!DEBUG_ROUND_LOOP) return
   if (details) {
-    console.log(`[RoundLoopDebug] ${message}`, details)
+    logger.debug(message, details)
     return
   }
-  console.log(`[RoundLoopDebug] ${message}`)
+  logger.debug(message)
+}
+
+function startHealthServer() {
+  const server = http.createServer((req, res) => {
+    if (req.url !== "/healthz") {
+      res.statusCode = 404
+      res.end("Not Found")
+      return
+    }
+
+    const now = Date.now()
+    const lastTickAgeMs =
+      workerState.lastSuccessfulTickAt > 0 ? now - workerState.lastSuccessfulTickAt : now - workerState.bootedAt
+    const healthy =
+      !workerState.fatal &&
+      lastTickAgeMs <= WORKER_HEALTH_MAX_STALE_MS &&
+      now - workerState.lastLoopAt <= WORKER_HEALTH_MAX_STALE_MS
+
+    const payload = JSON.stringify({
+      ok: healthy,
+      status: healthy ? "ready" : "degraded",
+      service: "worker",
+      serverTime: now,
+      checks: {
+        fatal: workerState.fatal,
+        lastLoopAt: workerState.lastLoopAt,
+        lastSuccessfulTickAt: workerState.lastSuccessfulTickAt,
+        lastTickAgeMs,
+        lastLockContentionAt: workerState.lastLockContentionAt || null,
+      },
+      error: workerState.fatalMessage,
+    })
+
+    res.statusCode = healthy ? 200 : 503
+    res.setHeader("content-type", "application/json; charset=utf-8")
+    res.end(payload)
+  })
+
+  server.listen(WORKER_HEALTH_PORT, () => {
+    logger.info("worker_health_listening", { port: WORKER_HEALTH_PORT })
+  })
 }
 
 async function resolveCrashedAt(roundId: string, fallbackMs: number) {
@@ -228,15 +283,19 @@ async function tickRound() {
 async function runWorker() {
   if (!redis) throw new Error("REDIS_NOT_CONFIGURED")
 
+  startHealthServer()
   await recoverActiveRound()
-  console.log("[RoundWorker] Reconcile started")
+  logger.info("reconcile_started")
   repairLockedBalances()
-    .then(() => console.log("[RoundWorker] Reconcile complete"))
-    .catch((error) => console.error("[RoundWorker] Reconcile error", error))
+    .then(() => logger.info("reconcile_complete"))
+    .catch((error) => logger.error("reconcile_error", { error }))
 
   while (true) {
+    workerState.lastLoopAt = Date.now()
     const lock = await acquireLock(LOCK_KEY, 4000)
     if (!lock.acquired) {
+      workerState.lastLockContentionAt = Date.now()
+      logger.warn("worker_lock_contention", { lockKey: LOCK_KEY })
       debugRoundLog("lock: not acquired; retry")
       await sleep(1000)
       continue
@@ -251,8 +310,9 @@ async function runWorker() {
       }
 
       await tickRound()
+      workerState.lastSuccessfulTickAt = Date.now()
     } catch (error) {
-      console.error("[RoundWorker] Error", error)
+      logger.error("worker_tick_error", { error })
     } finally {
       await releaseLock(LOCK_KEY, lock.token)
       await sleep(TICK_RATE_MS)
@@ -261,6 +321,8 @@ async function runWorker() {
 }
 
 runWorker().catch((error) => {
-  console.error("[RoundWorker] Fatal", error)
+  workerState.fatal = true
+  workerState.fatalMessage = error instanceof Error ? error.message : "UNKNOWN"
+  logger.error("worker_fatal", { error })
   process.exit(1)
 })

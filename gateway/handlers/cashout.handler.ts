@@ -2,6 +2,9 @@ import { HouseInsufficientBankrollError } from "@/lib/house-ledger.service"
 import { cashoutPlayer, CashoutClosedError, PlayerAlreadyCashedOutError, PlayerNotFoundError, RoundNotRunningError } from "@/services/game-settlement.service"
 import { WsOutgoingMessage } from "@/gateway/types/ws-events"
 import { createPlayerCashoutEventPayload } from "@/services/game-player-events.service"
+import { createLogger } from "@/lib/logger"
+
+const logger = createLogger("gateway-cashout")
 
 export async function handleCashout(userId: string, roundId?: string): Promise<WsOutgoingMessage> {
   if (!roundId) {
@@ -25,18 +28,22 @@ export async function handleCashout(userId: string, roundId?: string): Promise<W
     }
   } catch (error) {
     if (error instanceof RoundNotRunningError || error instanceof CashoutClosedError) {
+      logger.warn("cashout_rejected", { userId, roundId, errorCode: "ROUND_NOT_RUNNING" })
       return { type: "error", payload: { code: "ROUND_NOT_RUNNING", message: "Round not running" } }
     }
     if (error instanceof PlayerAlreadyCashedOutError) {
+      logger.warn("cashout_rejected", { userId, roundId, errorCode: "ALREADY_CASHED_OUT" })
       return { type: "error", payload: { code: "ALREADY_CASHED_OUT", message: "Already cashed out" } }
     }
     if (error instanceof PlayerNotFoundError) {
+      logger.warn("cashout_rejected", { userId, roundId, errorCode: "PLAYER_NOT_FOUND" })
       return { type: "error", payload: { code: "PLAYER_NOT_FOUND", message: "Player not found" } }
     }
     if (error instanceof HouseInsufficientBankrollError) {
+      logger.warn("cashout_rejected", { userId, roundId, errorCode: error.code })
       return { type: "error", payload: { code: error.code, message: error.message } }
     }
-    console.error("[Gateway] Cashout failed", error)
+    logger.error("cashout_failed", { userId, roundId, error })
     return { type: "error", payload: { code: "CASHOUT_FAILED", message: "Cashout failed" } }
   }
 }

@@ -4,8 +4,10 @@ import { creditHouse } from "@/lib/house-ledger.service"
 import { jsonUtf8 } from "@/lib/http"
 import { rateLimit } from "@/lib/rate-limit"
 import { isEnabledByEnvWithDevDefault } from "@/lib/dev-flags"
+import { createLogger } from "@/lib/logger"
 
 const DEV_TREASURY_MAX_AMOUNT = new Prisma.Decimal("1000000")
+const logger = createLogger("dev-treasury-fund")
 
 const schema = z.object({
   currency: z.nativeEnum(Currency),
@@ -29,16 +31,28 @@ function parseFundAmount(value: string | number) {
 
 export async function POST(req: Request) {
   if (!isDevTreasuryEnabled()) {
+    logger.warn("internal_route_rejected", {
+      route: "/api/dev/treasury/fund",
+      reason: "DEV_TREASURY_DISABLED",
+    })
     return jsonUtf8({ ok: false, error: "DEV_TREASURY_DISABLED" }, { status: 403 })
   }
 
   const internalKey = req.headers.get("x-internal-key")
   if (!process.env.INTERNAL_API_KEY || internalKey !== process.env.INTERNAL_API_KEY) {
+    logger.warn("internal_route_rejected", {
+      route: "/api/dev/treasury/fund",
+      reason: "FORBIDDEN",
+    })
     return jsonUtf8({ ok: false, error: "FORBIDDEN" }, { status: 403 })
   }
 
   const rate = await rateLimit("dev:treasury:fund", 20, 60)
   if (!rate.allowed) {
+    logger.warn("internal_route_rate_limited", {
+      route: "/api/dev/treasury/fund",
+      mode: rate.mode,
+    })
     return jsonUtf8({ ok: false, error: "RATE_LIMIT" }, { status: 429 })
   }
 

@@ -3,10 +3,12 @@ import { jsonUtf8 } from "@/lib/http"
 import { paymentsConfig } from "@/lib/payments/config"
 import { listTonIntentsForReconcile } from "@/lib/payments/intents.service"
 import { reconcileTonIntent } from "@/lib/payments/ton-reconcile.service"
+import { createLogger } from "@/lib/logger"
 
 const schema = z.object({
   limit: z.number().int().min(1).max(200).optional(),
 })
+const logger = createLogger("payments-ton-reconcile")
 
 export async function POST(req: Request) {
   if (!paymentsConfig.enableTonConnectDeposits) {
@@ -15,6 +17,10 @@ export async function POST(req: Request) {
 
   const internalKey = req.headers.get("x-internal-key")
   if (!process.env.INTERNAL_API_KEY || internalKey !== process.env.INTERNAL_API_KEY) {
+    logger.warn("internal_route_rejected", {
+      route: "/api/payments/ton/reconcile",
+      reason: "FORBIDDEN",
+    })
     return jsonUtf8({ ok: false, error: "FORBIDDEN" }, { status: 403 })
   }
 
@@ -29,7 +35,7 @@ export async function POST(req: Request) {
         try {
           return await reconcileTonIntent(intent.id)
         } catch (error) {
-          console.error("[Payments][TonReconcile] Intent reconcile failed", {
+          logger.error("ton_intent_reconcile_failed", {
             intentId: intent.id,
             error,
           })
@@ -54,7 +60,7 @@ export async function POST(req: Request) {
       results,
     })
   } catch (error) {
-    console.error("[Payments][TonReconcile] Failed", error)
+    logger.error("ton_reconcile_failed", { error })
     return jsonUtf8({ ok: false, error: "RECONCILE_FAILED" }, { status: 500 })
   }
 }

@@ -5,8 +5,10 @@ import { createSession, SESSION_COOKIE_NAME } from "@/lib/session"
 import { rateLimit } from "@/lib/rate-limit"
 import { jsonUtf8 } from "@/lib/http"
 import { parseReferralStartParam } from "@/lib/referrals"
+import { createLogger } from "@/lib/logger"
 
 const MAX_AUTH_AGE_SECONDS = 60 * 60 * 24 // 24h
+const logger = createLogger("auth-telegram")
 
 const schema = z.object({
   initData: z.string().min(1),
@@ -23,6 +25,7 @@ export async function POST(req: Request) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"
   const rate = await rateLimit(`auth:telegram:${ip}`, 30, 60)
   if (!rate.allowed) {
+    logger.warn("auth_rate_limited", { route: "/api/auth/telegram", ip, mode: rate.mode })
     return jsonUtf8({ ok: false, error: "RATE_LIMIT" }, { status: 429 })
   }
 
@@ -34,6 +37,7 @@ export async function POST(req: Request) {
   const initData = parsed.data.initData
   const isValid = verifyTelegramWebAppInitData(initData, botToken)
   if (!isValid) {
+    logger.warn("auth_rejected", { route: "/api/auth/telegram", reason: "INVALID_INIT_DATA", ip })
     return jsonUtf8({ ok: false, error: "INVALID_INIT_DATA" }, { status: 401 })
   }
 
@@ -41,10 +45,12 @@ export async function POST(req: Request) {
   const startParam = startParamFromInitData ?? parsed.data.startParam
 
   if (authDate && Math.floor(Date.now() / 1000) - authDate > MAX_AUTH_AGE_SECONDS) {
+    logger.warn("auth_rejected", { route: "/api/auth/telegram", reason: "INIT_DATA_EXPIRED", ip, authDate })
     return jsonUtf8({ ok: false, error: "INIT_DATA_EXPIRED" }, { status: 401 })
   }
 
   if (!user?.id) {
+    logger.warn("auth_rejected", { route: "/api/auth/telegram", reason: "MISSING_USER", ip })
     return jsonUtf8({ ok: false, error: "MISSING_USER" }, { status: 400 })
   }
 
