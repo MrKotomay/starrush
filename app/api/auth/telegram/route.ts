@@ -4,7 +4,7 @@ import { db } from "@/lib/db"
 import { createSession, SESSION_COOKIE_NAME } from "@/lib/session"
 import { rateLimit } from "@/lib/rate-limit"
 import { jsonUtf8 } from "@/lib/http"
-import { parseReferralStartParam, resolveReferralAssignment } from "@/lib/referrals"
+import { parseReferralStartParam } from "@/lib/referrals"
 import { createLogger } from "@/lib/logger"
 
 const MAX_AUTH_AGE_SECONDS = 60 * 60 * 24 // 24h
@@ -55,12 +55,8 @@ export async function POST(req: Request) {
   }
 
   const telegramId = BigInt(user.id)
-  const existingUser = await db.user.findUnique({
-    where: { telegramId },
-    select: { id: true, referredById: true },
-  })
   const referralCandidateId = parseReferralStartParam(startParam)
-  let referredByIdCandidate: string | null = null
+  let referredById: string | null = null
 
   if (referralCandidateId) {
     const referrer = await db.user.findUnique({
@@ -68,20 +64,16 @@ export async function POST(req: Request) {
       select: { id: true, telegramId: true },
     })
     if (referrer && referrer.telegramId !== telegramId) {
-      referredByIdCandidate = referrer.id
+      referredById = referrer.id
     }
   }
-
-  const referredById = resolveReferralAssignment(existingUser?.referredById, referredByIdCandidate)
 
   if (startParam) {
     logger.info("auth_start_param_processed", {
       route: "/api/auth/telegram",
-      hasExistingUser: Boolean(existingUser),
       startParamSource: startParamFromInitData ? "init_data" : "body_fallback",
       hasReferralCandidate: Boolean(referralCandidateId),
-      referralApplied: Boolean(referredByIdCandidate),
-      referralPreserved: Boolean(existingUser?.referredById),
+      referralApplied: Boolean(referredById),
     })
   }
 
@@ -104,7 +96,6 @@ export async function POST(req: Request) {
       photoUrl: user.photo_url || null,
       languageCode: user.language_code || null,
       isBot: user.is_bot ?? false,
-      ...(existingUser?.referredById ? {} : { referredById }),
     },
   })
 

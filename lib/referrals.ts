@@ -49,14 +49,6 @@ export function buildReferralLink(referrerUserId: string): string {
   return `https://t.me/${botUsername}?startapp=${encodeURIComponent(startParam)}`
 }
 
-export function resolveReferralAssignment(
-  existingReferredById: string | null | undefined,
-  candidateReferredById: string | null | undefined
-): string | null {
-  if (existingReferredById) return existingReferredById
-  return candidateReferredById ?? null
-}
-
 export function isReferralRewardReference(referenceId: string): boolean {
   return referenceId.startsWith(REFERRAL_REFERENCE_PREFIX)
 }

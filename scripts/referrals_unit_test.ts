@@ -2,7 +2,6 @@ import {
   buildReferralLink,
   buildReferralStartParam,
   parseReferralStartParam,
-  resolveReferralAssignment,
 } from "../lib/referrals"
 
 function expect(condition: unknown, message: string) {
@@ -46,20 +45,6 @@ function main() {
     expect(url.searchParams.get("startapp") === startParam, "referral link must use startapp for Mini App launch")
     expect(url.searchParams.get("start") === null, "referral link must not use bot-chat start param")
   })
-
-  expect(
-    resolveReferralAssignment(null, "referrer-a") === "referrer-a",
-    "new referral candidate must be assigned when there is no existing referrer"
-  )
-  expect(
-    resolveReferralAssignment("referrer-a", "referrer-b") === "referrer-a",
-    "existing referrer must remain immutable"
-  )
-  expect(
-    resolveReferralAssignment(null, null) === null,
-    "missing referral candidate must keep null assignment"
-  )
-
   console.log("[PASS] referrals unit test")
 }
 

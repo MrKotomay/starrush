@@ -1,7 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import { Copy, Users } from "lucide-react"
+import { useEffect, useId, useMemo, useRef, useState } from "react"
+import { Copy, Info, Users } from "lucide-react"
 
 import { GlassCard } from "@/components/ui/glass-card"
 import { PrimaryButton } from "@/components/ui/primary-button"
@@ -39,6 +39,10 @@ export function ReferralProgram({
   commissionRate = "0.10",
 }: ReferralProgramProps) {
   const [copied, setCopied] = useState(false)
+  const [isInfoOpen, setInfoOpen] = useState(false)
+  const [supportsHover, setSupportsHover] = useState(false)
+  const infoId = useId()
+  const infoRef = useRef<HTMLDivElement | null>(null)
 
   const tonReward = useMemo(() => formatDecimal(earnedTon, 2), [earnedTon])
   const starsReward = useMemo(() => formatDecimal(earnedStars, 2), [earnedStars])
@@ -46,8 +50,48 @@ export function ReferralProgram({
   const shareText = useMemo(() => {
     const ratePercent = Math.round(Number.parseFloat(commissionRate || "0.10") * 100)
     const safePercent = Number.isFinite(ratePercent) ? ratePercent : 10
-    return `Присоединяйся к StarRush. Бонус за депозит друзей: ${safePercent}%.`
+    return `Присоединяйся к StarRush. Бонус за депозиты друзей: ${safePercent}%.`
   }, [commissionRate])
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return
+
+    const mediaQuery = window.matchMedia("(hover: hover) and (pointer: fine)")
+    const sync = () => {
+      setSupportsHover(mediaQuery.matches)
+      if (mediaQuery.matches) {
+        setInfoOpen(false)
+      }
+    }
+
+    sync()
+    mediaQuery.addEventListener("change", sync)
+    return () => mediaQuery.removeEventListener("change", sync)
+  }, [])
+
+  useEffect(() => {
+    if (supportsHover || !isInfoOpen) return
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!infoRef.current?.contains(event.target as Node)) {
+        setInfoOpen(false)
+      }
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setInfoOpen(false)
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown)
+    document.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown)
+      document.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [isInfoOpen, supportsHover])
 
   const handleCopy = async () => {
     try {
@@ -75,16 +119,76 @@ export function ReferralProgram({
     window.open(shareUrl, "_blank", "noopener,noreferrer")
   }
 
+  const handleInfoClick = () => {
+    if (supportsHover) return
+    setInfoOpen((prev) => !prev)
+  }
+
+  const showInfo = () => {
+    if (!supportsHover) return
+    setInfoOpen(true)
+  }
+
+  const hideInfo = () => {
+    if (!supportsHover) return
+    setInfoOpen(false)
+  }
+
   return (
     <div className="relative rounded-[var(--radius-xl)] p-[1px]" style={{ backgroundImage: "var(--primary-gradient)" }}>
       <GlassCard variant="elevated" className="rounded-[calc(var(--radius-xl)-1px)] p-4">
-        <div className="mb-3 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-brand-1 to-brand-2 shadow-[var(--shadow-sm)]">
+        <div className="mb-3 flex items-start gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-1 to-brand-2 shadow-[var(--shadow-sm)]">
             <Users className="h-5 w-5 text-foreground" />
           </div>
-          <div>
-            <h3 className="text-base font-semibold text-foreground">Реферальная программа</h3>
-            <p className="text-sm text-muted-foreground">Зарабатывайте 10% от депозитов друзей</p>
+
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <h3 className="text-base font-semibold text-foreground">Реферальная программа</h3>
+                <p className="text-sm text-muted-foreground">Зарабатывайте 10% от депозитов друзей</p>
+              </div>
+
+              <div
+                ref={infoRef}
+                className="relative ml-1 shrink-0"
+                onMouseEnter={showInfo}
+                onMouseLeave={hideInfo}
+                onFocus={showInfo}
+                onBlur={hideInfo}
+              >
+                <button
+                  type="button"
+                  onClick={handleInfoClick}
+                  className="focus-brand relative inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-white/14 bg-white/8 text-brand-soft shadow-[0_16px_30px_rgba(8,15,45,0.3)] backdrop-blur-xl transition-all duration-200 hover:border-white/24 hover:bg-white/12 hover:text-foreground"
+                  aria-label="Условия реферальной программы"
+                  aria-expanded={isInfoOpen}
+                  aria-controls={infoId}
+                >
+                  <span className="pointer-events-none absolute inset-[1px] rounded-full bg-[radial-gradient(circle_at_30%_25%,rgba(255,255,255,0.34),rgba(255,255,255,0.09)_44%,rgba(255,255,255,0.02)_100%)]" />
+                  <Info className="relative z-10 h-4 w-4" />
+                </button>
+
+                <div
+                  id={infoId}
+                  role="tooltip"
+                  aria-hidden={!isInfoOpen}
+                  className={[
+                    "absolute right-0 top-full z-20 mt-2 w-[min(18rem,calc(100vw-4rem))] origin-top-right rounded-2xl border border-white/16 px-3.5 py-3 text-left shadow-[0_22px_44px_rgba(2,6,23,0.34)] backdrop-blur-2xl transition-all duration-250 ease-out",
+                    "bg-[linear-gradient(145deg,rgba(255,255,255,0.2),rgba(255,255,255,0.09)_38%,rgba(168,85,247,0.16)_100%)]",
+                    isInfoOpen ? "pointer-events-auto translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-1 scale-[0.96] opacity-0",
+                  ].join(" ")}
+                >
+                  <div className="pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-white/0 via-white/45 to-white/0" />
+                  <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-soft/90">
+                    Важно
+                  </div>
+                  <p className="text-sm leading-5 text-foreground/92">
+                    Реферальная ссылка работает только для пользователей, которые еще не регистрировались в StarRush.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -103,6 +207,7 @@ export function ReferralProgram({
               </span>
             </span>
           </div>
+
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Приглашено друзей</span>
             <span className="font-semibold text-foreground">{invitedCount}</span>
@@ -110,14 +215,10 @@ export function ReferralProgram({
         </div>
 
         <div className="flex gap-2">
-          <PrimaryButton
-            type="button"
-            onClick={handleInvite}
-            breathing
-            className="h-12 flex-1 rounded-xl"
-          >
+          <PrimaryButton type="button" onClick={handleInvite} breathing className="h-12 flex-1 rounded-xl">
             Пригласить
           </PrimaryButton>
+
           <button
             type="button"
             onClick={handleCopy}
@@ -131,4 +232,3 @@ export function ReferralProgram({
     </div>
   )
 }
-
