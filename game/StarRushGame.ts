@@ -146,6 +146,7 @@ class StarRushScene extends Phaser.Scene {
   private ready = false;
   private pending: RoundSnapshot | null = null;
   private lowPower = false;
+  private connectionSuspended = false;
   private crashDoneRound: string | null = null;
 
   private vw = 1;
@@ -243,6 +244,7 @@ class StarRushScene extends Phaser.Scene {
 
   update(_t: number, rawDelta: number): void {
     if (!this.ready) return;
+    if (this.connectionSuspended) return;
     const dt = Math.min(rawDelta, 50) / 1000;
 
     // auto low-power: if average FPS < 48 over 90 frames, reduce effects
@@ -298,6 +300,10 @@ class StarRushScene extends Phaser.Scene {
 
   setLowPowerMode(on: boolean): void {
     this.lowPower = on;
+  }
+
+  setConnectionSuspended(on: boolean): void {
+    this.connectionSuspended = on;
   }
 
   isReady(): boolean {
@@ -1147,6 +1153,10 @@ export class StarRushGame {
 
   setLowPowerMode(on: boolean): void {
     this.scene.setLowPowerMode(on);
+  }
+
+  setConnectionSuspended(on: boolean): void {
+    this.scene.setConnectionSuspended(on);
   }
 
   getRocketPose(): RocketPose {

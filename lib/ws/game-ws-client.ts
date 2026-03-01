@@ -275,6 +275,8 @@ type GameWsClientCallbacks = {
   onPlayerBet: (payload: GameWsPlayerBetPayload) => void;
   onPlayerCashout: (payload: GameWsPlayerCashoutPayload) => void;
   onWsError: (code: string, message: string) => void;
+  onSocketOpen: () => void;
+  onSocketClosed: () => void;
   onReconnectScheduled: (attempt: number, delayMs: number) => void;
 };
 
@@ -436,6 +438,7 @@ export class GameWsClient {
       const reason: SnapshotSyncReason = this.hasConnectedAtLeastOnce ? "reconnect" : "open";
       this.hasConnectedAtLeastOnce = true;
       this.debugLog("connected");
+      this.callbacks.onSocketOpen?.();
       void this.refreshSnapshot(reason);
     });
 
@@ -446,6 +449,7 @@ export class GameWsClient {
 
       this.debugLog(`disconnected code=${event.code} reason=${event.reason || "n/a"}`);
       if (!this.running) return;
+      this.callbacks.onSocketClosed?.();
       this.scheduleReconnect();
     });
 

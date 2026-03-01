@@ -315,6 +315,53 @@
   padding: 0;
 }
 
+.connectionBanner {
+  position: absolute;
+  left: 50%;
+  top: clamp(88px, 18%, 132px);
+  z-index: 7;
+  width: min(280px, calc(100% - 28px));
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid rgba(var(--ui-rgb-text-primary), 0.16);
+  border-radius: 16px;
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 54%, rgba(14, 20, 43, 0.82) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 12px 28px rgba(4, 7, 22, 0.32);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  text-align: center;
+  pointer-events: none;
+}
+
+.connectionBannerTitle {
+  font-size: 0;
+  line-height: 0;
+}
+
+.connectionBannerTitle::before {
+  content: "\041D\0435\0442 \0441\043E\0435\0434\0438\043D\0435\043D\0438\044F";
+  display: block;
+  color: rgba(var(--ui-rgb-text-primary), 0.96);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+
+.connectionBannerText {
+  color: rgba(var(--ui-rgb-text-secondary), 0.9);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
 .coeffValue {
   margin: 0;
   font-size: clamp(36px, 12vw, 52px);
@@ -852,6 +899,17 @@
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
     0 8px 18px rgba(7, 10, 28, 0.3);
+}
+
+.btnStateDisconnected {
+  border-color: rgba(var(--ui-rgb-text-primary), 0.14);
+  background:
+    linear-gradient(170deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 56%),
+    linear-gradient(180deg, rgba(27, 33, 56, 0.96) 0%, rgba(18, 23, 41, 0.96) 100%);
+  color: rgba(var(--ui-rgb-text-primary), 0.84);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 6px 16px rgba(4, 7, 22, 0.22);
 }
 
 .btnBet:active,

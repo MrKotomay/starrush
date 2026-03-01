@@ -16,7 +16,10 @@ import { CoefficientDisplay } from "@/components/game/CoefficientDisplay";
 import { PlayersBetsList } from "@/components/game/PlayersBetsList";
 import { RocketOverlay } from "@/components/game/RocketOverlay";
 import { Currency, PlayerBetView, RoundHistoryItem, RoundPhase, RoundSnapshot } from "@/game/types";
-import { BackendRoundStateAdapter } from "@/lib/game/backend-round-state-adapter";
+import {
+  BackendRoundStateAdapter,
+  type BackendRoundConnectionState,
+} from "@/lib/game/backend-round-state-adapter";
 
 const MIN_BET = 0.1;
 const MAX_BET = 1000;
@@ -28,6 +31,16 @@ const MIN_RENDER_SURFACE_PX = 24;
 const HISTORY_POPOVER_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 const HISTORY_POPOVER_SIDE_GAP_PX = 22;
 const HISTORY_POPOVER_MAX_WIDTH_PX = 250;
+const CONNECTION_CTA_LABEL = "\u041d\u0435\u0442 \u0441\u043e\u0435\u0434\u0438\u043d\u0435\u043d\u0438\u044f";
+const CONNECTION_HINT_BASE =
+  "\u0421\u043e\u0435\u0434\u0438\u043d\u0435\u043d\u0438\u0435 \u043f\u043e\u0442\u0435\u0440\u044f\u043d\u043e. \u041f\u044b\u0442\u0430\u0435\u043c\u0441\u044f \u043f\u0435\u0440\u0435\u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0438\u0442\u044c\u0441\u044f.";
+
+function formatConnectionHint(attempt: number): string {
+  if (attempt > 0) {
+    return `\u0421\u043e\u0435\u0434\u0438\u043d\u0435\u043d\u0438\u0435 \u043f\u043e\u0442\u0435\u0440\u044f\u043d\u043e. \u041f\u0435\u0440\u0435\u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0430\u0435\u043c\u0441\u044f, \u043f\u043e\u043f\u044b\u0442\u043a\u0430 ${attempt}.`;
+  }
+  return CONNECTION_HINT_BASE;
+}
 
 const INITIAL_SNAPSHOT: RoundSnapshot = {
   phase: RoundPhase.PREPARING,
@@ -46,6 +59,12 @@ const INITIAL_SNAPSHOT: RoundSnapshot = {
   userActiveBet: null,
   canPlaceBet: true,
   canCashOut: false,
+};
+
+const INITIAL_CONNECTION_STATE: BackendRoundConnectionState = {
+  status: "connected",
+  reconnectAttempt: 0,
+  nextRetryAt: null,
 };
 
 interface StarRushPanelProps {
@@ -76,7 +95,7 @@ type HistoryPopoverPosition = {
   top: number;
 };
 
-type MainCtaState = "bet-ready" | "cashout-ready" | "waiting-round" | "submitting";
+type MainCtaState = "bet-ready" | "cashout-ready" | "waiting-round" | "submitting" | "connection-lost";
 
 type WalletsApiResponse = {
   ok?: boolean;
@@ -235,6 +254,7 @@ export function StarRushPanel({
   const [historyPopoverPos, setHistoryPopoverPos] = useState<HistoryPopoverPosition | null>(null);
   const [copiedHistoryField, setCopiedHistoryField] = useState<"hash" | "seed" | null>(null);
   const [waitingSweepTick, setWaitingSweepTick] = useState(0);
+  const [connectionState, setConnectionState] = useState<BackendRoundConnectionState>(INITIAL_CONNECTION_STATE);
 
   // Separate fast-changing coefficient from structural snapshot
   // so the bets list doesn't re-render at ~15fps during RUNNING.
@@ -335,6 +355,10 @@ export function StarRushPanel({
       snapshotPath: "/api/game/round/current",
     });
     roundAdapterRef.current = adapter;
+    const unsubConnection = adapter.subscribeConnection((next) => {
+      setConnectionState(next);
+      rendererRef.current?.setConnectionSuspended(next.status !== "connected");
+    });
 
     const unsub = adapter.subscribe((next) => {
       const phaserSnapshot = cloneSnapshotForPhaser(next);
@@ -387,6 +411,7 @@ export function StarRushPanel({
 
       const renderer = new StarRushGame(mountRef.current, { debugSync: debugPhaserSync });
       rendererRef.current = renderer;
+      renderer.setConnectionSuspended(adapter.getConnectionState().status !== "connected");
 
       // Phaser Scale.RESIZE handles initial canvas sizing via its own
       // resize event (fires inside create()). We only push later container
@@ -436,6 +461,7 @@ export function StarRushPanel({
       resizeObRef.current = null;
       if (coeffTimerRef.current) { clearTimeout(coeffTimerRef.current); coeffTimerRef.current = null; }
       unsub();
+      unsubConnection();
       adapter.destroy();
       roundAdapterRef.current = null;
       rendererRef.current?.destroy();
@@ -495,6 +521,14 @@ export function StarRushPanel({
     roundAdapterRef.current?.setDocumentHidden(hidden);
     rendererRef.current?.setLowPowerMode(hidden);
   }, [isPlaceModalOpen]);
+
+  useEffect(() => {
+    const interrupted = connectionState.status !== "connected";
+    if (interrupted && isPlaceModalOpen) {
+      setPlaceModalOpen(false);
+    }
+    rendererRef.current?.setConnectionSuspended(interrupted);
+  }, [connectionState.status, isPlaceModalOpen]);
 
   useEffect(() => {
     if (process.env.NODE_ENV === "production" || typeof window === "undefined") {
@@ -633,6 +667,7 @@ export function StarRushPanel({
     canPlaceInTransition;
   const canCashOutNow = snapshot.phase === RoundPhase.RUNNING && snapshot.canCashOut && !!userActive;
   const isActionBusy = isBetSubmitting || isCashoutSubmitting;
+  const isConnectionInterrupted = connectionState.status !== "connected";
   const cashoutAmount = userActive ? userActive.amount * coefficient : 0;
   const tonAvailableBalance = useMemo(
     () => Math.max(0, walletTonBalance - walletTonLocked),
@@ -652,13 +687,25 @@ export function StarRushPanel({
     }
     return "Прием ставок временно закрыт.";
   }, [snapshot.canPlaceBet, snapshot.phase, snapshot.queuedBet]);
+  const connectionHint = useMemo(() => {
+    if (!isConnectionInterrupted) return "";
+    if (connectionState.reconnectAttempt > 0) {
+      return `Соединение потеряно. Переподключаемся, попытка ${connectionState.reconnectAttempt}.`;
+    }
+    return "Соединение потеряно. Пытаемся переподключиться.";
+  }, [connectionState.reconnectAttempt, isConnectionInterrupted]);
+  const connectionStatusText = isConnectionInterrupted
+    ? connectionHint || formatConnectionHint(connectionState.reconnectAttempt)
+    : "";
   const ctaState = useMemo<MainCtaState>(() => {
+    if (isConnectionInterrupted) return "connection-lost";
     if (isActionBusy) return "submitting";
     if (canCashOutNow) return "cashout-ready";
     if (canPlaceBetNow) return "bet-ready";
     return "waiting-round";
-  }, [canCashOutNow, canPlaceBetNow, isActionBusy]);
+  }, [canCashOutNow, canPlaceBetNow, isActionBusy, isConnectionInterrupted]);
   const mainBetLabel = useMemo(() => {
+    if (ctaState === "connection-lost") return CONNECTION_CTA_LABEL;
     if (ctaState === "submitting") {
       return isCashoutSubmitting ? "Вывод..." : "Отправка...";
     }
@@ -666,9 +713,12 @@ export function StarRushPanel({
     if (ctaState === "waiting-round") return "Ожидание следующего раунда";
     return "Сделать ставку";
   }, [cashoutAmount, ctaState, isCashoutSubmitting]);
-  const isMainActionDisabled = ctaState === "waiting-round" || ctaState === "submitting";
+  const isMainActionDisabled =
+    ctaState === "waiting-round" || ctaState === "submitting" || ctaState === "connection-lost";
   const ctaStateClass = ctaState === "cashout-ready"
     ? styles.btnStateCashout
+    : ctaState === "connection-lost"
+      ? styles.btnStateDisconnected
     : ctaState === "waiting-round"
       ? styles.btnStateWaiting
       : ctaState === "submitting"
@@ -676,7 +726,7 @@ export function StarRushPanel({
         : styles.btnStateBetReady;
   const ctaSheenMode = ctaState === "waiting-round"
     ? "once"
-    : ctaState === "submitting"
+    : ctaState === "submitting" || ctaState === "connection-lost"
       ? "off"
       : "always";
 
@@ -883,6 +933,7 @@ export function StarRushPanel({
   }, [snapshot.phase, snapshot.roundId]);
 
   const onMainAction = useCallback(() => {
+    if (ctaState === "connection-lost") return;
     if (ctaState === "cashout-ready") {
       void onCashOut();
       return;
@@ -916,6 +967,13 @@ export function StarRushPanel({
             countdown={snapshot.countdown}
           />
         </div>
+
+        {isConnectionInterrupted ? (
+          <div className={styles.connectionBanner} role="status" aria-live="polite">
+            <span className={styles.connectionBannerTitle}>{CONNECTION_CTA_LABEL}</span>
+            <span className={styles.connectionBannerText}>{connectionStatusText}</span>
+          </div>
+        ) : null}
 
         <div ref={historyRowRef} className={styles.historyRow}>
           <div ref={historyRailRef} className={styles.historyRail} onWheel={onHistoryWheel}>
@@ -1071,7 +1129,13 @@ export function StarRushPanel({
 
         <section className={styles.betSection}>
           <button
-            key={ctaState === "waiting-round" ? `waiting-${waitingSweepTick}` : ctaState}
+            key={
+              ctaState === "waiting-round"
+                ? `waiting-${waitingSweepTick}`
+                : ctaState === "connection-lost"
+                  ? `offline-${connectionState.reconnectAttempt}`
+                  : ctaState
+            }
             type="button"
             className={`${styles.actionButton} ${ctaStateClass} liquid-sheen`}
             disabled={isMainActionDisabled}
@@ -1080,10 +1144,12 @@ export function StarRushPanel({
             aria-busy={isActionBusy}
             onClick={onMainAction}
           >
-            {mainBetLabel}
+            {ctaState === "connection-lost" ? CONNECTION_CTA_LABEL : mainBetLabel}
           </button>
           {ctaState === "waiting-round" ? (
             <p className={styles.queueHint}>{waitingReason}</p>
+          ) : ctaState === "connection-lost" ? (
+            <p className={styles.queueHint}>{connectionStatusText}</p>
           ) : null}
         </section>
       </div>

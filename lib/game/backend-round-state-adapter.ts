@@ -55,6 +55,7 @@ const PENDING_PLAYER_EVENT_LIMIT = 64;
 const SELF_EVENT_MATCH_WINDOW_MS = 5000;
 
 type Listener = (snapshot: RoundSnapshot) => void;
+type ConnectionListener = (state: BackendRoundConnectionState) => void;
 
 type MultiplierSample = {
   value: number;
@@ -108,6 +109,14 @@ type PendingSelfCashout = {
 type PendingPlayerEvent =
   | { type: "player_bet"; payload: GameWsPlayerBetPayload }
   | { type: "player_cashout"; payload: GameWsPlayerCashoutPayload };
+
+export type BackendRoundConnectionStatus = "connected" | "reconnecting";
+
+export type BackendRoundConnectionState = {
+  status: BackendRoundConnectionStatus;
+  reconnectAttempt: number;
+  nextRetryAt: number | null;
+};
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -323,6 +332,7 @@ function nowPerf(): number {
 
 export class BackendRoundStateAdapter {
   private readonly listeners = new Set<Listener>();
+  private readonly connectionListeners = new Set<ConnectionListener>();
   private readonly wsClient: GameWsClient;
   private readonly debug: boolean;
 
@@ -355,6 +365,11 @@ export class BackendRoundStateAdapter {
   private pendingSelfBet: PendingSelfBet | null = null;
   private pendingSelfCashout: PendingSelfCashout | null = null;
   private pendingPlayerEvents: PendingPlayerEvent[] = [];
+  private connectionState: BackendRoundConnectionState = {
+    status: "connected",
+    reconnectAttempt: 0,
+    nextRetryAt: null,
+  };
 
   constructor(options: BackendRoundStateAdapterOptions = {}) {
     this.debug = Boolean(options.debug);
@@ -387,8 +402,26 @@ export class BackendRoundStateAdapter {
         onPlayerCashout: (payload) => {
           this.applyPlayerCashoutEvent(payload);
         },
-        onReconnectScheduled: (_attempt, _delayMs) => {
-          // the ws client logs details when debug mode is enabled
+        onSocketOpen: () => {
+          this.setConnectionState({
+            status: "connected",
+            reconnectAttempt: 0,
+            nextRetryAt: null,
+          });
+        },
+        onSocketClosed: () => {
+          this.setConnectionState({
+            status: "reconnecting",
+            reconnectAttempt: Math.max(1, this.connectionState.reconnectAttempt),
+            nextRetryAt: this.connectionState.nextRetryAt,
+          });
+        },
+        onReconnectScheduled: (attempt, delayMs) => {
+          this.setConnectionState({
+            status: "reconnecting",
+            reconnectAttempt: attempt,
+            nextRetryAt: Date.now() + delayMs,
+          });
         },
         onWsError: (_code, message) => {
           this.debugLog(`ws error: ${message}`);
@@ -409,6 +442,7 @@ export class BackendRoundStateAdapter {
   destroy(): void {
     this.started = false;
     this.listeners.clear();
+    this.connectionListeners.clear();
     this.wsClient.stop();
 
     if (this.frameId !== null) {
@@ -434,11 +468,32 @@ export class BackendRoundStateAdapter {
     return this.snapshot;
   }
 
+  subscribeConnection(listener: ConnectionListener): () => void {
+    this.connectionListeners.add(listener);
+    listener(this.connectionState);
+    return () => {
+      this.connectionListeners.delete(listener);
+    };
+  }
+
+  getConnectionState(): BackendRoundConnectionState {
+    return this.connectionState;
+  }
+
   setDocumentHidden(hidden: boolean): void {
     this.documentHidden = hidden;
   }
 
   async placeBet(rawAmount: number, currency: Currency): Promise<PlaceBetResult> {
+    if (this.connectionState.status !== "connected") {
+      return {
+        ok: false,
+        mode: null,
+        message: "Нет соединения. Пытаемся переподключиться.",
+        acceptedAmount: rawAmount,
+        previousAmount: 0,
+      };
+    }
     const amount = Number.isFinite(rawAmount) ? Math.max(0, Math.round(rawAmount * 100) / 100) : 0;
     this.pendingSelfBet = {
       roundId: this.snapshot.roundId,
@@ -531,6 +586,14 @@ export class BackendRoundStateAdapter {
   }
 
   async cashOut(): Promise<CashOutResult> {
+    if (this.connectionState.status !== "connected") {
+      return {
+        ok: false,
+        message: "Нет соединения. Пытаемся переподключиться.",
+        multiplier: 0,
+        payout: 0,
+      };
+    }
     this.pendingSelfCashout = {
       roundId: this.snapshot.roundId,
       createdAt: Date.now(),
@@ -735,6 +798,31 @@ export class BackendRoundStateAdapter {
       typeof payload.onlineCount === "number" && Number.isFinite(payload.onlineCount)
         ? Math.max(0, Math.floor(payload.onlineCount))
         : undefined;
+    const carryQueuedBetIntoRunning =
+      roundChanged &&
+      eventStatus === "RUNNING" &&
+      this.snapshot.queuedBet?.isCurrentUser === true &&
+      this.snapshot.userActiveBet === null;
+    const transitionActiveBet = carryQueuedBetIntoRunning
+      ? {
+          ...this.snapshot.queuedBet,
+          id: `queued:${roundId}:${this.snapshot.queuedBet.userId}`,
+          status: "ACTIVE" as const,
+          placedAt: Date.now(),
+        }
+      : null;
+    if (transitionActiveBet) {
+      this.knownCurrentUserId = transitionActiveBet.userId;
+    }
+    const nextPlayers = roundChanged
+      ? transitionActiveBet
+        ? [transitionActiveBet]
+        : []
+      : this.snapshot.players;
+    const nextQueuedBet = roundChanged ? null : this.snapshot.queuedBet;
+    const nextUserActiveBet = roundChanged
+      ? transitionActiveBet
+      : this.snapshot.userActiveBet;
 
     this.snapshot = {
       ...this.snapshot,
@@ -748,8 +836,11 @@ export class BackendRoundStateAdapter {
       runningElapsedMs: nextElapsedMs,
       phaseElapsedMs: nextElapsedMs,
       fairness: mergeFairnessState(this.snapshot.fairness, payload),
+      players: nextPlayers,
+      queuedBet: nextQueuedBet,
+      userActiveBet: nextUserActiveBet,
       canPlaceBet: eventStatus === "WAITING",
-      canCashOut: eventStatus === "RUNNING" && this.snapshot.userActiveBet?.status === "ACTIVE",
+      canCashOut: eventStatus === "RUNNING" && nextUserActiveBet?.status === "ACTIVE",
     };
 
     this.emitSnapshot();
@@ -1286,9 +1377,31 @@ export class BackendRoundStateAdapter {
     }
   }
 
+  private emitConnectionState(): void {
+    for (const listener of this.connectionListeners) {
+      listener(this.connectionState);
+    }
+  }
+
+  private setConnectionState(next: BackendRoundConnectionState): void {
+    if (
+      this.connectionState.status === next.status &&
+      this.connectionState.reconnectAttempt === next.reconnectAttempt &&
+      this.connectionState.nextRetryAt === next.nextRetryAt
+    ) {
+      return;
+    }
+    this.connectionState = next;
+    this.emitConnectionState();
+  }
+
   private startTicker(): void {
     const tick = () => {
       if (!this.started) return;
+      if (this.connectionState.status !== "connected") {
+        this.frameId = requestAnimationFrame(tick);
+        return;
+      }
 
       let changed = false;
       const currentPerfTs = nowPerf();
