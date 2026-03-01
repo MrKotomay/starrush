@@ -9,6 +9,10 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
 
 WORKDIR /app
 
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends openssl \
+  && rm -rf /var/lib/apt/lists/*
+
 # Copy Prisma schema before install so @prisma/client postinstall can generate client code.
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
