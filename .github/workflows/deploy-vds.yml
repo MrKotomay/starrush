@@ -20,11 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Checkout deployment source
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
-
       - name: Validate required secrets
         env:
           VDS_HOST: ${{ secrets.VDS_HOST }}
@@ -32,10 +27,11 @@ jobs:
           VDS_SSH_KEY: ${{ secrets.VDS_SSH_KEY }}
           VDS_SSH_KEY_B64: ${{ secrets.VDS_SSH_KEY_B64 }}
           VDS_APP_PATH: ${{ secrets.VDS_APP_PATH }}
+          VDS_REPO_URL: ${{ secrets.VDS_REPO_URL }}
         run: |
           set -euo pipefail
           missing=0
-          for name in VDS_HOST VDS_USER VDS_APP_PATH; do
+          for name in VDS_HOST VDS_USER VDS_APP_PATH VDS_REPO_URL; do
             if [ -z "${!name}" ]; then
               echo "::error::${name} is not set"
               missing=1
@@ -86,35 +82,55 @@ jobs:
           port="${VDS_PORT:-22}"
           ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 -p "${port}" "${VDS_USER}@${VDS_HOST}" "echo SSH_OK"
 
-      - name: Upload source bundle to VDS
+      - name: Deploy exact git commit on server
         env:
           VDS_HOST: ${{ secrets.VDS_HOST }}
           VDS_PORT: ${{ secrets.VDS_PORT }}
           VDS_USER: ${{ secrets.VDS_USER }}
           VDS_APP_PATH: ${{ secrets.VDS_APP_PATH }}
+          VDS_REPO_URL: ${{ secrets.VDS_REPO_URL }}
+          DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          DEPLOY_BRANCH: ${{ github.event.workflow_run.head_branch || github.ref_name }}
         run: |
           set -euo pipefail
           port="${VDS_PORT:-22}"
-          archive="$(mktemp)"
-
-          git archive --format=tar.gz --output="${archive}" HEAD
-
-          ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 -p "${port}" "${VDS_USER}@${VDS_HOST}" "mkdir -p '${VDS_APP_PATH}'"
-          cat "${archive}" | ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 -p "${port}" "${VDS_USER}@${VDS_HOST}" "tar -xzf - -C '${VDS_APP_PATH}'"
-
-      - name: Run deploy on server
-        env:
-          VDS_HOST: ${{ secrets.VDS_HOST }}
-          VDS_PORT: ${{ secrets.VDS_PORT }}
-          VDS_USER: ${{ secrets.VDS_USER }}
-          VDS_APP_PATH: ${{ secrets.VDS_APP_PATH }}
-        run: |
+          ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 -p "${port}" "${VDS_USER}@${VDS_HOST}" "APP_PATH='${VDS_APP_PATH}' REPO_URL='${VDS_REPO_URL}' DEPLOY_SHA='${DEPLOY_SHA}' DEPLOY_BRANCH='${DEPLOY_BRANCH}' bash -s" <<'EOF'
           set -euo pipefail
-          port="${VDS_PORT:-22}"
-          ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 -p "${port}" "${VDS_USER}@${VDS_HOST}" "APP_PATH='${VDS_APP_PATH}' bash -s" <<'EOF'
-          set -euo pipefail
+
+          if ! command -v git >/dev/null 2>&1; then
+            echo "git is required on the server"
+            exit 1
+          fi
+
+          mkdir -p "${APP_PATH}"
+
+          if [ ! -d "${APP_PATH}/.git" ]; then
+            mkdir -p "$(dirname "${APP_PATH}")"
+            git clone "${REPO_URL}" "${APP_PATH}"
+          fi
 
           cd "${APP_PATH}"
+
+          current_remote="$(git remote get-url origin 2>/dev/null || true)"
+          if [ "${current_remote}" != "${REPO_URL}" ]; then
+            if [ -n "${current_remote}" ]; then
+              git remote set-url origin "${REPO_URL}"
+            else
+              git remote add origin "${REPO_URL}"
+            fi
+          fi
+
+          if ! git ls-remote --exit-code origin "refs/heads/${DEPLOY_BRANCH}" >/dev/null 2>&1; then
+            echo "Cannot reach origin/${DEPLOY_BRANCH} from the server. Check VDS DNS/network and GitHub deploy key."
+            exit 1
+          fi
+
+          git fetch --prune origin "${DEPLOY_BRANCH}"
+          git reset --hard
+          git clean -fd -e .env
+          git checkout -B "${DEPLOY_BRANCH}" "origin/${DEPLOY_BRANCH}"
+          git reset --hard "${DEPLOY_SHA}"
+          git branch --set-upstream-to="origin/${DEPLOY_BRANCH}" "${DEPLOY_BRANCH}" || true
 
           bash infra/deploy/deploy-vds.sh
           EOF

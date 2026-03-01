@@ -37,6 +37,17 @@ cd starrush
 cp .env.example .env
 ```
 
+Recommended for a private repository:
+- use an SSH repo URL for `origin`
+- configure a read-only GitHub deploy key on the VDS
+- verify server access before the first deploy:
+
+```bash
+git ls-remote origin HEAD
+```
+
+If this fails, fix VDS DNS/network and GitHub SSH access first. Auto-deploy and manual git updates both depend on it.
+
 Fill `.env`:
 - all secrets (`TELEGRAM_BOT_TOKEN`, `SESSION_SECRET`, `INTERNAL_API_KEY`)
 - domain (`APP_DOMAIN`)
@@ -78,6 +89,12 @@ By default it deploys `main`. Use another branch:
 DEPLOY_BRANCH=staging bash infra/deploy/update-from-git.sh
 ```
 
+The update script keeps the repo clean while preserving `.env`:
+- `git fetch --prune`
+- `git reset --hard`
+- `git clean -fd -e .env`
+- `git checkout -B <branch> origin/<branch>`
+
 ## 6) Auto-update from GitHub Actions
 
 Workflow: `.github/workflows/deploy-vds.yml`
@@ -88,10 +105,17 @@ Required GitHub secrets:
 - `VDS_USER`
 - `VDS_SSH_KEY`
 - `VDS_APP_PATH` (example `/opt/starrush`)
-- `VDS_REPO_URL` (SSH or HTTPS URL)
-- `VDS_BRANCH` (optional, default `main`)
+- `VDS_REPO_URL` (recommended: SSH URL)
 
 After this, each push to `main` triggers deploy automatically.
+
+The workflow deploys the exact tested commit by running on the server:
+- `git fetch --prune origin <branch>`
+- `git checkout -B <branch> origin/<branch>`
+- `git reset --hard <tested_sha>`
+- `git clean -fd -e .env`
+
+This keeps `/opt/starrush` as a normal git repository with a clean `git status`.
 
 ## 7) Timeweb DBaaS checklist
 
