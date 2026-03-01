@@ -20,6 +20,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      - name: Checkout deployment source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
       - name: Validate required secrets
         env:
           VDS_HOST: ${{ secrets.VDS_HOST }}
@@ -27,11 +32,10 @@ jobs:
           VDS_SSH_KEY: ${{ secrets.VDS_SSH_KEY }}
           VDS_SSH_KEY_B64: ${{ secrets.VDS_SSH_KEY_B64 }}
           VDS_APP_PATH: ${{ secrets.VDS_APP_PATH }}
-          VDS_REPO_URL: ${{ secrets.VDS_REPO_URL }}
         run: |
           set -euo pipefail
           missing=0
-          for name in VDS_HOST VDS_USER VDS_APP_PATH VDS_REPO_URL; do
+          for name in VDS_HOST VDS_USER VDS_APP_PATH; do
             if [ -z "${!name}" ]; then
               echo "::error::${name} is not set"
               missing=1
@@ -82,30 +86,35 @@ jobs:
           port="${VDS_PORT:-22}"
           ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 -p "${port}" "${VDS_USER}@${VDS_HOST}" "echo SSH_OK"
 
-      - name: Deploy on server
+      - name: Upload source bundle to VDS
         env:
           VDS_HOST: ${{ secrets.VDS_HOST }}
           VDS_PORT: ${{ secrets.VDS_PORT }}
           VDS_USER: ${{ secrets.VDS_USER }}
           VDS_APP_PATH: ${{ secrets.VDS_APP_PATH }}
-          VDS_REPO_URL: ${{ secrets.VDS_REPO_URL }}
-          VDS_BRANCH: ${{ secrets.VDS_BRANCH }}
         run: |
           set -euo pipefail
           port="${VDS_PORT:-22}"
-          branch="${VDS_BRANCH:-main}"
-          ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 -p "${port}" "${VDS_USER}@${VDS_HOST}" "APP_PATH='${VDS_APP_PATH}' REPO_URL='${VDS_REPO_URL}' BRANCH='${branch}' bash -s" <<'EOF'
+          archive="$(mktemp)"
+
+          git archive --format=tar.gz --output="${archive}" HEAD
+
+          ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 -p "${port}" "${VDS_USER}@${VDS_HOST}" "mkdir -p '${VDS_APP_PATH}'"
+          cat "${archive}" | ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 -p "${port}" "${VDS_USER}@${VDS_HOST}" "tar -xzf - -C '${VDS_APP_PATH}'"
+
+      - name: Run deploy on server
+        env:
+          VDS_HOST: ${{ secrets.VDS_HOST }}
+          VDS_PORT: ${{ secrets.VDS_PORT }}
+          VDS_USER: ${{ secrets.VDS_USER }}
+          VDS_APP_PATH: ${{ secrets.VDS_APP_PATH }}
+        run: |
+          set -euo pipefail
+          port="${VDS_PORT:-22}"
+          ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 -p "${port}" "${VDS_USER}@${VDS_HOST}" "APP_PATH='${VDS_APP_PATH}' bash -s" <<'EOF'
           set -euo pipefail
 
-          if [ ! -d "${APP_PATH}/.git" ]; then
-            mkdir -p "$(dirname "${APP_PATH}")"
-            git clone "${REPO_URL}" "${APP_PATH}"
-          fi
-
           cd "${APP_PATH}"
-          git fetch origin "${BRANCH}"
-          git checkout "${BRANCH}"
-          git pull --ff-only origin "${BRANCH}"
 
           bash infra/deploy/deploy-vds.sh
           EOF
