@@ -1,7 +1,9 @@
 import { getCurrentUser } from "@/lib/auth"
+import { DepositProvider, DepositStatus } from "@prisma/client"
 import { jsonUtf8 } from "@/lib/http"
 import { paymentsConfig } from "@/lib/payments/config"
 import { getUserIntent, markIntentExpiredIfNeeded } from "@/lib/payments/intents.service"
+import { reconcileTonIntent } from "@/lib/payments/ton-reconcile.service"
 import { rateLimit } from "@/lib/rate-limit"
 
 type RouteContext = {
@@ -27,6 +29,20 @@ export async function GET(_req: Request, context: RouteContext) {
   const intent = await getUserIntent({ userId: current.user.id, intentId: id })
   if (!intent) {
     return jsonUtf8({ ok: false, error: "INTENT_NOT_FOUND" }, { status: 404 })
+  }
+
+  if (
+    intent.provider === DepositProvider.TON_CONNECT &&
+    (intent.status === DepositStatus.SUBMITTED || intent.status === DepositStatus.CONFIRMING)
+  ) {
+    try {
+      await reconcileTonIntent(intent.id)
+    } catch (error) {
+      console.error("[Payments][IntentStatus] TON reconcile failed", {
+        intentId: intent.id,
+        error,
+      })
+    }
   }
 
   const freshIntent = await markIntentExpiredIfNeeded(intent.id)

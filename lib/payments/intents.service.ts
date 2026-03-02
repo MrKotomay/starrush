@@ -2,6 +2,7 @@ import crypto from "crypto"
 import { Currency, DepositProvider, DepositStatus, Prisma } from "@prisma/client"
 import { db } from "@/lib/db"
 import { paymentsConfig, assertTonDepositAddress } from "@/lib/payments/config"
+import { buildTonDepositComment } from "@/lib/payments/ton.service"
 import { isTerminalStatus, tonAmountToNano } from "@/lib/payments/utils"
 
 function buildPendingLedgerReference(prefix: "stars" | "ton") {
@@ -63,8 +64,7 @@ export async function createTonDepositIntent(params: {
   const amountNano = tonAmountToNano(params.amountRaw)
   const recipientAddress = assertTonDepositAddress()
   const expiresAt = new Date(Date.now() + paymentsConfig.depositTtlSeconds * 1000)
-
-  return db.depositIntent.create({
+  const created = await db.depositIntent.create({
     data: {
       userId: params.userId,
       provider: DepositProvider.TON_CONNECT,
@@ -75,10 +75,17 @@ export async function createTonDepositIntent(params: {
       senderAddress: params.senderAddress.trim(),
       recipientAddress,
       ledgerReferenceId: buildPendingLedgerReference("ton"),
-      metadata: {
-        tonConnectComment: `sr_ton:${Date.now()}`,
-      },
       expiresAt,
+    },
+  })
+
+  const comment = buildTonDepositComment(created.id)
+  return db.depositIntent.update({
+    where: { id: created.id },
+    data: {
+      metadata: {
+        tonConnectComment: comment,
+      },
     },
   })
 }
@@ -97,6 +104,13 @@ export async function markIntentExpiredIfNeeded(intentId: string) {
   const intent = await db.depositIntent.findUnique({ where: { id: intentId } })
   if (!intent) return null
   if (isTerminalStatus(intent.status)) return intent
+  if (
+    intent.provider === DepositProvider.TON_CONNECT &&
+    (intent.status === DepositStatus.SUBMITTED || intent.status === DepositStatus.CONFIRMING) &&
+    intent.txHash
+  ) {
+    return intent
+  }
   if (intent.expiresAt > now) return intent
 
   return db.depositIntent.update({

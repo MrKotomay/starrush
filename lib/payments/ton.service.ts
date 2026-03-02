@@ -1,4 +1,4 @@
-import { Cell, beginCell } from "@ton/core"
+import { Address, Cell, beginCell } from "@ton/core"
 import { assertTonApiKey } from "@/lib/payments/config"
 import { normalizeAddress, toBigIntValue } from "@/lib/payments/utils"
 
@@ -6,6 +6,7 @@ type TonApiMessage = {
   source?: { address?: string | null } | null
   value?: unknown
   hash?: string | null
+  raw_body?: string | null
 }
 
 type TonApiTransaction = {
@@ -112,9 +113,43 @@ export function buildTonConnectCommentPayload(comment: string) {
   return cell.toBoc().toString("base64")
 }
 
+export function buildTonDepositComment(intentId: string) {
+  return `sr_ton:${intentId}`
+}
+
 export function deriveTxHashFromBoc(boc: string) {
   const cell = Cell.fromBase64(boc)
   return cell.hash().toString("hex").toLowerCase()
+}
+
+export function decodeTonMessageComment(rawBody: string | null | undefined) {
+  const value = rawBody?.trim()
+  if (!value) return null
+
+  try {
+    const [cell] = Cell.fromBoc(Buffer.from(value, "hex"))
+    if (!cell) return null
+
+    const slice = cell.beginParse()
+    if (slice.remainingBits < 32) return null
+
+    const op = slice.loadUint(32)
+    if (op !== 0) return null
+
+    return slice.remainingBits > 0 ? slice.loadStringTail() : ""
+  } catch {
+    return null
+  }
+}
+
+function addressesEqual(left: string, right: string) {
+  if (normalizeAddress(left) === normalizeAddress(right)) return true
+
+  try {
+    return Address.parse(left).toRawString() === Address.parse(right).toRawString()
+  } catch {
+    return false
+  }
 }
 
 export async function findMatchingTonTransaction(params: {
@@ -123,15 +158,15 @@ export async function findMatchingTonTransaction(params: {
   recipientAddress: string
   minAmountNano: bigint
   notOlderThanUnix?: number
+  expectedComment?: string | null
 }) {
   const transactions = await fetchRecentAccountTransactions(params.recipientAddress, 80)
-  const senderNormalized = normalizeAddress(params.senderAddress)
 
   for (const tx of transactions) {
     const inMessage = tx.in_msg
     const sourceAddress = inMessage?.source?.address
     if (!sourceAddress) continue
-    if (normalizeAddress(sourceAddress) !== senderNormalized) continue
+    if (!addressesEqual(sourceAddress, params.senderAddress)) continue
 
     const success = tx.success === true
     if (!success) continue
@@ -144,7 +179,12 @@ export async function findMatchingTonTransaction(params: {
       continue
     }
 
-    if (params.txHash) {
+    const comment = decodeTonMessageComment(inMessage?.raw_body)
+    if (params.expectedComment && comment !== params.expectedComment) {
+      continue
+    }
+
+    if (params.txHash && !params.expectedComment) {
       if (!hasHashIntersection(tx.hash, params.txHash) && !hasHashIntersection(inMessage?.hash, params.txHash)) {
         continue
       }
@@ -158,6 +198,7 @@ export async function findMatchingTonTransaction(params: {
       lt: toBigIntValue(tx.lt)?.toString() ?? null,
       utime: Number.isFinite(utime) ? utime : null,
       amountNano: value.toString(),
+      comment,
     }
   }
 

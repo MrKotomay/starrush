@@ -74,6 +74,9 @@ function mapDepositError(code: string | undefined) {
       return "Пополнение Stars сейчас отключено"
     case "TON_DEPOSITS_DISABLED":
       return "Пополнение TON сейчас отключено"
+    case "TON_DEPOSIT_ADDRESS_NOT_CONFIGURED":
+    case "TON_DEPOSIT_ADDRESS_INVALID":
+      return "TON-кошелек проекта настроен некорректно"
     case "TON_LIMITS_EXCEEDED":
       return "Сумма TON не входит в доступные лимиты"
     case "STARS_LIMITS_EXCEEDED":

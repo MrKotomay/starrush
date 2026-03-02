@@ -58,7 +58,12 @@ export async function completeDepositIntent(
       throw new Error("INTENT_NOT_PAYABLE")
     }
 
-    if (intent.expiresAt <= new Date()) {
+    const allowLateTonSettlement =
+      intent.provider === "TON_CONNECT" &&
+      (intent.status === DepositStatus.SUBMITTED || intent.status === DepositStatus.CONFIRMING) &&
+      Boolean(intent.txHash)
+
+    if (intent.expiresAt <= new Date() && !allowLateTonSettlement) {
       await tx.depositIntent.update({
         where: { id: intent.id },
         data: {

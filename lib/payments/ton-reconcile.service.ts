@@ -1,7 +1,7 @@
 import { DepositProvider, DepositStatus } from "@prisma/client"
 import { db } from "@/lib/db"
 import { completeDepositIntent } from "@/lib/payments/deposit-credit.service"
-import { findMatchingTonTransaction } from "@/lib/payments/ton.service"
+import { buildTonDepositComment, findMatchingTonTransaction } from "@/lib/payments/ton.service"
 import { isTerminalStatus } from "@/lib/payments/utils"
 
 export type TonIntentReconcileResult = {
@@ -29,7 +29,9 @@ export async function reconcileTonIntent(intentId: string): Promise<TonIntentRec
     return { intentId, status: intent.status, completed: false, reason: "TERMINAL_STATUS" }
   }
 
-  if (intent.expiresAt <= new Date()) {
+  const hasSubmittedTransaction = Boolean(intent.txHash)
+
+  if (intent.expiresAt <= new Date() && !hasSubmittedTransaction) {
     const expired = await db.depositIntent.update({
       where: { id: intent.id },
       data: {
@@ -61,6 +63,7 @@ export async function reconcileTonIntent(intentId: string): Promise<TonIntentRec
     recipientAddress: intent.recipientAddress,
     minAmountNano: BigInt(intent.amountNano.toString()),
     notOlderThanUnix: Math.max(0, Math.floor(intent.createdAt.getTime() / 1000) - 120),
+    expectedComment: buildTonDepositComment(intent.id),
   })
 
   if (!matched) {

@@ -1,3 +1,4 @@
+import { Address } from "@ton/core"
 import { z } from "zod"
 
 const decimalStringSchema = z
@@ -81,5 +82,10 @@ export function assertTonDepositAddress() {
   if (!address) {
     throw new Error("TON_DEPOSIT_ADDRESS_NOT_CONFIGURED")
   }
-  return address
+
+  try {
+    return Address.parse(address).toString({ urlSafe: true })
+  } catch {
+    throw new Error("TON_DEPOSIT_ADDRESS_INVALID")
+  }
 }

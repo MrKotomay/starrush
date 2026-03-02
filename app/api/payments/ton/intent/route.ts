@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/lib/auth"
 import { jsonUtf8 } from "@/lib/http"
 import { paymentsConfig, assertTonDepositAddress } from "@/lib/payments/config"
 import { createTonDepositIntent } from "@/lib/payments/intents.service"
-import { buildTonConnectCommentPayload } from "@/lib/payments/ton.service"
+import { buildTonConnectCommentPayload, buildTonDepositComment } from "@/lib/payments/ton.service"
 import { tonAmountToNano } from "@/lib/payments/utils"
 import { rateLimit } from "@/lib/rate-limit"
 
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
 
     const amountNano = tonAmountToNano(parsed.data.amount).toString()
     const recipientAddress = assertTonDepositAddress()
-    const comment = `sr_ton:${intent.id}`
+    const comment = buildTonDepositComment(intent.id)
     const payload = buildTonConnectCommentPayload(comment)
 
     return jsonUtf8({
@@ -79,8 +79,11 @@ export async function POST(req: Request) {
     if (error instanceof Error && error.message === "TON_LIMITS_EXCEEDED") {
       return jsonUtf8({ ok: false, error: "TON_LIMITS_EXCEEDED" }, { status: 400 })
     }
-    if (error instanceof Error && error.message === "TON_DEPOSIT_ADDRESS_NOT_CONFIGURED") {
-      return jsonUtf8({ ok: false, error: "TON_DEPOSIT_ADDRESS_NOT_CONFIGURED" }, { status: 500 })
+    if (
+      error instanceof Error &&
+      (error.message === "TON_DEPOSIT_ADDRESS_NOT_CONFIGURED" || error.message === "TON_DEPOSIT_ADDRESS_INVALID")
+    ) {
+      return jsonUtf8({ ok: false, error: error.message }, { status: 500 })
     }
     return jsonUtf8({ ok: false, error: "TON_INTENT_CREATE_FAILED" }, { status: 500 })
   }
