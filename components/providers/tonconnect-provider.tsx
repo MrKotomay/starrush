@@ -4,7 +4,7 @@ import type { ReactNode } from "react"
 import TonConnect from "@tonconnect/sdk"
 import { TonConnectUIProvider } from "@tonconnect/ui-react"
 
-const MANIFEST_URL = process.env.NEXT_PUBLIC_TONCONNECT_MANIFEST_URL ?? "/api/tonconnect/manifest"
+const MANIFEST_URL = process.env.NEXT_PUBLIC_TONCONNECT_MANIFEST_URL ?? "/tonconnect-manifest.json"
 const WALLETS_LIST_URL = process.env.NEXT_PUBLIC_TONCONNECT_WALLETS_LIST_URL ?? "/api/tonconnect/wallets-v2"
 
 let connector: TonConnect | null = null
