@@ -122,6 +122,13 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
+function computeExponentialMultiplier(elapsedSeconds: number, growthRatePerSecond: number): number {
+  const safeElapsedSeconds = Number.isFinite(elapsedSeconds) ? Math.max(0, elapsedSeconds) : 0;
+  const safeGrowthRate = Number.isFinite(growthRatePerSecond) ? Math.max(0, growthRatePerSecond) : 0;
+  const rawMultiplier = Math.exp(safeGrowthRate * safeElapsedSeconds);
+  return Math.max(1, Number(rawMultiplier.toFixed(4)));
+}
+
 function toNumber(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string") {
@@ -857,6 +864,9 @@ export class BackendRoundStateAdapter {
 
     this.backendStatus = "RUNNING";
     const serverTs = payload.serverTs ?? this.currentServerTime();
+    if (typeof payload.serverTs === "number" && Number.isFinite(payload.serverTs)) {
+      this.serverTimeOffsetMs = payload.serverTs - Date.now();
+    }
     this.setMultiplierSample(payload.multiplier, serverTs, false);
     this.multiplierEventsSinceLog += 1;
   }
@@ -1329,6 +1339,14 @@ export class BackendRoundStateAdapter {
   }
 
   private computeSmoothedMultiplier(currentPerfTs: number): number {
+    const estimatedGrowthRate = this.estimateRoundGrowthRate();
+    if (this.startedAtMs !== null && estimatedGrowthRate !== null) {
+      const liveElapsedSeconds = Math.max(0, (this.currentServerTime() - this.startedAtMs) / 1000);
+      const computed = computeExponentialMultiplier(liveElapsedSeconds, estimatedGrowthRate);
+      const floor = this.latestSample?.value ?? this.snapshot.coefficient;
+      return Math.max(floor, computed);
+    }
+
     if (!this.latestSample) return this.snapshot.coefficient;
     if (!this.previousSample) return this.latestSample.value;
     if (this.interpolationDurationMs <= 0) return this.latestSample.value;
@@ -1346,6 +1364,21 @@ export class BackendRoundStateAdapter {
       return clamp(raw, start, end);
     }
     return clamp(raw, end, start);
+  }
+
+  private estimateRoundGrowthRate(): number | null {
+    if (this.startedAtMs === null || !this.latestSample) return null;
+
+    const elapsedMs = this.latestSample.serverTs - this.startedAtMs;
+    if (!Number.isFinite(elapsedMs) || elapsedMs <= 0) return null;
+
+    const latestValue = this.latestSample.value;
+    if (!Number.isFinite(latestValue) || latestValue <= 1) return null;
+
+    const estimated = Math.log(latestValue) / (elapsedMs / 1000);
+    if (!Number.isFinite(estimated) || estimated <= 0) return null;
+
+    return estimated;
   }
 
   private computeCountdown(): number {
