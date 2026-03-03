@@ -267,8 +267,11 @@ export async function POST(req: Request) {
   }
 
   const updateId = extractTelegramUpdateId(update)
+
+  // Rate limit by IP (not by updateId — each unique updateId gets its own bucket)
+  const webhookIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "telegram-webhook"
   const webhookRate = await rateLimit(
-    `telegram:webhook:${updateId}`,
+    `telegram:webhook:${webhookIp}`,
     Math.max(10, paymentsConfig.depositRateLimitMax),
     paymentsConfig.depositRateLimitWindowSeconds
   )

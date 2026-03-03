@@ -115,4 +115,26 @@ export class RoundRoomManager {
   broadcastCurrentOnlineCount() {
     this.getCurrentRoom()?.broadcastOnlineCount()
   }
+
+  cleanupStaleRooms() {
+    const current = this.currentRoundId
+    for (const [roundId, room] of this.rooms) {
+      if (roundId === current) continue
+      if (room.clients.size === 0) {
+        this.rooms.delete(roundId)
+      }
+    }
+  }
+
+  connectionCountForUser(userId: string): number {
+    let count = 0
+    for (const room of this.rooms.values()) {
+      for (const client of room.clients) {
+        if (client.userId === userId && client.socket.readyState === WebSocket.OPEN) {
+          count++
+        }
+      }
+    }
+    return count
+  }
 }

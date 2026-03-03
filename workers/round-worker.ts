@@ -100,10 +100,15 @@ async function resolveCrashedAt(roundId: string, fallbackMs: number) {
 }
 
 async function refreshLock(token: string, ttlMs: number) {
-  if (!redis) return false
+  if (!redis || !token) return false
   const lua = `if redis.call("get", KEYS[1]) == ARGV[1] then return redis.call("pexpire", KEYS[1], ARGV[2]) else return 0 end`
-  const res = await redis.eval(lua, 1, `lock:${LOCK_KEY}`, token, ttlMs)
-  return res === 1
+  try {
+    const res = await redis.eval(lua, 1, `lock:${LOCK_KEY}`, token, ttlMs)
+    return res === 1
+  } catch (error) {
+    logger.error("worker_lock_refresh_failed", { lockKey: LOCK_KEY, error })
+    return false
+  }
 }
 
 async function recoverActiveRound() {
@@ -298,13 +303,13 @@ async function runWorker() {
   startHealthServer()
   await recoverActiveRound()
   logger.info("reconcile_started")
-  repairLockedBalances()
+  await repairLockedBalances()
     .then(() => logger.info("reconcile_complete"))
     .catch((error) => logger.error("reconcile_error", { error }))
 
   while (true) {
     workerState.lastLoopAt = Date.now()
-    const lock = await acquireLock(LOCK_KEY, 4000)
+    const lock = await acquireLock(LOCK_KEY, 15000)
     if (!lock.acquired) {
       workerState.lastLockContentionAt = Date.now()
       logger.warn("worker_lock_contention", { lockKey: LOCK_KEY })
@@ -314,7 +319,7 @@ async function runWorker() {
     }
 
     try {
-      const refreshed = await refreshLock(lock.token, 4000)
+      const refreshed = await refreshLock(lock.token, 15000)
       if (!refreshed) {
         debugRoundLog("lock: refresh failed")
         await sleep(1000)
@@ -338,3 +343,14 @@ runWorker().catch((error) => {
   logger.error("worker_fatal", { error })
   process.exit(1)
 })
+
+// Graceful shutdown
+for (const signal of ["SIGTERM", "SIGINT"] as const) {
+  process.on(signal, async () => {
+    logger.info("worker_shutting_down", { signal })
+    try {
+      await db.$disconnect()
+    } catch {}
+    process.exit(0)
+  })
+}

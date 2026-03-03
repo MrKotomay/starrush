@@ -1,4 +1,5 @@
 import { z } from "zod"
+import crypto from "crypto"
 import { Prisma, LedgerType, LedgerStatus, Currency } from "@prisma/client"
 import { createTransaction, applyTransaction } from "@/lib/ledger.service"
 import { rateLimit } from "@/lib/rate-limit"
@@ -21,9 +22,14 @@ const schema = z.object({
 type Payload = z.infer<typeof schema>
 const logger = createLogger("ledger-internal-create")
 
+function safeCompareKeys(a: string, b: string): boolean {
+  if (a.length !== b.length) return false
+  return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b))
+}
+
 export async function POST(req: Request) {
-  const internalKey = req.headers.get("x-internal-key")
-  if (!process.env.INTERNAL_API_KEY || internalKey !== process.env.INTERNAL_API_KEY) {
+  const internalKey = req.headers.get("x-internal-key") ?? ""
+  if (!process.env.INTERNAL_API_KEY || !safeCompareKeys(internalKey, process.env.INTERNAL_API_KEY)) {
     logger.warn("internal_route_rejected", {
       route: "/api/ledger/internal/create",
       reason: "FORBIDDEN",

@@ -53,12 +53,18 @@ Fill `.env`:
 - domain (`APP_DOMAIN`)
 - DB URLs (`DOCKER_DATABASE_URL`, `DOCKER_REDIS_URL`) for production/DBaaS mode
 - `COOKIE_SECURE=true`
+- `ALLOWED_WS_ORIGINS=https://<APP_DOMAIN>`
+- `MAX_WS_CONNECTIONS_PER_USER=5`
 
 ## 3) First deploy
 
 ```bash
 bash infra/deploy/deploy-vds.sh
 ```
+
+`infra/deploy/deploy-vds.sh` runs the Prisma `migrate` service before starting app services. This migration step is mandatory for the new security/accounting indexes and unique constraint.
+
+If deploy stops during migration with a duplicate `HouseLedgerEntry` error on `("houseWalletId", "roundId", "userId", "type")`, do not skip it. Clean duplicate rows first and rebalance `HouseWallet`, then rerun deploy.
 
 Check:
 

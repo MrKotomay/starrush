@@ -7,7 +7,7 @@ import { jsonUtf8 } from "@/lib/http"
 import { parseReferralStartParam } from "@/lib/referrals"
 import { createLogger } from "@/lib/logger"
 
-const MAX_AUTH_AGE_SECONDS = 60 * 60 * 24 // 24h
+const MAX_AUTH_AGE_SECONDS = 60 * 60 // 1h
 const logger = createLogger("auth-telegram")
 
 const schema = z.object({

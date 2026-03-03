@@ -7,6 +7,7 @@ const DEV_TELEGRAM_ID = BigInt(123456789)
 const DEV_USERNAME = "dev_user"
 
 function isDevAuthEnabled(): boolean {
+  if (process.env.NODE_ENV === "production") return false
   return isEnabledByEnvWithDevDefault(process.env.DEV_AUTH_ENABLED)
 }
 
@@ -82,7 +83,7 @@ export async function POST() {
     value: session.token,
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.COOKIE_SECURE === "true",
+    secure: process.env.COOKIE_SECURE === "true" || process.env.NODE_ENV === "production",
     domain: process.env.COOKIE_DOMAIN || undefined,
     path: "/",
     expires: session.expiresAt,

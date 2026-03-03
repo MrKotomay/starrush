@@ -160,6 +160,7 @@ model LedgerEntry {
   @@unique([walletId, referenceId, type])
   @@index([userId, currency, createdAt])
   @@index([walletId, createdAt])
+  @@index([referenceId])
 }
 
 model HouseWallet {
@@ -186,6 +187,7 @@ model HouseLedgerEntry {
 
   houseWallet HouseWallet @relation(fields: [houseWalletId], references: [id])
 
+  @@unique([houseWalletId, roundId, userId, type])
   @@index([currency, createdAt])
   @@index([houseWalletId, createdAt])
   @@index([roundId, createdAt])
@@ -229,6 +231,7 @@ model RoundPlayer {
 
   @@unique([roundId, userId])
   @@index([roundId, status])
+  @@index([roundId, currency, status])
   @@index([userId])
 }
 

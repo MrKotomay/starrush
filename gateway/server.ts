@@ -15,6 +15,8 @@ import { jsonUtf8 } from "@/lib/http"
 import { createLogger } from "@/lib/logger"
 
 const PORT = Number(process.env.GATEWAY_PORT ?? 8081)
+const MAX_CONNECTIONS_PER_USER = Number(process.env.MAX_WS_CONNECTIONS_PER_USER ?? 5)
+const WS_HEARTBEAT_INTERVAL_MS = 30_000
 const rooms = new RoundRoomManager()
 const limiter = new WsRateLimiter()
 const logger = createLogger("gateway")
@@ -85,13 +87,28 @@ async function boot() {
     })
     res.end(await payload.text())
   })
-  const wss = new WebSocketServer({ server })
+  const wss = new WebSocketServer({ server, maxPayload: 4096 })
 
   const currentRound = await resolveCurrentRound()
   if (currentRound) rooms.setCurrentRound(currentRound)
   gatewayState.ready = true
 
+  const allowedOrigins = (process.env.ALLOWED_WS_ORIGINS ?? "")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean)
+
   wss.on("connection", async (socket: WebSocket, req) => {
+    // Origin validation to prevent Cross-Site WebSocket Hijacking
+    if (allowedOrigins.length > 0) {
+      const origin = req.headers.origin ?? req.headers["sec-websocket-origin"]
+      if (!origin || !allowedOrigins.includes(origin as string)) {
+        logger.warn("ws_origin_rejected", { origin, remoteAddress: req.socket.remoteAddress })
+        socket.close(4003, "ORIGIN_NOT_ALLOWED")
+        return
+      }
+    }
+
     const auth = await authenticateWs(req)
     if (!auth) {
       logger.warn("ws_auth_rejected", {
@@ -101,6 +118,19 @@ async function boot() {
       socket.close(4001, "UNAUTHORIZED")
       return
     }
+
+    // Max connections per user
+    const currentCount = rooms.connectionCountForUser(auth.userId)
+    if (currentCount >= MAX_CONNECTIONS_PER_USER) {
+      logger.warn("ws_max_connections", { userId: auth.userId, currentCount })
+      socket.close(4008, "TOO_MANY_CONNECTIONS")
+      return
+    }
+
+    // Mark alive for heartbeat
+    const extSocket = socket as WebSocket & { isAlive?: boolean }
+    extSocket.isAlive = true
+    socket.on("pong", () => { extSocket.isAlive = true })
 
     const client: RoomClient = { userId: auth.userId, socket }
     const roundId = rooms.getCurrentRoundId()
@@ -191,9 +221,39 @@ async function boot() {
   server.listen(PORT, () => {
     logger.info("gateway_listening", { port: PORT })
   })
+
+  // Server-side WebSocket heartbeat to detect dead connections
+  const heartbeatInterval = setInterval(() => {
+    for (const ws of wss.clients) {
+      const extWs = ws as WebSocket & { isAlive?: boolean }
+      if (extWs.isAlive === false) {
+        extWs.terminate()
+        continue
+      }
+      extWs.isAlive = false
+      extWs.ping()
+    }
+    // Clean up stale rooms
+    rooms.cleanupStaleRooms()
+  }, WS_HEARTBEAT_INTERVAL_MS)
+
+  wss.on("close", () => {
+    clearInterval(heartbeatInterval)
+  })
 }
 
 boot().catch((error) => {
   logger.error("gateway_fatal", { error })
   process.exit(1)
 })
+
+// Graceful shutdown
+for (const signal of ["SIGTERM", "SIGINT"] as const) {
+  process.on(signal, async () => {
+    logger.info("gateway_shutting_down", { signal })
+    try {
+      await db.$disconnect()
+    } catch {}
+    process.exit(0)
+  })
+}

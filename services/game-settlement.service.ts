@@ -71,8 +71,6 @@ export function computeCashoutAmounts(stakeInput: Prisma.Decimal | number | stri
 export async function cashoutPlayer(roundId: string, userId: string): Promise<CashoutResult> {
   if (!redis) throw new Error("REDIS_NOT_CONFIGURED")
 
-  const multiplierRaw = (await redis.get(REDIS_KEYS.multiplier(roundId))) || null
-
   const result = await db.$transaction(async (tx) => {
     await tx.$executeRaw`SET LOCAL lock_timeout = '2s'`
     await tx.$executeRaw`SET LOCAL statement_timeout = '8s'`
@@ -89,6 +87,10 @@ export async function cashoutPlayer(roundId: string, userId: string): Promise<Ca
       logger.warn("cashout_rejected", { roundId, userId, errorCode: "CASHOUT_CLOSED", safetyWindowMs: BET_SAFETY_WINDOW_MS })
       throw new CashoutClosedError()
     }
+
+    // Read multiplier INSIDE the transaction after acquiring the round lock,
+    // to avoid TOCTOU race where multiplier changes between read and lock
+    const multiplierRaw = (await redis!.get(REDIS_KEYS.multiplier(roundId))) || null
 
     const playerSnapshot = await tx.roundPlayer.findUnique({
       where: { roundId_userId: { roundId, userId } },
@@ -242,8 +244,8 @@ export async function settleLosses(
     for (const player of players) {
       try {
         await db.$transaction(async (tx) => {
-          await tx.$executeRawUnsafe(`SET LOCAL lock_timeout = '${lockTimeoutMs}ms'`)
-          await tx.$executeRawUnsafe(`SET LOCAL statement_timeout = '${Math.max(lockTimeoutMs * 3, 5000)}ms'`)
+          await tx.$executeRaw`SET LOCAL lock_timeout = ${lockTimeoutMs + 'ms'}`
+          await tx.$executeRaw`SET LOCAL statement_timeout = ${Math.max(lockTimeoutMs * 3, 5000) + 'ms'}`
 
           const playerCurrency = (player as { currency?: string }).currency
           await tx.$queryRaw`SELECT id FROM "Wallet" WHERE "userId" = ${player.userId} AND "currency" = ${playerCurrency}::"Currency" FOR UPDATE`
@@ -324,9 +326,14 @@ export async function settleLosses(
 export async function settleRound(roundId: string) {
   await settleLosses(roundId)
 
-  const round = await db.round.update({
-    where: { id: roundId },
-    data: { status: RoundStatus.FINISHED, finishedAt: new Date() },
+  const round = await db.$transaction(async (tx) => {
+    const existing = await tx.round.findUnique({ where: { id: roundId } })
+    if (!existing || existing.status === RoundStatus.FINISHED) return existing
+
+    return tx.round.update({
+      where: { id: roundId },
+      data: { status: RoundStatus.FINISHED, finishedAt: new Date() },
+    })
   })
 
   emitGameEvent(roundId, RoundEventType.ROUND_FINISHED, { roundId }).catch((error) =>

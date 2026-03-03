@@ -260,14 +260,23 @@ export async function releaseLockedFunds(params: {
     if (!wallet) throw new Error("WALLET_NOT_FOUND")
 
     const nextLocked = wallet.lockedBalance.minus(amount)
-    const safeLocked = nextLocked.lt(0) ? new Prisma.Decimal(0) : nextLocked
+    if (nextLocked.lt(0)) {
+      console.error("[Ledger] releaseLockedFunds: negative locked balance detected", {
+        walletId: params.walletId,
+        currentLocked: wallet.lockedBalance.toString(),
+        releaseAmount: amount.toString(),
+        resultWouldBe: nextLocked.toString(),
+        reason: params.reason,
+      })
+      throw new Error("LOCKED_BALANCE_UNDERFLOW")
+    }
 
     await clientTx.wallet.update({
       where: { id: wallet.id },
-      data: { lockedBalance: safeLocked },
+      data: { lockedBalance: nextLocked },
     })
 
-    return { previousLocked: wallet.lockedBalance, nextLocked: safeLocked, reason: params.reason }
+    return { previousLocked: wallet.lockedBalance, nextLocked, reason: params.reason }
   }
 
   if (params.tx) {

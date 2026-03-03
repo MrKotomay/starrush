@@ -15,6 +15,7 @@ const schema = z.object({
 })
 
 function isDevWalletActionsEnabled() {
+  if (process.env.NODE_ENV === "production") return false
   return isEnabledByEnvWithDevDefault(process.env.ENABLE_DEV_WALLET_ACTIONS)
 }
 

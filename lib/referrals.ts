@@ -110,26 +110,30 @@ export async function applyReferralRewardForDeposit(
 
   const rewardReferenceId = `${REFERRAL_REFERENCE_PREFIX}${deposit.id}`
 
-  const rewardEntry = await createTransaction({
-    userId: referrerUserId,
-    currency: deposit.currency,
-    amount: rewardAmount,
-    type: LedgerType.REWARD,
-    referenceId: rewardReferenceId,
-    metadata: {
-      source: "referral",
-      rate: rate.toString(),
-      fromUserId: deposit.userId,
-      sourceLedgerId: deposit.id,
-      sourceAmount: depositAmount.toString(),
-    },
+  const result = await db.$transaction(async (tx) => {
+    const rewardEntry = await createTransaction({
+      userId: referrerUserId,
+      currency: deposit.currency,
+      amount: rewardAmount,
+      type: LedgerType.REWARD,
+      referenceId: rewardReferenceId,
+      metadata: {
+        source: "referral",
+        rate: rate.toString(),
+        fromUserId: deposit.userId,
+        sourceLedgerId: deposit.id,
+        sourceAmount: depositAmount.toString(),
+      },
+    }, tx)
+
+    const applied = await applyTransaction(rewardEntry.id, tx)
+    return applied
   })
 
-  const applied = await applyTransaction(rewardEntry.id)
   return {
     status: "applied",
-    rewardLedgerId: applied.id,
-    amount: applied.amount.toString(),
-    currency: applied.currency,
+    rewardLedgerId: result.id,
+    amount: result.amount.toString(),
+    currency: result.currency,
   }
 }

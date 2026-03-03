@@ -73,7 +73,6 @@ export async function GET(req: Request) {
         select: {
           currency: true,
           balance: true,
-          lockedBalance: true,
         },
       },
     },
@@ -86,8 +85,7 @@ export async function GET(req: Request) {
 
       const tonBalance = Math.max(0, toFiniteNumber(tonWallet?.balance))
       const starsBalance = Math.max(0, toFiniteNumber(starsWallet?.balance))
-      const starsLocked = Math.max(0, toFiniteNumber(starsWallet?.lockedBalance))
-      const gifts = Math.max(0, starsBalance + starsLocked)
+      const gifts = Math.max(0, starsBalance)
 
       return {
         userId: user.id,

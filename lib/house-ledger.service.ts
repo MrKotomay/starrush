@@ -22,6 +22,11 @@ type HouseLedgerInput = {
   metadata?: Prisma.InputJsonValue
 }
 
+const IDEMPOTENT_HOUSE_LEDGER_TYPES = new Set<HouseLedgerType>([
+  HouseLedgerType.BET_LOSS_SETTLEMENT,
+  HouseLedgerType.BET_WIN,
+])
+
 function asPositiveDecimal(value: Prisma.Decimal | number | string) {
   const amount = new Prisma.Decimal(value)
   if (amount.lte(0)) throw new Error("HOUSE_INVALID_AMOUNT")
@@ -68,6 +73,24 @@ async function mutateHouseBalance(
     })
 
     if (!wallet) throw new Error("HOUSE_WALLET_NOT_FOUND")
+
+    const existingEntry =
+      input.roundId &&
+      input.userId &&
+      IDEMPOTENT_HOUSE_LEDGER_TYPES.has(input.type)
+        ? await txClient.houseLedgerEntry.findFirst({
+            where: {
+              houseWalletId: wallet.id,
+              roundId: input.roundId,
+              userId: input.userId,
+              type: input.type,
+            },
+          })
+        : null
+
+    if (existingEntry) {
+      return { wallet, ledgerEntry: existingEntry }
+    }
 
     const signedAmount = direction === "credit" ? amount : amount.mul(-1)
     const nextBalance = wallet.balance.plus(signedAmount)

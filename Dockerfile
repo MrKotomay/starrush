@@ -38,6 +38,11 @@ ENV NEXT_PUBLIC_GATEWAY_PORT=${NEXT_PUBLIC_GATEWAY_PORT}
 
 RUN npm run build
 
+# Run as non-root user for security
+RUN addgroup --system --gid 1001 app \
+  && adduser --system --uid 1001 --ingroup app app
+USER app
+
 EXPOSE 3000 8081
 
 CMD ["npm", "run", "start"]

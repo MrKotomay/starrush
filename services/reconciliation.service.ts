@@ -1,6 +1,10 @@
-import { Prisma, RoundPlayerStatus, RoundStatus, LedgerType, LedgerStatus } from "@prisma/client"
+import { Prisma, RoundPlayerStatus, RoundStatus, LedgerType, LedgerStatus, HouseLedgerType } from "@prisma/client"
 import { db } from "@/lib/db"
 import { applyTransaction, createTransaction } from "@/lib/ledger.service"
+import { creditHouse } from "@/lib/house-ledger.service"
+import { createLogger } from "@/lib/logger"
+
+const logger = createLogger("reconciliation")
 
 const BATCH_SIZE = 100
 const MAX_BATCHES = 1000
@@ -12,7 +16,7 @@ export async function repairLockedBalances() {
   while (true) {
     batches += 1
     if (batches > MAX_BATCHES) {
-      console.warn("[Reconcile] Max batch limit reached", { batches })
+      logger.warn("reconcile_max_batch_limit", { batches })
       break
     }
 
@@ -35,7 +39,7 @@ export async function repairLockedBalances() {
             status: RoundPlayerStatus.BET_PLACED,
             currency: wallet.currency,
             round: { status: { in: [RoundStatus.WAITING, RoundStatus.RUNNING] } },
-          } as any,
+          },
         })
 
         const stale = await tx.roundPlayer.findMany({
@@ -44,7 +48,7 @@ export async function repairLockedBalances() {
             status: RoundPlayerStatus.BET_PLACED,
             currency: wallet.currency,
             round: { status: { in: [RoundStatus.CRASHED, RoundStatus.FINISHED] } },
-          } as any,
+          },
         })
 
         const expected = active.reduce(
@@ -75,6 +79,23 @@ export async function repairLockedBalances() {
             )
             await applyTransaction(lossEntry.id, tx)
 
+            await creditHouse(
+              {
+                currency: wallet.currency,
+                amount: player.betAmount,
+                type: HouseLedgerType.BET_LOSS_SETTLEMENT,
+                roundId: player.roundId,
+                userId: wallet.userId,
+                metadata: {
+                  roundId: player.roundId,
+                  userId: wallet.userId,
+                  betAmount: player.betAmount.toString(),
+                  reason: "reconciliation",
+                },
+              },
+              tx
+            )
+
             await tx.roundPlayer.update({
               where: { id: player.id },
               data: { status: RoundPlayerStatus.LOST, profit: new Prisma.Decimal(0) },
@@ -86,7 +107,7 @@ export async function repairLockedBalances() {
         if (!refreshedWallet) return
 
         if (!refreshedWallet.lockedBalance.equals(expected)) {
-          console.info("[Reconcile] Locked balance mismatch", {
+          logger.info("reconcile_locked_balance_mismatch", {
             walletId: wallet.id,
             userId: wallet.userId,
             previousLocked: refreshedWallet.lockedBalance.toString(),
@@ -104,5 +125,5 @@ export async function repairLockedBalances() {
     cursor = wallets[wallets.length - 1].id
   }
 
-  console.log("[Reconcile] Completed", { batches })
+  logger.info("reconcile_completed", { batches })
 }

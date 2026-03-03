@@ -547,9 +547,11 @@ export class RoundEngine {
   }
 
   private computeCoefficient(elapsedSeconds: number): number {
-    const growth = Math.exp(0.092 * elapsedSeconds);
-    const curve = 1 + (growth - 1) * (1 + 0.055 * elapsedSeconds);
-    return Math.max(1, curve);
+    // Must match server formula: Math.exp(growthRate * elapsed)
+    // Server default growthRate = 0.09 (see lib/round-multiplier.ts)
+    const growthRate = 0.09;
+    const rawMultiplier = Math.exp(growthRate * elapsedSeconds);
+    return Math.max(1, Number(rawMultiplier.toFixed(4)));
   }
 
   private randomBetAmount(rng: () => number): number {

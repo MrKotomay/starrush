@@ -15,6 +15,17 @@ type MemoryBucket = {
 
 const memoryBuckets = new Map<string, MemoryBucket>()
 
+// Periodically clean up expired memory buckets to prevent memory leaks
+const MEMORY_CLEANUP_INTERVAL_MS = 60_000
+setInterval(() => {
+  const now = Date.now()
+  for (const [key, bucket] of memoryBuckets) {
+    if (bucket.resetAt <= now) {
+      memoryBuckets.delete(key)
+    }
+  }
+}, MEMORY_CLEANUP_INTERVAL_MS).unref()
+
 function memoryRateLimit(key: string, limit: number, windowSeconds: number): RateLimitResult {
   const now = Date.now()
   const redisKey = `rate:${key}`
@@ -50,11 +61,12 @@ export async function rateLimit(key: string, limit: number, windowSeconds: numbe
 
   try {
     const redisKey = `rate:${key}`
-    const current = await redis.incr(redisKey)
-    if (current === 1) {
-      await redis.expire(redisKey, windowSeconds)
-    }
+    const results = await redis.multi()
+      .incr(redisKey)
+      .expire(redisKey, windowSeconds, "NX")
+      .exec()
 
+    const current = (results?.[0]?.[1] as number) ?? 1
     const remaining = Math.max(limit - current, 0)
     return { allowed: current <= limit, remaining, mode: "redis" }
   } catch {

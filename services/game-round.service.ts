@@ -22,6 +22,7 @@ const REDIS_KEYS = {
   crashPoint: (roundId: string) => `game:round:${roundId}:crash_point`,
 }
 
+const LEGACY_SERVER_SEED_KEY = (roundId: string) => `game:round:${roundId}:server_seed`
 const WAITING_PHASE_MS = Number(process.env.ROUND_WAITING_MS ?? 5000)
 const COOLDOWN_PHASE_MS = Number(process.env.ROUND_COOLDOWN_MS ?? 3000)
 const DEBUG_ROUND_LOOP = process.env.DEBUG_ROUND_LOOP === "1"
@@ -129,6 +130,21 @@ export async function createRound() {
   return round
 }
 
+async function recoverDurableServerSeed(roundId: string, currentServerSeed: string | null) {
+  if (currentServerSeed) return currentServerSeed
+  if (!redis) throw new Error("REDIS_NOT_CONFIGURED")
+
+  const legacyServerSeed = await redis.get(LEGACY_SERVER_SEED_KEY(roundId))
+  if (!legacyServerSeed) throw new Error("SERVER_SEED_NOT_AVAILABLE")
+
+  await prisma.round.update({
+    where: { id: roundId },
+    data: { serverSeed: legacyServerSeed },
+  })
+
+  return legacyServerSeed
+}
+
 export async function startRound(roundId: string) {
   if (!redis) throw new Error("REDIS_NOT_CONFIGURED")
   const redisClient = redis
@@ -141,10 +157,12 @@ export async function startRound(roundId: string) {
     if (!round) throw new Error("ROUND_NOT_FOUND")
     if (round.status !== RoundStatus.WAITING) return round
 
+    const serverSeed = await recoverDurableServerSeed(round.id, round.serverSeed)
+
     const crashMultiplier = calculateCrashPoint({
       roundId: round.id,
       serverSeedHash: round.serverSeedHash,
-      serverSeed: round.serverSeed,
+      serverSeed,
       fairnessVersion: round.fairnessVersion,
       fairnessNonce: round.fairnessNonce,
       clientSeed: round.clientSeed,
@@ -157,13 +175,14 @@ export async function startRound(roundId: string) {
       data: {
         status: RoundStatus.RUNNING,
         startedAt: new Date(),
+        serverSeed,
         crashMultiplier: new Prisma.Decimal(crashMultiplier),
       },
     })
 
     await redisClient.mset({
       [REDIS_KEYS.roundState(round.id)]: RoundStatus.RUNNING,
-      [REDIS_KEYS.crashPoint(round.id)]: crashMultiplier.toFixed(2),
+      [REDIS_KEYS.crashPoint(round.id)]: crashMultiplier.toFixed(6),
       [REDIS_KEYS.multiplier(round.id)]: "1.00",
     })
 
@@ -230,7 +249,11 @@ export function calculateCrashPoint(input: {
   })
 }
 
-export async function cashoutPlayer(roundId: string, userId: string) {
+/**
+ * @deprecated DO NOT USE. This function only updates RoundPlayer status
+ * without full financial settlement.
+ */
+async function _legacyCashoutPlayer_DO_NOT_USE(roundId: string, userId: string) {
   if (!redis) throw new Error("REDIS_NOT_CONFIGURED")
   const redisClient = redis
 
@@ -289,12 +312,13 @@ export async function crashRound(roundId: string) {
 
   const round = await prisma.round.findUnique({ where: { id: roundId } })
   if (!round) throw new Error("ROUND_NOT_FOUND")
-  if (!round.serverSeed) throw new Error("SERVER_SEED_NOT_FOUND")
+
+  const serverSeed = await recoverDurableServerSeed(round.id, round.serverSeed)
 
   const crashMultiplier = calculateCrashPoint({
     roundId: round.id,
     serverSeedHash: round.serverSeedHash,
-    serverSeed: round.serverSeed,
+    serverSeed,
     fairnessVersion: round.fairnessVersion,
     fairnessNonce: round.fairnessNonce,
     clientSeed: round.clientSeed,
@@ -306,12 +330,13 @@ export async function crashRound(roundId: string) {
     where: { id: roundId },
     data: {
       status: RoundStatus.CRASHED,
-      serverSeed: round.serverSeed,
+      serverSeed,
       crashMultiplier: new Prisma.Decimal(crashMultiplier),
     },
   })
 
   await redisClient.set(REDIS_KEYS.roundState(roundId), RoundStatus.CRASHED)
+  await redisClient.del(LEGACY_SERVER_SEED_KEY(roundId))
 
   const crashAtMs = Date.now()
   const roundedCrashMultiplier = Number(crashMultiplier.toFixed(2))
@@ -328,7 +353,7 @@ export async function crashRound(roundId: string) {
     currentMultiplier: roundedCrashMultiplier,
     crashMultiplier: roundedCrashMultiplier,
     serverSeedHash: round.serverSeedHash,
-    serverSeed: round.serverSeed,
+    serverSeed,
     fairnessVersion: round.fairnessVersion,
     fairnessNonce: round.fairnessNonce,
     clientSeed: round.clientSeed,

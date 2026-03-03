@@ -1,4 +1,5 @@
 import { Currency, Prisma, type HouseLedgerType } from "@prisma/client"
+import crypto from "crypto"
 import { z } from "zod"
 import { creditHouse } from "@/lib/house-ledger.service"
 import { jsonUtf8 } from "@/lib/http"
@@ -15,6 +16,7 @@ const schema = z.object({
 })
 
 function isDevTreasuryEnabled() {
+  if (process.env.NODE_ENV === "production") return false
   return isEnabledByEnvWithDevDefault(process.env.ENABLE_DEV_TREASURY)
 }
 
@@ -38,8 +40,11 @@ export async function POST(req: Request) {
     return jsonUtf8({ ok: false, error: "DEV_TREASURY_DISABLED" }, { status: 403 })
   }
 
-  const internalKey = req.headers.get("x-internal-key")
-  if (!process.env.INTERNAL_API_KEY || internalKey !== process.env.INTERNAL_API_KEY) {
+  const internalKey = req.headers.get("x-internal-key") ?? ""
+  const expectedKey = process.env.INTERNAL_API_KEY ?? ""
+  const keysMatch = expectedKey.length > 0 && internalKey.length === expectedKey.length &&
+    crypto.timingSafeEqual(Buffer.from(internalKey), Buffer.from(expectedKey))
+  if (!keysMatch) {
     logger.warn("internal_route_rejected", {
       route: "/api/dev/treasury/fund",
       reason: "FORBIDDEN",

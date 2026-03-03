@@ -1,4 +1,5 @@
 import { z } from "zod"
+import crypto from "crypto"
 import { jsonUtf8 } from "@/lib/http"
 import { paymentsConfig } from "@/lib/payments/config"
 import { listTonIntentsForReconcile } from "@/lib/payments/intents.service"
@@ -10,13 +11,18 @@ const schema = z.object({
 })
 const logger = createLogger("payments-ton-reconcile")
 
+function safeCompareKeys(a: string, b: string): boolean {
+  if (a.length !== b.length) return false
+  return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b))
+}
+
 export async function POST(req: Request) {
   if (!paymentsConfig.enableTonConnectDeposits) {
     return jsonUtf8({ ok: false, error: "TON_DEPOSITS_DISABLED" }, { status: 403 })
   }
 
-  const internalKey = req.headers.get("x-internal-key")
-  if (!process.env.INTERNAL_API_KEY || internalKey !== process.env.INTERNAL_API_KEY) {
+  const internalKey = req.headers.get("x-internal-key") ?? ""
+  if (!process.env.INTERNAL_API_KEY || !safeCompareKeys(internalKey, process.env.INTERNAL_API_KEY)) {
     logger.warn("internal_route_rejected", {
       route: "/api/payments/ton/reconcile",
       reason: "FORBIDDEN",
