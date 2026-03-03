@@ -1,7 +1,7 @@
 import { z } from "zod"
 import { getCurrentUser } from "@/lib/auth"
 import { jsonUtf8 } from "@/lib/http"
-import { paymentsConfig, assertTonDepositAddress } from "@/lib/payments/config"
+import { paymentsConfig, assertTonDepositAddressForTransfer } from "@/lib/payments/config"
 import { createTonDepositIntent } from "@/lib/payments/intents.service"
 import { buildTonConnectCommentPayload, buildTonDepositComment } from "@/lib/payments/ton.service"
 import { tonAmountToNano } from "@/lib/payments/utils"
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     })
 
     const amountNano = tonAmountToNano(parsed.data.amount).toString()
-    const recipientAddress = assertTonDepositAddress()
+    const recipientAddress = assertTonDepositAddressForTransfer()
     const comment = buildTonDepositComment(intent.id)
     const payload = buildTonConnectCommentPayload(comment)
 

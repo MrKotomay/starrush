@@ -77,15 +77,26 @@ export function assertTonApiKey() {
   return paymentsConfig.tonApiKey
 }
 
-export function assertTonDepositAddress() {
+function parseTonDepositAddress() {
   const address = paymentsConfig.tonDepositAddress.trim()
   if (!address) {
     throw new Error("TON_DEPOSIT_ADDRESS_NOT_CONFIGURED")
   }
 
   try {
-    return Address.parse(address).toString({ urlSafe: true })
+    return Address.parse(address)
   } catch {
     throw new Error("TON_DEPOSIT_ADDRESS_INVALID")
   }
+}
+
+export function assertTonDepositAddress() {
+  return parseTonDepositAddress().toRawString()
+}
+
+export function assertTonDepositAddressForTransfer() {
+  return parseTonDepositAddress().toString({
+    urlSafe: true,
+    bounceable: false,
+  })
 }
