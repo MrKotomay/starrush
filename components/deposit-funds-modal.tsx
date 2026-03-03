@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { Gift, Sparkles, Wallet, X } from "lucide-react"
+import { UserRejectsError } from "@tonconnect/sdk"
 import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react"
 
 import { PrimaryButton } from "@/components/ui/primary-button"
@@ -267,7 +268,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
       } else {
         window.open(payload.invoiceUrl, "_blank", "noopener,noreferrer")
       }
-    } catch {
+    } catch (_error) {
       setError("Не удалось создать счет на оплату")
     } finally {
       setSubmitting(false)
@@ -295,6 +296,8 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
     setSubmitting(true)
     setError(null)
     setInfo(null)
+
+    let createdIntentId: string | null = null
 
     try {
       const intentResponse = await fetch("/api/payments/ton/intent", {
@@ -325,6 +328,11 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
         return
       }
 
+      createdIntentId = intentPayload.intent.id
+      setActiveIntentId(intentPayload.intent.id)
+      setActiveIntentStatus(intentPayload.intent.status)
+      setInfo(mapIntentStatus(intentPayload.intent.status))
+
       const txResult = await tonConnectUI.sendTransaction(intentPayload.tonConnectRequest)
 
       const submitResponse = await fetch("/api/payments/ton/submit", {
@@ -349,7 +357,32 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
       setActiveIntentId(intentPayload.intent.id)
       setActiveIntentStatus(submitPayload.intent.status)
       setInfo("TON транзакция отправлена, ожидаем подтверждение сети")
-    } catch {
+    } catch (error) {
+      if (error instanceof UserRejectsError && createdIntentId) {
+        try {
+          const cancelResponse = await fetch("/api/payments/ton/cancel", {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              intentId: createdIntentId,
+              reason: "USER_REJECTED",
+            }),
+          })
+
+          const cancelPayload = (await cancelResponse.json().catch(() => ({}))) as IntentResponse
+          if (cancelResponse.ok && cancelPayload.ok === true && cancelPayload.intent) {
+            setActiveIntentStatus(cancelPayload.intent.status)
+            setInfo(mapIntentStatus(cancelPayload.intent.status, cancelPayload.intent.failureReason))
+            return
+          }
+        } catch {
+          // fall through to generic error state
+        }
+      }
       setError("Не удалось отправить TON транзакцию")
     } finally {
       setSubmitting(false)

@@ -4,9 +4,14 @@ import { normalizeAddress, toBigIntValue } from "@/lib/payments/utils"
 
 type TonApiMessage = {
   source?: { address?: string | null } | null
+  destination?: { address?: string | null } | null
   value?: unknown
   hash?: string | null
   raw_body?: string | null
+  bounce?: unknown
+  bounced?: unknown
+  decoded_op_name?: string | null
+  decoded_body?: { text?: unknown; payload?: unknown } | null
 }
 
 type TonApiTransaction = {
@@ -14,7 +19,10 @@ type TonApiTransaction = {
   lt?: unknown
   utime?: unknown
   success?: unknown
+  aborted?: unknown
+  bounce_phase?: unknown
   in_msg?: TonApiMessage | null
+  out_msgs?: TonApiMessage[] | null
 }
 
 type TonApiTransactionsResponse = {
@@ -142,6 +150,15 @@ export function decodeTonMessageComment(rawBody: string | null | undefined) {
   }
 }
 
+function decodeTonMessageCommentFromMessage(message: TonApiMessage | null | undefined) {
+  const decodedText = message?.decoded_body?.text
+  if (message?.decoded_op_name === "text_comment" && typeof decodedText === "string") {
+    return decodedText
+  }
+
+  return decodeTonMessageComment(message?.raw_body)
+}
+
 function addressesEqual(left: string, right: string) {
   if (normalizeAddress(left) === normalizeAddress(right)) return true
 
@@ -168,9 +185,6 @@ export async function findMatchingTonTransaction(params: {
     if (!sourceAddress) continue
     if (!addressesEqual(sourceAddress, params.senderAddress)) continue
 
-    const success = tx.success === true
-    if (!success) continue
-
     const value = toBigIntValue(inMessage?.value)
     if (value === null || value < params.minAmountNano) continue
 
@@ -179,7 +193,7 @@ export async function findMatchingTonTransaction(params: {
       continue
     }
 
-    const comment = decodeTonMessageComment(inMessage?.raw_body)
+    const comment = decodeTonMessageCommentFromMessage(inMessage)
     if (params.expectedComment && comment !== params.expectedComment) {
       continue
     }
@@ -193,7 +207,41 @@ export async function findMatchingTonTransaction(params: {
     const txHash = (tx.hash ?? inMessage?.hash ?? "").trim()
     if (!txHash) continue
 
+    const success = tx.success === true
+    const bouncedOutMessage =
+      Array.isArray(tx.out_msgs)
+        ? tx.out_msgs.find((message) => {
+            const destination = message?.destination?.address
+            if (!destination || !addressesEqual(destination, params.senderAddress)) {
+              return false
+            }
+
+            return (
+              message?.bounced === true ||
+              message?.decoded_op_name === "bounce"
+            )
+          }) ?? null
+        : null
+
+    if (!success) {
+      const failedBecauseBounce =
+        inMessage?.bounce === true ||
+        bouncedOutMessage !== null ||
+        typeof tx.bounce_phase === "string"
+
+      return {
+        status: "failed" as const,
+        failureReason: failedBecauseBounce ? "TON transfer bounced back to sender" : "TON transfer failed on-chain",
+        txHash,
+        lt: toBigIntValue(tx.lt)?.toString() ?? null,
+        utime: Number.isFinite(utime) ? utime : null,
+        amountNano: value.toString(),
+        comment,
+      }
+    }
+
     return {
+      status: "confirmed" as const,
       txHash,
       lt: toBigIntValue(tx.lt)?.toString() ?? null,
       utime: Number.isFinite(utime) ? utime : null,

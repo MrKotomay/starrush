@@ -15,6 +15,7 @@ const LOCK_KEY = "round-worker-lock"
 const WAITING_PHASE_MS = Number(process.env.ROUND_WAITING_MS ?? 5000)
 const COOLDOWN_PHASE_MS = Number(process.env.ROUND_COOLDOWN_MS ?? 3000)
 const TICK_RATE_MS = Number(process.env.ROUND_TICK_MS ?? 100)
+const MULTIPLIER_BROADCAST_MS = Number(process.env.ROUND_MULTIPLIER_BROADCAST_MS ?? Math.max(TICK_RATE_MS * 2, 200))
 const DEBUG_ROUND_LOOP = process.env.DEBUG_ROUND_LOOP === "1"
 const WORKER_HEALTH_PORT = Number(process.env.WORKER_HEALTH_PORT ?? 8082)
 const WORKER_HEALTH_MAX_STALE_MS = Number(process.env.WORKER_HEALTH_MAX_STALE_MS ?? Math.max(TICK_RATE_MS * 20, 10_000))
@@ -28,6 +29,9 @@ const workerState = {
   fatal: false,
   fatalMessage: null as string | null,
 }
+
+let lastMultiplierBroadcastAt = 0
+let lastMultiplierBroadcastRoundId: string | null = null
 
 const CRASHED_AT_KEY = (roundId: string) => `game:round:${roundId}:crashed_at`
 const LOSSES_SETTLED_KEY = (roundId: string) => `game:round:${roundId}:losses_settled`
@@ -192,11 +196,19 @@ async function tickRound() {
     const serverTs = Date.now()
 
     await redis.set(REDIS_KEYS.multiplier(round.id), multiplier.toFixed(4))
-    await emitGameEvent(round.id, RoundEventType.MULTIPLIER_UPDATE, {
-      roundId: round.id,
-      multiplier: Number(multiplier.toFixed(4)),
-      serverTs,
-    })
+    const shouldBroadcastMultiplier =
+      lastMultiplierBroadcastRoundId !== round.id ||
+      serverTs - lastMultiplierBroadcastAt >= MULTIPLIER_BROADCAST_MS
+
+    if (shouldBroadcastMultiplier) {
+      await emitGameEvent(round.id, RoundEventType.MULTIPLIER_UPDATE, {
+        roundId: round.id,
+        multiplier: Number(multiplier.toFixed(4)),
+        serverTs,
+      })
+      lastMultiplierBroadcastAt = serverTs
+      lastMultiplierBroadcastRoundId = round.id
+    }
 
     const crashPointRaw =
       (await redis.get(REDIS_KEYS.crashPoint(round.id))) || round.crashMultiplier?.toString()

@@ -80,6 +80,28 @@ export async function reconcileTonIntent(intentId: string): Promise<TonIntentRec
     return { intentId, status: DepositStatus.CONFIRMING, completed: false, reason: "TX_NOT_FOUND_YET" }
   }
 
+  if (matched.status === "failed") {
+    const failed = await db.depositIntent.update({
+      where: { id: intent.id },
+      data: {
+        status: DepositStatus.FAILED,
+        failureReason: matched.failureReason,
+        metadata: {
+          ...(intent.metadata && typeof intent.metadata === "object" ? (intent.metadata as Record<string, unknown>) : {}),
+          failedTxHash: matched.txHash,
+          failedAt: new Date().toISOString(),
+        },
+      },
+    })
+
+    return {
+      intentId,
+      status: failed.status,
+      completed: false,
+      reason: "TX_FAILED_ONCHAIN",
+    }
+  }
+
   const normalizedHash = matched.txHash.trim().toLowerCase()
 
   const completed = await completeDepositIntent({
