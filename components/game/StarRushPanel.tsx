@@ -1215,10 +1215,7 @@ export function StarRushPanel({
                 exit={{ opacity: 0, y: 6, scale: 0.98 }}
                 transition={{ duration: 0.18, ease: HISTORY_POPOVER_EASE }}
               >
-                <div className={styles.settingsRow}>
-                  <div className={styles.settingsMeta}>
-                    <span className={styles.settingsLabel}>{t("rush.settings.haptics")}</span>
-                  </div>
+                <div className={styles.settingsIconStack}>
                   <button
                     type="button"
                     className={styles.settingsIconBtn}
@@ -1239,32 +1236,29 @@ export function StarRushPanel({
                       </motion.span>
                     </AnimatePresence>
                   </button>
-                </div>
 
-                <div className={styles.settingsRow}>
-                  <div className={styles.settingsMeta}>
-                    <span className={styles.settingsLabel}>{t("rush.settings.language")}</span>
-                  </div>
-                  <div className={styles.settingsLangGroup}>
-                    <button
-                      type="button"
-                      className={`${styles.settingsLangBtn} ${locale === "ru" ? styles.settingsLangBtnActive : ""}`}
-                      aria-label={t("rush.settings.russian")}
-                      onClick={() => setLocale("ru")}
-                    >
-                      <span aria-hidden="true" className={`${styles.flagBadge} ${styles.flagRu}`} />
-                      <span>RU</span>
-                    </button>
-                    <button
-                      type="button"
-                      className={`${styles.settingsLangBtn} ${locale === "en" ? styles.settingsLangBtnActive : ""}`}
-                      aria-label={t("rush.settings.english")}
-                      onClick={() => setLocale("en")}
-                    >
-                      <span aria-hidden="true" className={`${styles.flagBadge} ${styles.flagUs}`} />
-                      <span>EN</span>
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    className={styles.settingsIconBtn}
+                    aria-label={`${t("rush.settings.language")}: ${locale === "ru" ? "RU" : "EN"}`}
+                    onClick={() => setLocale(locale === "ru" ? "en" : "ru")}
+                  >
+                    <AnimatePresence mode="wait" initial={false}>
+                      <motion.span
+                        key={locale === "ru" ? "lang-ru" : "lang-en"}
+                        className={styles.settingsIconGlyph}
+                        initial={{ opacity: 0, scale: 0.82, y: 4 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.82, y: -4 }}
+                        transition={{ duration: 0.16, ease: HISTORY_POPOVER_EASE }}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className={`${styles.flagBadge} ${locale === "ru" ? styles.flagRu : styles.flagUs}`}
+                        />
+                      </motion.span>
+                    </AnimatePresence>
+                  </button>
                 </div>
               </motion.div>
             ) : null}
