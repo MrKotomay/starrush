@@ -1,12 +1,25 @@
-export default function RushPage() {
+"use client"
+
+import { AppSettingsProvider } from "@/lib/app-settings"
+import { useI18n } from "@/lib/i18n"
+
+function RushPageContent() {
+  const { t } = useI18n()
+
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-6">
-      <div className="max-w-md w-full rounded-2xl border border-border bg-card/70 backdrop-blur-sm p-8 text-center">
-        <h1 className="text-2xl font-bold text-foreground mb-3">Раш</h1>
-        <p className="text-muted-foreground text-sm">
-          Phaser game integration coming soon...
-        </p>
+    <div className="flex min-h-screen items-center justify-center bg-background px-6">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-card/70 p-8 text-center backdrop-blur-sm">
+        <h1 className="mb-3 text-2xl font-bold text-foreground">{t("common.rush")}</h1>
+        <p className="text-sm text-muted-foreground">Phaser game integration coming soon...</p>
       </div>
     </div>
+  )
+}
+
+export default function RushPage() {
+  return (
+    <AppSettingsProvider>
+      <RushPageContent />
+    </AppSettingsProvider>
   )
 }

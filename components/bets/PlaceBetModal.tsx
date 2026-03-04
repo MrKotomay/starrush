@@ -1,108 +1,93 @@
-"use client";
+"use client"
 
 import {
-  useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
-  useRef,
   useState,
   type CSSProperties,
-} from "react";
-import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
-import { Gift, Sparkles, Wallet, X } from "lucide-react";
-import styles from "@/styles/place-bet-modal.module.css";
-import { RoundPhase } from "@/game/types";
-import { PrimaryButton } from "@/components/ui/primary-button";
-import { GlassSegmentedControl, type GlassSegmentedItem } from "@/components/ui/glass-segmented-control";
+} from "react"
+import { createPortal } from "react-dom"
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
+import { Gift, Sparkles, Wallet, X } from "lucide-react"
 
-export type PlaceBetTab = "GIFTS" | "TON" | "STARS";
+import { GlassSegmentedControl, type GlassSegmentedItem } from "@/components/ui/glass-segmented-control"
+import { PrimaryButton } from "@/components/ui/primary-button"
+import { RoundPhase } from "@/game/types"
+import { useI18n } from "@/lib/i18n"
+import { useAdaptiveOverlayMotion } from "@/lib/use-adaptive-overlay-motion"
+import styles from "@/styles/place-bet-modal.module.css"
+
+export type PlaceBetTab = "GIFTS" | "TON" | "STARS"
 
 export interface PlaceBetSubmitPayload {
-  tab: PlaceBetTab;
-  amount: number;
+  tab: PlaceBetTab
+  amount: number
 }
 
 interface PlaceBetModalProps {
-  open: boolean;
-  defaultTonAmount: number;
-  currentPhase: RoundPhase;
-  tonAvailable: number;
-  starsAvailable: number;
-  anchorRect: { left: number; width: number } | null;
-  isSubmitting?: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: (payload: PlaceBetSubmitPayload) => void | Promise<void>;
+  open: boolean
+  defaultTonAmount: number
+  currentPhase: RoundPhase
+  tonAvailable: number
+  starsAvailable: number
+  anchorRect: { left: number; width: number } | null
+  isSubmitting?: boolean
+  onOpenChange: (open: boolean) => void
+  onSubmit: (payload: PlaceBetSubmitPayload) => void | Promise<void>
 }
 
-const TON_QUICK = [0.1, 0.5, 1, 5];
-const STARS_QUICK = [1, 5, 10, 25];
-const TAB_ITEMS: Array<GlassSegmentedItem<PlaceBetTab>> = [
-  { id: "GIFTS", label: "Подарки", icon: Gift },
-  { id: "TON", label: "TON", icon: Wallet },
-  { id: "STARS", label: "Stars", icon: Sparkles },
-];
-const SHEET_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
-const TOP_SAFE_MARGIN = 16;
-const BOTTOM_SAFE_MARGIN = 12;
-const supportsResizeObserver = typeof window !== "undefined" && typeof window.ResizeObserver === "function";
-
-const INITIAL_TAB_HEIGHTS: Record<PlaceBetTab, number> = {
-  GIFTS: 0,
-  TON: 0,
-  STARS: 0,
-};
+const TON_QUICK = [0.1, 0.5, 1, 5]
+const STARS_QUICK = [1, 5, 10, 25]
+const SHEET_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
 
 function parseTon(value: string): number {
-  if (!value.trim()) return 0;
-  const parsed = Number.parseFloat(value.replace(",", "."));
-  if (!Number.isFinite(parsed) || parsed <= 0) return 0;
-  return parsed;
+  if (!value.trim()) return 0
+  const parsed = Number.parseFloat(value.replace(",", "."))
+  if (!Number.isFinite(parsed) || parsed <= 0) return 0
+  return parsed
 }
 
 function formatTon(value: number): string {
-  if (!Number.isFinite(value) || value <= 0) return "";
-  return value.toFixed(2).replace(/\.?0+$/, "");
+  if (!Number.isFinite(value) || value <= 0) return ""
+  return value.toFixed(2).replace(/\.?0+$/, "")
 }
 
 function sanitizeTonInput(raw: string): string {
-  const normalized = raw.replace(",", ".").replace(/[^\d.]/g, "");
-  if (!normalized) return "";
+  const normalized = raw.replace(",", ".").replace(/[^\d.]/g, "")
+  if (!normalized) return ""
 
-  const dotIndex = normalized.indexOf(".");
-  if (dotIndex === -1) return normalized;
+  const dotIndex = normalized.indexOf(".")
+  if (dotIndex === -1) return normalized
 
-  const intPart = normalized.slice(0, dotIndex);
-  const decimalsRaw = normalized.slice(dotIndex + 1).replace(/\./g, "");
-  const decimals = decimalsRaw.slice(0, 2);
-  return `${intPart}.${decimals}`;
+  const intPart = normalized.slice(0, dotIndex)
+  const decimalsRaw = normalized.slice(dotIndex + 1).replace(/\./g, "")
+  return `${intPart}.${decimalsRaw.slice(0, 2)}`
 }
 
 function isTonZeroRaw(value: string): boolean {
-  if (!value) return false;
-  if (value.endsWith(".")) return false;
-  return /^0+(?:\.0{1,2})?$/.test(value);
+  if (!value) return false
+  if (value.endsWith(".")) return false
+  return /^0+(?:\.0{1,2})?$/.test(value)
 }
 
 function parseStars(value: string): number {
-  if (!value.trim()) return 0;
-  const parsed = Number.parseInt(value.replace(/[^\d]/g, ""), 10);
-  if (!Number.isFinite(parsed) || parsed <= 0) return 0;
-  return parsed;
+  if (!value.trim()) return 0
+  const parsed = Number.parseInt(value.replace(/[^\d]/g, ""), 10)
+  if (!Number.isFinite(parsed) || parsed <= 0) return 0
+  return parsed
 }
 
 function sanitizeStarsInput(raw: string): string {
-  const digits = raw.replace(/[^\d]/g, "");
-  if (!digits) return "";
-  const parsed = Number.parseInt(digits, 10);
-  if (!Number.isFinite(parsed) || parsed <= 0) return "";
-  return String(parsed);
+  const digits = raw.replace(/[^\d]/g, "")
+  if (!digits) return ""
+  const parsed = Number.parseInt(digits, 10)
+  if (!Number.isFinite(parsed) || parsed <= 0) return ""
+  return String(parsed)
 }
 
 export function PlaceBetModal({
   open,
-  defaultTonAmount: _defaultTonAmount,
+  defaultTonAmount,
   currentPhase,
   tonAvailable,
   starsAvailable,
@@ -111,361 +96,166 @@ export function PlaceBetModal({
   onOpenChange,
   onSubmit,
 }: PlaceBetModalProps) {
-  const [mounted, setMounted] = useState(false);
-  const [tab, setTab] = useState<PlaceBetTab>("TON");
-  const [tonAmountRaw, setTonAmountRaw] = useState("");
-  const [starsAmountRaw, setStarsAmountRaw] = useState("");
-  const [tabHeights, setTabHeights] =
-    useState<Record<PlaceBetTab, number>>(INITIAL_TAB_HEIGHTS);
-  const [maxSheetHeightPx, setMaxSheetHeightPx] = useState<number | null>(null);
-  const [clampedContentHeightPx, setClampedContentHeightPx] = useState<number | null>(null);
-  const sheetRef = useRef<HTMLDivElement | null>(null);
-  const topSectionRef = useRef<HTMLDivElement | null>(null);
-  const footerRef = useRef<HTMLDivElement | null>(null);
-  const measureGiftsRef = useRef<HTMLDivElement | null>(null);
-  const measureTonRef = useRef<HTMLDivElement | null>(null);
-  const measureStarsRef = useRef<HTMLDivElement | null>(null);
-  const safeInsetsRef = useRef({ top: 0, bottom: 0 });
-  const recalcLayoutRafRef = useRef<number | null>(null);
+  const { t } = useI18n()
+  const shouldReduceMotion = useReducedMotion()
+  const adaptiveOverlayMotion = useAdaptiveOverlayMotion()
+  const [mounted, setMounted] = useState(false)
+  const [tab, setTab] = useState<PlaceBetTab>("TON")
+  const [tonAmountRaw, setTonAmountRaw] = useState("")
+  const [starsAmountRaw, setStarsAmountRaw] = useState("")
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
-    if (!open) return;
-    setTab("TON");
-    setTonAmountRaw("");
-    setStarsAmountRaw("");
-  }, [open]);
+    if (!open) return
+    setTab("TON")
+    setTonAmountRaw(defaultTonAmount > 0 ? formatTon(defaultTonAmount) : "")
+    setStarsAmountRaw("")
+  }, [defaultTonAmount, open])
 
   useEffect(() => {
-    if (!open) return;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    if (!open) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
 
     const onEsc = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onOpenChange(false);
-    };
-    window.addEventListener("keydown", onEsc);
+      if (event.key === "Escape") onOpenChange(false)
+    }
+
+    window.addEventListener("keydown", onEsc)
 
     return () => {
-      document.body.style.overflow = prevOverflow;
-      window.removeEventListener("keydown", onEsc);
-    };
-  }, [open, onOpenChange]);
+      document.body.style.overflow = prevOverflow
+      window.removeEventListener("keydown", onEsc)
+    }
+  }, [open, onOpenChange])
 
   useEffect(() => {
-    if (!mounted) return;
-    if (open) document.body.dataset.placeBetModalOpen = "true";
-  }, [mounted, open]);
+    if (!mounted) return
+    if (open) {
+      document.body.dataset.placeBetModalOpen = "true"
+      return
+    }
+    delete document.body.dataset.placeBetModalOpen
+  }, [mounted, open])
 
   useEffect(() => {
     return () => {
-      delete document.body.dataset.placeBetModalOpen;
-    };
-  }, []);
+      delete document.body.dataset.placeBetModalOpen
+    }
+  }, [])
 
-  const tonAmountValue = useMemo(() => parseTon(tonAmountRaw), [tonAmountRaw]);
+  const tabItems: Array<GlassSegmentedItem<PlaceBetTab>> = useMemo(
+    () => [
+      { id: "GIFTS", label: t("placeBet.gifts"), icon: Gift },
+      { id: "TON", label: t("common.ton"), icon: Wallet },
+      { id: "STARS", label: t("placeBet.stars"), icon: Sparkles },
+    ],
+    [t],
+  )
 
-  const starsAmountValue = useMemo(() => parseStars(starsAmountRaw), [starsAmountRaw]);
+  const tonAmountValue = useMemo(() => parseTon(tonAmountRaw), [tonAmountRaw])
+  const starsAmountValue = useMemo(() => parseStars(starsAmountRaw), [starsAmountRaw])
+
+  const nextRoundHint =
+    currentPhase === RoundPhase.RUNNING
+      ? t("placeBet.nextRoundRunning")
+      : currentPhase === RoundPhase.CRASHED || currentPhase === RoundPhase.RESETTING
+        ? t("placeBet.nextRoundSwitching")
+        : null
 
   const canSubmit =
     tab === "GIFTS" ||
     (tab === "TON" && tonAmountRaw.trim() !== "" && tonAmountValue > 0) ||
-    (tab === "STARS" && starsAmountRaw.trim() !== "" && starsAmountValue > 0);
-  const nextRoundHint =
-    currentPhase === RoundPhase.RUNNING
-      ? "Текущий раунд уже идёт, ставка применится к следующему."
-      : currentPhase === RoundPhase.CRASHED || currentPhase === RoundPhase.RESETTING
-        ? "Раунд переключается, ставка будет применена к следующему."
-        : null;
+    (tab === "STARS" && starsAmountRaw.trim() !== "" && starsAmountValue > 0)
+
   const availableBalance =
-    tab === "TON" ? Math.max(0, tonAvailable) : tab === "STARS" ? Math.max(0, starsAvailable) : 0;
-  const selectedAmount =
-    tab === "TON" ? tonAmountValue : tab === "STARS" ? starsAmountValue : 0;
+    tab === "TON" ? Math.max(0, tonAvailable) : tab === "STARS" ? Math.max(0, starsAvailable) : 0
+  const selectedAmount = tab === "TON" ? tonAmountValue : tab === "STARS" ? starsAmountValue : 0
   const insufficientBalance =
     tab !== "GIFTS" &&
     canSubmit &&
     selectedAmount > 0 &&
     Number.isFinite(selectedAmount) &&
-    selectedAmount > availableBalance;
-  const submitDisabled = !canSubmit || isSubmitting || insufficientBalance;
-  const tonInputIsDefault = tonAmountRaw.trim() === "" || tonAmountValue <= 0;
-  const starsInputIsDefault = starsAmountRaw.trim() === "" || starsAmountValue <= 0;
+    selectedAmount > availableBalance
+
+  const submitDisabled = !canSubmit || isSubmitting || insufficientBalance
+  const tonInputIsDefault = tonAmountRaw.trim() === "" || tonAmountValue <= 0
+  const starsInputIsDefault = starsAmountRaw.trim() === "" || starsAmountValue <= 0
   const submitLabel = isSubmitting
-    ? "Отправка..."
+    ? t("placeBet.submitting")
     : insufficientBalance
-      ? "Недостаточно средств, пополните баланс"
-      : "Сделать ставку";
+      ? t("placeBet.insufficient")
+      : t("placeBet.submit")
 
   const anchorStyle = useMemo<CSSProperties | null>(() => {
-    if (!anchorRect || anchorRect.width <= 0) return null;
+    if (!anchorRect || anchorRect.width <= 0) return null
     return {
       left: `${Math.round(anchorRect.left)}px`,
       width: `${Math.round(anchorRect.width)}px`,
       maxWidth: `${Math.round(anchorRect.width)}px`,
-    };
-  }, [anchorRect]);
-
-  const sheetStyle = useMemo<CSSProperties | null>(() => {
-    if (!anchorStyle) return null;
-    if (!maxSheetHeightPx || maxSheetHeightPx <= 0) return anchorStyle;
-    return {
-      ...anchorStyle,
-      maxHeight: `${maxSheetHeightPx}px`,
-    };
-  }, [anchorStyle, maxSheetHeightPx]);
-
-  const refreshSafeInsets = useCallback(() => {
-    if (typeof document === "undefined") return;
-    const styles = getComputedStyle(document.documentElement);
-    const top = Number.parseFloat(styles.getPropertyValue("--safe-top"));
-    const bottom = Number.parseFloat(styles.getPropertyValue("--content-safe-bottom"));
-    safeInsetsRef.current = {
-      top: Number.isFinite(top) ? top : 0,
-      bottom: Number.isFinite(bottom) ? bottom : 0,
-    };
-  }, []);
-
-  const updateMeasuredHeights = useCallback(() => {
-    const nextHeights: Record<PlaceBetTab, number> = {
-      GIFTS: Math.ceil(measureGiftsRef.current?.getBoundingClientRect().height ?? 0),
-      TON: Math.ceil(measureTonRef.current?.getBoundingClientRect().height ?? 0),
-      STARS: Math.ceil(measureStarsRef.current?.getBoundingClientRect().height ?? 0),
-    };
-
-    setTabHeights((prev) => {
-      if (
-        prev.GIFTS === nextHeights.GIFTS &&
-        prev.TON === nextHeights.TON &&
-        prev.STARS === nextHeights.STARS
-      ) {
-        return prev;
-      }
-      return nextHeights;
-    });
-  }, []);
-
-  const maxMeasuredTabHeight = useMemo(() => {
-    return Math.max(tabHeights.GIFTS, tabHeights.TON, tabHeights.STARS);
-  }, [tabHeights.GIFTS, tabHeights.TON, tabHeights.STARS]);
-
-  const recalcLayout = useCallback(() => {
-    if (!open) return;
-    const viewportHeight = Math.floor(window.visualViewport?.height ?? window.innerHeight);
-    const { top: safeTop, bottom: safeBottom } = safeInsetsRef.current;
-
-    const nextMaxSheetHeight = Math.max(
-      260,
-      Math.floor(
-        viewportHeight - TOP_SAFE_MARGIN - safeTop - BOTTOM_SAFE_MARGIN - safeBottom,
-      ),
-    );
-    setMaxSheetHeightPx((prev) => (prev === nextMaxSheetHeight ? prev : nextMaxSheetHeight));
-
-    const sheetEl = sheetRef.current;
-    const topSectionEl = topSectionRef.current;
-    const footerEl = footerRef.current;
-    if (!sheetEl || !topSectionEl || !footerEl) return;
-
-    const sheetStyles = getComputedStyle(sheetEl);
-    const padTop = Number.parseFloat(sheetStyles.paddingTop) || 0;
-    const padBottom = Number.parseFloat(sheetStyles.paddingBottom) || 0;
-    const topHeight = topSectionEl.offsetHeight;
-    const footerHeight = footerEl.offsetHeight;
-
-    const availableContentHeight = Math.max(
-      0,
-      Math.floor(nextMaxSheetHeight - padTop - padBottom - topHeight - footerHeight),
-    );
-    const reserved = Math.max(
-      0,
-      Math.min(maxMeasuredTabHeight + 2, availableContentHeight),
-    );
-
-    setClampedContentHeightPx((prev) => (prev === reserved ? prev : reserved));
-  }, [maxMeasuredTabHeight, open]);
-
-  const scheduleRecalcLayout = useCallback(() => {
-    if (!open) return;
-    if (recalcLayoutRafRef.current !== null) return;
-    recalcLayoutRafRef.current = window.requestAnimationFrame(() => {
-      recalcLayoutRafRef.current = null;
-      recalcLayout();
-    });
-  }, [open, recalcLayout]);
-
-  useLayoutEffect(() => {
-    if (!open) return;
-    updateMeasuredHeights();
-    refreshSafeInsets();
-    scheduleRecalcLayout();
-  }, [open, anchorStyle?.width, refreshSafeInsets, scheduleRecalcLayout, updateMeasuredHeights]);
-
-  useEffect(() => {
-    if (!open) return;
-
-    updateMeasuredHeights();
-    if (!supportsResizeObserver) return;
-
-    const pairs: Array<[PlaceBetTab, HTMLDivElement | null]> = [
-      ["GIFTS", measureGiftsRef.current],
-      ["TON", measureTonRef.current],
-      ["STARS", measureStarsRef.current],
-    ];
-    const observers: ResizeObserver[] = [];
-
-    pairs.forEach(([tabKey, node]) => {
-      if (!node) return;
-      const observer = new ResizeObserver((entries) => {
-        const entry = entries[0];
-        if (!entry) return;
-        const nextHeight = Math.ceil(entry.contentRect.height);
-        setTabHeights((prev) => {
-          if (prev[tabKey] === nextHeight) return prev;
-          return { ...prev, [tabKey]: nextHeight };
-        });
-      });
-      observer.observe(node);
-      observers.push(observer);
-    });
-
-    return () => {
-      observers.forEach((observer) => observer.disconnect());
-    };
-  }, [open, anchorStyle?.width, updateMeasuredHeights]);
-
-  useLayoutEffect(() => {
-    if (!open) return;
-    scheduleRecalcLayout();
-  }, [open, anchorStyle?.width, maxMeasuredTabHeight, scheduleRecalcLayout]);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const onWindowResize = () => {
-      refreshSafeInsets();
-      scheduleRecalcLayout();
-    };
-    window.addEventListener("resize", onWindowResize, { passive: true });
-    window.visualViewport?.addEventListener("resize", onWindowResize);
-
-    const observers: ResizeObserver[] = [];
-    if (supportsResizeObserver) {
-      const refs = [sheetRef.current, topSectionRef.current, footerRef.current];
-      refs.forEach((el) => {
-        if (!el) return;
-        const observer = new ResizeObserver(() => scheduleRecalcLayout());
-        observer.observe(el);
-        observers.push(observer);
-      });
     }
+  }, [anchorRect])
 
-    return () => {
-      window.removeEventListener("resize", onWindowResize);
-      window.visualViewport?.removeEventListener("resize", onWindowResize);
-      observers.forEach((observer) => observer.disconnect());
-    };
-  }, [open, refreshSafeInsets, scheduleRecalcLayout]);
-
-  useEffect(() => {
-    return () => {
-      if (recalcLayoutRafRef.current === null) return;
-      cancelAnimationFrame(recalcLayoutRafRef.current);
-      recalcLayoutRafRef.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (open) return;
-    if (recalcLayoutRafRef.current === null) return;
-    cancelAnimationFrame(recalcLayoutRafRef.current);
-    recalcLayoutRafRef.current = null;
-  }, [open]);
-
-  const contentViewportStyle = useMemo<CSSProperties | undefined>(() => {
-    const fallback = tabHeights[tab] > 0 ? tabHeights[tab] : 160;
-    const height = clampedContentHeightPx && clampedContentHeightPx > 0
-      ? clampedContentHeightPx
-      : fallback;
-    return { height: `${height}px` };
-  }, [clampedContentHeightPx, tab, tabHeights]);
-
-  const renderTabContent = (targetTab: PlaceBetTab, mode: "live" | "measure") => {
-    const isMeasure = mode === "measure";
+  const renderTabContent = (targetTab: PlaceBetTab) => {
     if (targetTab === "GIFTS") {
       return (
         <div className={`${styles.contentInner} ${styles.contentInnerCentered}`}>
           <div className={styles.emptyWrap}>
             <X size={44} strokeWidth={2.5} className={styles.emptyIcon} />
-            <p className={`${styles.emptyText} ${styles.mutedText}`}>Инвентарь пуст</p>
+            <p className={`${styles.emptyText} ${styles.mutedText}`}>{t("placeBet.emptyInventory")}</p>
           </div>
         </div>
-      );
+      )
     }
 
-    const isTonTab = targetTab === "TON";
-    const quickValues = isTonTab ? TON_QUICK : STARS_QUICK;
+    const isTonTab = targetTab === "TON"
+    const quickValues = isTonTab ? TON_QUICK : STARS_QUICK
     const balanceLabel = isTonTab
       ? `${Math.max(0, tonAvailable).toFixed(2)} TON`
-      : `${Math.floor(Math.max(0, starsAvailable))} Stars`;
-    const normalizedValue = isTonTab
-      ? (tonInputIsDefault ? "0.00" : formatTon(tonAmountValue))
-      : (starsInputIsDefault ? "0" : String(starsAmountValue));
+      : `${Math.floor(Math.max(0, starsAvailable))} ${t("common.stars")}`
 
     return (
       <div className={styles.contentInner}>
         <div className={styles.amountCard}>
           <div className={styles.amountHeader}>
-            <span className={`${styles.amountLabel} ${styles.mutedText}`}>Сумма ставки</span>
+            <span className={`${styles.amountLabel} ${styles.mutedText}`}>{t("placeBet.amount")}</span>
             <span className={`${styles.balanceLabel} ${styles.mutedText}`}>
-              Баланс: {balanceLabel}
+              {t("placeBet.balance", { balance: balanceLabel })}
             </span>
           </div>
 
           <div className={styles.inputRow}>
-            {isMeasure ? (
-              <div
-                className={`${styles.amountInputMock} ${
-                  (isTonTab ? tonInputIsDefault : starsInputIsDefault)
-                    ? styles.amountInputMuted
-                    : ""
-                }`}
-              >
-                {normalizedValue || (isTonTab ? "0.00" : "0")}
-              </div>
-            ) : (
-              <input
-                className={`${styles.amountInput} ${
-                  (isTonTab ? tonInputIsDefault : starsInputIsDefault)
-                    ? styles.amountInputMuted
-                    : ""
-                }`}
-                type="text"
-                disabled={isSubmitting}
-                inputMode={isTonTab ? "decimal" : "numeric"}
-                value={isTonTab ? tonAmountRaw : starsAmountRaw}
-                onChange={(event) => {
-                  if (isTonTab) {
-                    const nextRaw = sanitizeTonInput(event.target.value);
-                    setTonAmountRaw(isTonZeroRaw(nextRaw) ? "" : nextRaw);
-                  }
-                  else setStarsAmountRaw(sanitizeStarsInput(event.target.value));
-                }}
-                onBlur={() => {
-                  if (isTonTab) {
-                    const parsed = parseTon(tonAmountRaw);
-                    setTonAmountRaw(parsed > 0 ? formatTon(parsed) : "");
-                  } else {
-                    setStarsAmountRaw((prev) => sanitizeStarsInput(prev));
-                  }
-                }}
-                placeholder={isTonTab ? "0.00" : "0"}
-              />
-            )}
+            <input
+              className={`${styles.amountInput} ${
+                (isTonTab ? tonInputIsDefault : starsInputIsDefault) ? styles.amountInputMuted : ""
+              }`}
+              type="text"
+              disabled={isSubmitting}
+              inputMode={isTonTab ? "decimal" : "numeric"}
+              value={isTonTab ? tonAmountRaw : starsAmountRaw}
+              onChange={(event) => {
+                if (isTonTab) {
+                  const nextRaw = sanitizeTonInput(event.target.value)
+                  setTonAmountRaw(isTonZeroRaw(nextRaw) ? "" : nextRaw)
+                  return
+                }
+                setStarsAmountRaw(sanitizeStarsInput(event.target.value))
+              }}
+              onBlur={() => {
+                if (isTonTab) {
+                  const parsed = parseTon(tonAmountRaw)
+                  setTonAmountRaw(parsed > 0 ? formatTon(parsed) : "")
+                } else {
+                  setStarsAmountRaw((prev) => sanitizeStarsInput(prev))
+                }
+              }}
+              placeholder={isTonTab ? "0.00" : "0"}
+            />
             <span className={`${styles.inputSuffix} ${styles.mutedText}`}>
-              {isTonTab ? "TON" : "Stars"}
+              {isTonTab ? t("common.ton") : t("common.stars")}
             </span>
           </div>
         </div>
@@ -474,40 +264,38 @@ export function PlaceBetModal({
           {quickValues.map((value) => {
             const isActiveQuick = isTonTab
               ? tonAmountRaw.trim() !== "" && Math.abs(tonAmountValue - value) < 0.0001
-              : starsAmountRaw.trim() !== "" && starsAmountValue === value;
+              : starsAmountRaw.trim() !== "" && starsAmountValue === value
 
             return (
               <button
                 key={`${targetTab}-${value}`}
                 type="button"
                 className={`${styles.quickButton} ${isActiveQuick ? styles.quickButtonActive : ""}`}
-                disabled={isMeasure || isSubmitting}
-                tabIndex={isMeasure || isSubmitting ? -1 : undefined}
+                disabled={isSubmitting}
                 aria-pressed={isActiveQuick}
-                onClick={
-                  isMeasure || isSubmitting
-                    ? undefined
-                    : () => {
-                        if (isTonTab) setTonAmountRaw(value > 0 ? String(value) : "");
-                        else setStarsAmountRaw(value > 0 ? String(value) : "");
-                      }
-                }
+                onClick={() => {
+                  if (isTonTab) {
+                    setTonAmountRaw(value > 0 ? String(value) : "")
+                    return
+                  }
+                  setStarsAmountRaw(value > 0 ? String(value) : "")
+                }}
               >
                 <span className={styles.quickButtonText}>{value}</span>
               </button>
-            );
+            )
           })}
         </div>
       </div>
-    );
-  };
+    )
+  }
 
-  if (!mounted || !sheetStyle || !anchorStyle) return null;
+  if (!mounted || !anchorStyle) return null
 
   return createPortal(
     <AnimatePresence
       onExitComplete={() => {
-        delete document.body.dataset.placeBetModalOpen;
+        delete document.body.dataset.placeBetModalOpen
       }}
     >
       {open ? (
@@ -518,28 +306,27 @@ export function PlaceBetModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.22, ease: SHEET_EASE }}
+          transition={{ duration: adaptiveOverlayMotion ? 0.14 : 0.22, ease: SHEET_EASE }}
         >
           <motion.div
             className={styles.sheet}
-            style={sheetStyle}
-            ref={sheetRef}
+            style={anchorStyle}
             role="dialog"
             aria-modal="true"
-            aria-label="Сделать ставку"
+            aria-label={t("placeBet.title")}
             onClick={(event) => event.stopPropagation()}
-            initial={{ y: 28, opacity: 0 }}
+            initial={shouldReduceMotion ? { opacity: 0 } : { y: 24, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 20, opacity: 0 }}
-            transition={{ duration: 0.24, ease: SHEET_EASE }}
+            exit={shouldReduceMotion ? { opacity: 0 } : { y: 16, opacity: 0 }}
+            transition={{ duration: adaptiveOverlayMotion ? 0.16 : 0.24, ease: SHEET_EASE }}
           >
-            <div ref={topSectionRef} className={styles.topSection}>
+            <div className={styles.topSection}>
               <div className={styles.header}>
-                <h3 className={styles.title}>Сделать ставку</h3>
+                <h3 className={styles.title}>{t("placeBet.title")}</h3>
                 <button
                   type="button"
                   className={styles.closeButton}
-                  aria-label="Закрыть"
+                  aria-label={t("placeBet.close")}
                   onClick={() => onOpenChange(false)}
                 >
                   <X size={19} strokeWidth={2} />
@@ -547,45 +334,43 @@ export function PlaceBetModal({
               </div>
 
               <GlassSegmentedControl
-                items={TAB_ITEMS}
+                items={tabItems}
                 value={tab}
                 onChange={(next) => setTab(next)}
-                ariaLabel="Валюта ставки"
+                ariaLabel={t("placeBet.currencyAria")}
                 className={styles.tabs}
                 layoutId="place-bet-tab-indicator"
+                motionMode={adaptiveOverlayMotion ? "static" : "default"}
                 disabled={isSubmitting}
               />
-              {nextRoundHint ? (
-                <p className={styles.modeHint}>{nextRoundHint}</p>
-              ) : null}
+
+              {nextRoundHint ? <p className={styles.modeHint}>{nextRoundHint}</p> : null}
             </div>
 
-            <div className={styles.contentViewport} style={contentViewportStyle}>
-              <AnimatePresence mode="sync" initial={false}>
-                <motion.div
-                  key={tab}
-                  className={styles.contentPane}
-                  initial={{ y: 10, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -10, opacity: 0 }}
-                  transition={{ duration: 0.18, ease: SHEET_EASE }}
-                >
-                  {renderTabContent(tab, "live")}
-                </motion.div>
-              </AnimatePresence>
-            </div>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={tab}
+                className={styles.contentViewport}
+                initial={adaptiveOverlayMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={adaptiveOverlayMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
+                transition={{ duration: adaptiveOverlayMotion ? 0.12 : 0.18, ease: SHEET_EASE }}
+              >
+                {renderTabContent(tab)}
+              </motion.div>
+            </AnimatePresence>
 
-            <div ref={footerRef} className={styles.footer}>
+            <div className={styles.footer}>
               <PrimaryButton
                 type="button"
                 className={`${styles.submitButton} ${isSubmitting ? styles.submitButtonLoading : ""}`}
                 disabled={submitDisabled}
                 aria-busy={isSubmitting}
+                motion={adaptiveOverlayMotion ? "none" : "subtle"}
                 onClick={async () => {
-                  if (submitDisabled) return;
-                  const amount =
-                    tab === "TON" ? tonAmountValue : tab === "STARS" ? starsAmountValue : 0;
-                  await Promise.resolve(onSubmit({ tab, amount }));
+                  if (submitDisabled) return
+                  const amount = tab === "TON" ? tonAmountValue : tab === "STARS" ? starsAmountValue : 0
+                  await Promise.resolve(onSubmit({ tab, amount }))
                 }}
               >
                 <span className={styles.submitButtonContent}>
@@ -597,22 +382,9 @@ export function PlaceBetModal({
               </PrimaryButton>
             </div>
           </motion.div>
-
-          <div className={styles.measureHost} style={anchorStyle} aria-hidden="true">
-            <div ref={measureGiftsRef} className={styles.measurePane}>
-              {renderTabContent("GIFTS", "measure")}
-            </div>
-            <div ref={measureTonRef} className={styles.measurePane}>
-              {renderTabContent("TON", "measure")}
-            </div>
-            <div ref={measureStarsRef} className={styles.measurePane}>
-              {renderTabContent("STARS", "measure")}
-            </div>
-          </div>
         </motion.div>
       ) : null}
     </AnimatePresence>,
     document.body,
-  );
+  )
 }
-

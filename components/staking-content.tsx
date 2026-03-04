@@ -5,6 +5,7 @@ import Image from "next/image"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { Trophy, Vault } from "lucide-react"
 
+import { useI18n } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 import { GlassCard } from "@/components/ui/glass-card"
 import { PrimaryButton } from "@/components/ui/primary-button"
@@ -47,10 +48,10 @@ type LeaderboardApiResponse = {
   }
 }
 
-const SORT_OPTIONS: Array<{ id: LeaderboardSort; label: string }> = [
-  { id: "gifts", label: "Подарки" },
-  { id: "ton", label: "TON" },
-  { id: "stars", label: "Stars" },
+const SORT_OPTIONS: Array<{ id: LeaderboardSort; labelKey: string }> = [
+  { id: "gifts", labelKey: "staking.gifts" },
+  { id: "ton", labelKey: "common.ton" },
+  { id: "stars", labelKey: "common.stars" },
 ]
 
 type StakingContentProps = {
@@ -69,21 +70,28 @@ function rankColor(rank: number) {
   return "text-text-tertiary"
 }
 
-function metricHeader(sortBy: LeaderboardSort) {
-  if (sortBy === "ton") return "TON"
-  if (sortBy === "stars") return "Stars"
-  return "Подарки"
+function metricHeader(
+  sortBy: LeaderboardSort,
+  t: (key: string, vars?: Record<string, string | number>) => string,
+) {
+  if (sortBy === "ton") return t("common.ton")
+  if (sortBy === "stars") return t("common.stars")
+  return t("staking.gifts")
 }
 
-function metricValue(entry: LeaderboardEntry, sortBy: LeaderboardSort) {
+function metricValue(
+  entry: LeaderboardEntry,
+  sortBy: LeaderboardSort,
+  locale: string,
+) {
   if (sortBy === "gifts") {
-    return new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 }).format(entry.gifts)
+    return new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(entry.gifts)
   }
 
   const source = sortBy === "ton" ? entry.tonBalance : entry.starsBalance
   const parsed = Number.parseFloat(source)
   const safe = Number.isFinite(parsed) ? Math.max(0, parsed) : 0
-  return new Intl.NumberFormat("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(safe)
+  return new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(safe)
 }
 
 function AvatarCell({ entry, isTop }: { entry: LeaderboardEntry; isTop: boolean }) {
@@ -115,6 +123,7 @@ function AvatarCell({ entry, isTop }: { entry: LeaderboardEntry; isTop: boolean 
 }
 
 export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
+  const { t, intlLocale } = useI18n()
   const stakingAmountLabel = formatTonAmount(stakeAmountTon)
   const [sortBy, setSortBy] = useState<LeaderboardSort>("gifts")
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
@@ -128,16 +137,19 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
   const sectionAnimate = { opacity: 1, y: 0 }
 
   const activeSortLabel = useMemo(
-    () => SORT_OPTIONS.find((option) => option.id === sortBy)?.label ?? "Подарки",
-    [sortBy],
+    () => {
+      const key = SORT_OPTIONS.find((option) => option.id === sortBy)?.labelKey ?? "staking.gifts"
+      return t(key)
+    },
+    [sortBy, t],
   )
   const sortItems = useMemo(
     () =>
       SORT_OPTIONS.map((option) => ({
         id: option.id,
-        label: option.label,
+        label: t(option.labelKey),
       })),
-    [],
+    [t],
   )
 
   useEffect(() => {
@@ -215,14 +227,14 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
           <div className={styles.vaultContent}>
             <div className="relative z-20 flex items-center justify-between rounded-2xl border border-border/80 bg-surface-2/88 p-3 shadow-[var(--shadow-sm)]">
               <div>
-                <p className="mb-1 text-sm text-muted-foreground">Ты заработал:</p>
+                <p className="mb-1 text-sm text-muted-foreground">{t("staking.youEarned")}</p>
                 <div className="flex items-center gap-2">
                   <img src="/ton.svg" alt="TON" className="h-5 w-5 rounded-full" />
                   <span className="text-base font-semibold text-foreground">{stakingAmountLabel} TON</span>
                 </div>
               </div>
               <PrimaryButton breathing depth="raised" variant="brandSoft" className="h-10 min-w-28 rounded-xl px-5 text-sm">
-                Забрать
+                {t("staking.claim")}
               </PrimaryButton>
             </div>
           </div>
@@ -238,14 +250,14 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
         <StatCard
           icon={<Vault className="h-5 w-5 text-foreground" />}
           iconClassName="bg-gradient-to-br from-brand-1 to-brand-2"
-          label="Твой стейкинг"
+          label={t("staking.yourStaking")}
           value={`${stakingAmountLabel} TON`}
         />
         <StatCard
           icon={<Trophy className="h-5 w-5 text-foreground" />}
           iconClassName="bg-gradient-to-br from-brand-2 to-brand-1"
-          label={`Твое место (${activeSortLabel})`}
-          value={yourRank ? `${yourRank} место` : "—"}
+          label={t("staking.yourPlace", { metric: activeSortLabel })}
+          value={yourRank ? t("staking.placeValue", { rank: yourRank }) : "—"}
         />
       </motion.div>
 
@@ -256,12 +268,12 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
         transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE, delay: shouldReduceMotion ? 0 : 0.06 }}
       >
         <div className={styles.leaderboardHeader}>
-          <h2 className={styles.leaderboardTitle}>Лидерборд</h2>
+          <h2 className={styles.leaderboardTitle}>{t("staking.leaderboard")}</h2>
           <GlassSegmentedControl
             items={sortItems}
             value={sortBy}
             onChange={(next) => setSortBy(next)}
-            ariaLabel="Сортировка лидерборда"
+            ariaLabel={t("staking.sortLabel")}
             className={styles.sortSwitch}
             size="sm"
             layoutId="staking-sort-indicator"
@@ -281,21 +293,21 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
           >
             <GlassCard variant="elevated" className={cn("rounded-[var(--radius-xl)] p-2.5", styles.leaderboardCard)}>
           <div className={styles.leaderboardHeadRow}>
-            <span>Место</span>
-            <span>Игрок</span>
-            <span className="text-right">{metricHeader(sortBy)}</span>
+            <span>{t("staking.rank")}</span>
+            <span>{t("staking.player")}</span>
+            <span className="text-right">{metricHeader(sortBy, t)}</span>
           </div>
 
           {isLeaderboardLoading ? (
-            <div className={styles.leaderboardState}>Загрузка...</div>
+            <div className={styles.leaderboardState}>{t("staking.loading")}</div>
           ) : null}
 
           {!isLeaderboardLoading && leaderboardError ? (
-            <div className={styles.leaderboardState}>Лидерборд временно недоступен</div>
+            <div className={styles.leaderboardState}>{t("staking.unavailable")}</div>
           ) : null}
 
           {!isLeaderboardLoading && !leaderboardError && leaderboard.length === 0 ? (
-            <div className={styles.leaderboardState}>Пока нет игроков с балансом</div>
+            <div className={styles.leaderboardState}>{t("staking.empty")}</div>
           ) : null}
 
           {!isLeaderboardLoading && !leaderboardError && leaderboard.length > 0 ? (
@@ -333,7 +345,7 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
                       <span className={styles.playerName}>{entry.displayName}</span>
                     </div>
 
-                    <div className={styles.metricCell}>{metricValue(entry, sortBy)}</div>
+                    <div className={styles.metricCell}>{metricValue(entry, sortBy, intlLocale)}</div>
                   </motion.div>
                 )
               })}
@@ -342,7 +354,7 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
             </GlassCard>
 
             {!isLeaderboardLoading && !leaderboardError && totalPlayers > 0 ? (
-              <p className={styles.leaderboardMeta}>Игроков в рейтинге: {totalPlayers}</p>
+              <p className={styles.leaderboardMeta}>{t("staking.playersCount", { count: totalPlayers })}</p>
             ) : null}
           </motion.div>
         </AnimatePresence>

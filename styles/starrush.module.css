@@ -340,13 +340,6 @@
 }
 
 .connectionBannerTitle {
-  font-size: 0;
-  line-height: 0;
-}
-
-.connectionBannerTitle::before {
-  content: "\041D\0435\0442 \0441\043E\0435\0434\0438\043D\0435\043D\0438\044F";
-  display: block;
   color: rgba(var(--ui-rgb-text-primary), 0.96);
   font-size: 13px;
   font-weight: 800;
@@ -401,7 +394,7 @@
   position: absolute;
   left: 12px;
   right: 12px;
-  bottom: 88px;
+  bottom: calc(12px + var(--content-safe-bottom) + 76px);
   z-index: 8;
   pointer-events: none;
 }
@@ -445,6 +438,125 @@
 
 .settingsBtn:active {
   transform: translateY(calc(-50% + 1px));
+}
+
+.settingsPopover {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 10px);
+  width: min(208px, calc(100vw - 24px));
+  z-index: 9;
+  pointer-events: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: 18px;
+  border: 1px solid rgba(var(--ui-rgb-text-primary), 0.16);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 54%, rgba(14, 20, 43, 0.9) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 16px 34px rgba(4, 7, 22, 0.34);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transform-origin: bottom right;
+}
+
+.settingsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.settingsMeta {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.settingsLabel {
+  color: rgba(var(--ui-rgb-text-primary), 0.96);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.settingsToggle {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--ui-rgb-text-primary), 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast) var(--ease-out-fluid),
+    border-color var(--motion-fast) var(--ease-out-fluid);
+}
+
+.settingsToggleActive {
+  border-color: rgba(var(--ui-rgb-primary-soft), 0.54);
+  background: linear-gradient(120deg, rgba(101, 29, 203, 0.82) 0%, rgba(215, 97, 241, 0.74) 100%);
+}
+
+.settingsToggleThumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 4px 10px rgba(5, 8, 22, 0.3);
+  transition: transform var(--motion-fast) var(--ease-out-fluid);
+}
+
+.settingsToggleActive .settingsToggleThumb {
+  transform: translateX(18px);
+}
+
+.settingsLangGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.settingsLangBtn {
+  min-width: 62px;
+  min-height: 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--ui-rgb-text-primary), 0.16);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(var(--ui-rgb-text-secondary), 0.9);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color var(--motion-fast) var(--ease-out-fluid),
+    color var(--motion-fast) var(--ease-out-fluid),
+    background-color var(--motion-fast) var(--ease-out-fluid),
+    transform var(--motion-fast) var(--ease-out-fluid);
+}
+
+.settingsLangBtnActive {
+  border-color: rgba(var(--ui-rgb-primary-soft), 0.54);
+  background:
+    linear-gradient(145deg, rgba(109, 56, 224, 0.34) 0%, rgba(215, 97, 241, 0.2) 100%);
+  color: rgba(var(--ui-rgb-text-primary), 0.98);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 8px 18px rgba(77, 28, 179, 0.18);
+}
+
+.settingsLangBtn:active,
+.settingsToggle:active {
+  transform: translateY(1px);
 }
 
 /* ── history rail ───────────────────────────────────────── */

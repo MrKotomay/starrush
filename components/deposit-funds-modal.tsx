@@ -2,12 +2,14 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
-import { Gift, Sparkles, Wallet, X } from "lucide-react"
 import { UserRejectsError } from "@tonconnect/sdk"
 import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react"
+import { Gift, Sparkles, Wallet, X } from "lucide-react"
 
-import { PrimaryButton } from "@/components/ui/primary-button"
 import { GlassSegmentedControl } from "@/components/ui/glass-segmented-control"
+import { PrimaryButton } from "@/components/ui/primary-button"
+import { useI18n } from "@/lib/i18n"
+import { useAdaptiveOverlayMotion } from "@/lib/use-adaptive-overlay-motion"
 import styles from "@/styles/deposit-funds-modal.module.css"
 
 type DepositMethod = "GIFTS" | "STARS" | "TON"
@@ -38,16 +40,6 @@ type IntentResponse = {
   }
 }
 
-const METHOD_OPTIONS: Array<{
-  id: DepositMethod
-  label: string
-  icon: React.ComponentType<{ className?: string }>
-}> = [
-  { id: "GIFTS", label: "Подарки", icon: Gift },
-  { id: "TON", label: "TON", icon: Wallet },
-  { id: "STARS", label: "Stars", icon: Sparkles },
-]
-
 const STARS_PRESETS = [50, 100, 250, 500]
 const TON_PRESETS = ["0.25", "0.5", "1", "2"]
 const PENDING_STATUSES: DepositIntentStatus[] = ["CREATED", "WAITING_PAYMENT", "SUBMITTED", "CONFIRMING"]
@@ -67,39 +59,8 @@ function toPositiveTon(raw: string): string | null {
   return normalized
 }
 
-function mapDepositError(code: string | undefined) {
-  switch (code) {
-    case "RATE_LIMIT":
-      return "Слишком много запросов, попробуйте немного позже"
-    case "STARS_PAYMENTS_DISABLED":
-      return "Пополнение Stars сейчас отключено"
-    case "TON_DEPOSITS_DISABLED":
-      return "Пополнение TON сейчас отключено"
-    case "TON_DEPOSIT_ADDRESS_NOT_CONFIGURED":
-    case "TON_DEPOSIT_ADDRESS_INVALID":
-      return "TON-кошелек проекта настроен некорректно"
-    case "TON_LIMITS_EXCEEDED":
-      return "Сумма TON не входит в доступные лимиты"
-    case "STARS_LIMITS_EXCEEDED":
-      return "Сумма Stars не входит в доступные лимиты"
-    case "TX_ALREADY_USED":
-      return "Эта транзакция уже была использована"
-    case "INTENT_NOT_FOUND":
-      return "Платежная сессия не найдена"
-    default:
-      return "Не удалось выполнить пополнение"
-  }
-}
-
-function mapIntentStatus(status: DepositIntentStatus, failureReason?: string | null) {
-  if (status === "COMPLETED") return "Пополнение успешно зачислено"
-  if (status === "FAILED") return failureReason || "Платеж отклонен"
-  if (status === "EXPIRED") return "Время платежа истекло"
-  if (status === "CANCELED") return "Платеж отменен"
-  return "Платеж обрабатывается"
-}
-
 export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsModalProps) {
+  const { t } = useI18n()
   const [method, setMethod] = useState<DepositMethod>("TON")
   const [starsAmountRaw, setStarsAmountRaw] = useState("100")
   const [tonAmountRaw, setTonAmountRaw] = useState("0.5")
@@ -113,34 +74,53 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
   const tonWallet = useTonWallet()
   const completionFiredRef = useRef(false)
   const shouldReduceMotion = useReducedMotion()
+  const adaptiveOverlayMotion = useAdaptiveOverlayMotion()
 
-  const stackVariants = useMemo(
-    () => ({
-      hidden: { opacity: 0 },
-      show: {
-        opacity: 1,
-        transition: {
-          staggerChildren: shouldReduceMotion ? 0 : 0.045,
-          delayChildren: shouldReduceMotion ? 0 : 0.03,
-        },
-      },
-    }),
-    [shouldReduceMotion],
+  const methodItems = useMemo(
+    () => [
+      { id: "GIFTS" as const, label: t("deposit.gifts"), icon: Gift },
+      { id: "TON" as const, label: t("common.ton"), icon: Wallet },
+      { id: "STARS" as const, label: t("deposit.stars"), icon: Sparkles },
+    ],
+    [t],
   )
 
-  const itemVariants = useMemo(
-    () => ({
-      hidden: shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 7 },
-      show: {
-        opacity: 1,
-        y: 0,
-        transition: {
-          duration: shouldReduceMotion ? 0.1 : 0.22,
-          ease: EASE,
-        },
-      },
-    }),
-    [shouldReduceMotion],
+  const mapDepositError = useMemo(
+    () => (code: string | undefined) => {
+      switch (code) {
+        case "RATE_LIMIT":
+          return t("deposit.error.rateLimit")
+        case "STARS_PAYMENTS_DISABLED":
+          return t("deposit.error.starsDisabled")
+        case "TON_DEPOSITS_DISABLED":
+          return t("deposit.error.tonDisabled")
+        case "TON_DEPOSIT_ADDRESS_NOT_CONFIGURED":
+        case "TON_DEPOSIT_ADDRESS_INVALID":
+          return t("deposit.error.tonWalletInvalid")
+        case "TON_LIMITS_EXCEEDED":
+          return t("deposit.error.tonLimits")
+        case "STARS_LIMITS_EXCEEDED":
+          return t("deposit.error.starsLimits")
+        case "TX_ALREADY_USED":
+          return t("deposit.error.txUsed")
+        case "INTENT_NOT_FOUND":
+          return t("deposit.error.intentNotFound")
+        default:
+          return t("deposit.error.generic")
+      }
+    },
+    [t],
+  )
+
+  const mapIntentStatus = useMemo(
+    () => (status: DepositIntentStatus, failureReason?: string | null) => {
+      if (status === "COMPLETED") return t("deposit.status.completed")
+      if (status === "FAILED") return failureReason || t("deposit.status.failed")
+      if (status === "EXPIRED") return t("deposit.status.expired")
+      if (status === "CANCELED") return t("deposit.status.canceled")
+      return t("deposit.status.pending")
+    },
+    [t],
   )
 
   useEffect(() => {
@@ -162,9 +142,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
   }, [open])
 
   useEffect(() => {
-    if (!open) return
-    if (!activeIntentId) return
-    if (!activeIntentStatus || !PENDING_STATUSES.includes(activeIntentStatus)) return
+    if (!open || !activeIntentId || !activeIntentStatus || !PENDING_STATUSES.includes(activeIntentStatus)) return
 
     let cancelled = false
     const interval = window.setInterval(async () => {
@@ -177,9 +155,8 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
         })
 
         const payload = (await response.json().catch(() => ({}))) as IntentResponse
-        if (!response.ok || payload.ok !== true || !payload.intent) return
+        if (!response.ok || payload.ok !== true || !payload.intent || cancelled) return
 
-        if (cancelled) return
         setActiveIntentStatus(payload.intent.status)
         setInfo(mapIntentStatus(payload.intent.status, payload.intent.failureReason))
 
@@ -196,23 +173,14 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
       cancelled = true
       window.clearInterval(interval)
     }
-  }, [activeIntentId, activeIntentStatus, onCompleted, open])
+  }, [activeIntentId, activeIntentStatus, mapIntentStatus, onCompleted, open])
 
-  const canClose = useMemo(() => !isSubmitting, [isSubmitting])
-  const methodItems = useMemo(
-    () =>
-      METHOD_OPTIONS.map((option) => ({
-        id: option.id,
-        label: option.label,
-        icon: option.icon,
-      })),
-    [],
-  )
+  const canClose = !isSubmitting
 
   const onPayStars = async () => {
     const amount = toPositiveInt(starsAmountRaw)
     if (!amount) {
-      setError("Введите корректную сумму Stars")
+      setError(t("deposit.error.invalidStars"))
       return
     }
 
@@ -245,7 +213,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
 
       setActiveIntentId(payload.intent.id)
       setActiveIntentStatus(payload.intent.status)
-      setInfo("Откройте счет в Telegram и подтвердите оплату")
+      setInfo(t("deposit.infoOpenInvoice"))
 
       const tg = (window as unknown as {
         Telegram?: {
@@ -258,18 +226,18 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
       if (tg?.openInvoice) {
         tg.openInvoice(payload.invoiceUrl, (status) => {
           if (status === "paid") {
-            setInfo("Платеж подтвержден, ожидаем зачисление")
+            setInfo(t("deposit.infoPaymentConfirmed"))
           } else if (status === "cancelled") {
-            setInfo("Оплата отменена")
+            setInfo(t("deposit.infoPaymentCanceled"))
           } else if (status === "failed") {
-            setInfo("Оплата не прошла")
+            setInfo(t("deposit.infoPaymentFailed"))
           }
         })
       } else {
         window.open(payload.invoiceUrl, "_blank", "noopener,noreferrer")
       }
-    } catch (_error) {
-      setError("Не удалось создать счет на оплату")
+    } catch {
+      setError(t("deposit.error.createInvoice"))
     } finally {
       setSubmitting(false)
     }
@@ -278,17 +246,17 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
   const onPayTon = async () => {
     const amount = toPositiveTon(tonAmountRaw)
     if (!amount) {
-      setError("Введите корректную сумму TON")
+      setError(t("deposit.error.invalidTon"))
       return
     }
 
     if (!tonWallet?.account?.address) {
       setError(null)
-      setInfo("Подключите TON кошелек для продолжения")
+      setInfo(t("deposit.infoWalletRequired"))
       try {
         await tonConnectUI.openModal()
       } catch {
-        setError("Не удалось открыть TON Connect")
+        setError(t("deposit.error.openTonConnect"))
       }
       return
     }
@@ -356,7 +324,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
 
       setActiveIntentId(intentPayload.intent.id)
       setActiveIntentStatus(submitPayload.intent.status)
-      setInfo("TON транзакция отправлена, ожидаем подтверждение сети")
+      setInfo(t("deposit.infoTonSubmitted"))
     } catch (error) {
       if (error instanceof UserRejectsError && createdIntentId) {
         try {
@@ -383,7 +351,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
           // fall through to generic error state
         }
       }
-      setError("Не удалось отправить TON транзакцию")
+      setError(t("deposit.error.sendTon"))
     } finally {
       setSubmitting(false)
     }
@@ -398,10 +366,10 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
       {open ? (
         <motion.div
           className={styles.overlay}
-          initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0 }}
+          initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
+          transition={{ duration: adaptiveOverlayMotion ? 0.14 : shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
           onClick={() => {
             if (!canClose) return
             onClose()
@@ -410,22 +378,22 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
           <motion.section
             role="dialog"
             aria-modal="true"
-            aria-label="Пополнение баланса"
+            aria-label={t("deposit.aria")}
             className={styles.sheet}
-            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 34, scale: 0.98 }}
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 30, scale: 0.985 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 30, scale: 0.98 }}
-            transition={{ duration: shouldReduceMotion ? 0.1 : 0.24, ease: EASE }}
+            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 22, scale: 0.985 }}
+            transition={{ duration: adaptiveOverlayMotion ? 0.16 : shouldReduceMotion ? 0.1 : 0.24, ease: EASE }}
             onClick={(event) => event.stopPropagation()}
           >
             <div className={styles.handle} />
 
             <div className={styles.header}>
               <div>
-                <h3 className={styles.title}>Пополнение</h3>
-                <p className={styles.subtitle}>Выберите способ и пополните баланс в пару шагов</p>
+                <h3 className={styles.title}>{t("deposit.title")}</h3>
+                <p className={styles.subtitle}>{t("deposit.subtitle")}</p>
               </div>
-              <button type="button" className={styles.closeBtn} onClick={onClose} disabled={!canClose} aria-label="Закрыть">
+              <button type="button" className={styles.closeBtn} onClick={onClose} disabled={!canClose} aria-label={t("common.close")}>
                 <X size={16} />
               </button>
             </div>
@@ -434,56 +402,41 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
               items={methodItems}
               value={method}
               onChange={(next) => setMethod(next)}
-              ariaLabel="Способы пополнения"
+              ariaLabel={t("deposit.title")}
               layoutId="deposit-method-indicator"
+              motionMode={adaptiveOverlayMotion ? "static" : "default"}
               disabled={isSubmitting}
               className={styles.tabs}
             />
 
             <div className={styles.content}>
-              <AnimatePresence mode="sync" initial={false}>
-                {method === "GIFTS" ? (
-                  <motion.div
-                    key="deposit-gifts"
-                    className={styles.giftStub}
-                    variants={stackVariants}
-                    initial="hidden"
-                    animate="show"
-                    exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
-                    transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
-                  >
-                    <motion.span className={styles.giftIconWrap} variants={itemVariants}>
-                      <Gift size={28} />
-                    </motion.span>
-                    <motion.p className={styles.giftTitle} variants={itemVariants}>
-                      NFT Gifts
-                    </motion.p>
-                    <motion.p className={styles.giftDesc} variants={itemVariants}>
-                      Раздел подарков подключим следующим шагом. Здесь будет импорт ваших подарков из Telegram.
-                    </motion.p>
-                    <motion.span className={styles.badgeSoon} variants={itemVariants}>
-                      Скоро в MVP
-                    </motion.span>
-                    <motion.button type="button" className={styles.ghostBtn} disabled variants={itemVariants}>
-                      Механика в разработке
-                    </motion.button>
-                  </motion.div>
-                ) : null}
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={method}
+                  className={styles.contentStack}
+                  initial={adaptiveOverlayMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={adaptiveOverlayMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
+                  transition={{ duration: adaptiveOverlayMotion ? 0.12 : shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
+                >
+                  {method === "GIFTS" ? (
+                    <div className={styles.giftStub}>
+                      <span className={styles.giftIconWrap}>
+                        <Gift size={28} />
+                      </span>
+                      <p className={styles.giftTitle}>{t("deposit.giftsTitle")}</p>
+                      <p className={styles.giftDesc}>{t("deposit.giftsDesc")}</p>
+                      <span className={styles.badgeSoon}>{t("deposit.giftsSoon")}</span>
+                      <button type="button" className={styles.ghostBtn} disabled>
+                        {t("deposit.giftsDisabled")}
+                      </button>
+                    </div>
+                  ) : null}
 
-                {method === "TON" ? (
-                    <motion.div
-                      key="deposit-ton"
-                      className={styles.contentStack}
-                      variants={stackVariants}
-                      initial="hidden"
-                      animate="show"
-                      exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
-                      transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
-                    >
-                      <motion.label className={styles.inputLabel} variants={itemVariants}>
-                        Сумма TON
-                      </motion.label>
-                      <motion.input
+                  {method === "TON" ? (
+                    <>
+                      <label className={styles.inputLabel}>{t("deposit.tonAmount")}</label>
+                      <input
                         type="text"
                         inputMode="decimal"
                         value={tonAmountRaw}
@@ -491,14 +444,13 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                         className={styles.input}
                         disabled={isSubmitting}
                         placeholder="0.50"
-                        variants={itemVariants}
                       />
 
-                      <motion.div className={styles.quickRow} variants={itemVariants}>
+                      <div className={styles.quickRow}>
                         {TON_PRESETS.map((value) => {
                           const active = toPositiveTon(tonAmountRaw) === value
                           return (
-                            <motion.button
+                            <button
                               key={value}
                               type="button"
                               className={styles.quickBtn}
@@ -507,46 +459,37 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                               onClick={() => setTonAmountRaw(value)}
                             >
                               {value} TON
-                            </motion.button>
+                            </button>
                           )
                         })}
-                      </motion.div>
+                      </div>
 
-                      <motion.p className={styles.walletHint} variants={itemVariants}>
-                        {walletShortAddress ? `Кошелек подключен: ${walletShortAddress}` : "Кошелек не подключен"}
-                      </motion.p>
+                      <p className={styles.walletHint}>
+                        {walletShortAddress
+                          ? t("deposit.walletConnected", { address: walletShortAddress })
+                          : t("deposit.walletNotConnected")}
+                      </p>
 
-                    <motion.div variants={itemVariants}>
                       <PrimaryButton
                         type="button"
                         onClick={() => void onPayTon()}
                         disabled={isSubmitting}
+                        motion={adaptiveOverlayMotion ? "none" : "subtle"}
                         className={styles.primaryActionBtn}
                       >
                         {!walletShortAddress
-                          ? "Подключить TON кошелек"
+                          ? t("deposit.connectWallet")
                           : isSubmitting
-                            ? "Отправляем транзакцию..."
-                            : "Оплатить через TON Connect"}
+                            ? t("deposit.payTonSubmitting")
+                            : t("deposit.payTon")}
                       </PrimaryButton>
-                    </motion.div>
-                  </motion.div>
-                ) : null}
+                    </>
+                  ) : null}
 
-                {method === "STARS" ? (
-                    <motion.div
-                      key="deposit-stars"
-                      className={styles.contentStack}
-                      variants={stackVariants}
-                      initial="hidden"
-                      animate="show"
-                      exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
-                      transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
-                    >
-                      <motion.label className={styles.inputLabel} variants={itemVariants}>
-                        Сумма Stars
-                      </motion.label>
-                      <motion.input
+                  {method === "STARS" ? (
+                    <>
+                      <label className={styles.inputLabel}>{t("deposit.starsAmount")}</label>
+                      <input
                         type="number"
                         min={1}
                         step={1}
@@ -555,14 +498,13 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                         className={styles.input}
                         disabled={isSubmitting}
                         placeholder="100"
-                        variants={itemVariants}
                       />
 
-                      <motion.div className={styles.quickRow} variants={itemVariants}>
+                      <div className={styles.quickRow}>
                         {STARS_PRESETS.map((value) => {
                           const active = starsAmountRaw.trim() === String(value)
                           return (
-                            <motion.button
+                            <button
                               key={value}
                               type="button"
                               className={styles.quickBtn}
@@ -571,51 +513,30 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                               onClick={() => setStarsAmountRaw(String(value))}
                             >
                               {value}
-                            </motion.button>
+                            </button>
                           )
                         })}
-                      </motion.div>
+                      </div>
 
-                      <motion.p className={styles.walletHint} variants={itemVariants}>
-                        Оплата пройдет через Telegram Invoice
-                      </motion.p>
+                      <p className={styles.walletHint}>{t("deposit.openInvoiceHint")}</p>
 
-                    <motion.div variants={itemVariants}>
                       <PrimaryButton
                         type="button"
                         onClick={() => void onPayStars()}
                         disabled={isSubmitting}
+                        motion={adaptiveOverlayMotion ? "none" : "subtle"}
                         className={styles.primaryActionBtn}
                       >
-                        {isSubmitting ? "Создаем счет..." : "Оплатить Stars"}
+                        {isSubmitting ? t("deposit.payStarsSubmitting") : t("deposit.payStars")}
                       </PrimaryButton>
-                    </motion.div>
-                  </motion.div>
-                ) : null}
+                    </>
+                  ) : null}
+                </motion.div>
               </AnimatePresence>
             </div>
 
-            {info ? (
-              <motion.p
-                className={styles.statusInfo}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: shouldReduceMotion ? 0.1 : 0.16 }}
-              >
-                {info}
-              </motion.p>
-            ) : null}
-
-            {error ? (
-              <motion.p
-                className={styles.statusError}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: shouldReduceMotion ? 0.1 : 0.16 }}
-              >
-                {error}
-              </motion.p>
-            ) : null}
+            {info ? <p className={styles.statusInfo}>{info}</p> : null}
+            {error ? <p className={styles.statusError}>{error}</p> : null}
           </motion.section>
         </motion.div>
       ) : null}

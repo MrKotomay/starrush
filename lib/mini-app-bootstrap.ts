@@ -191,7 +191,7 @@ export async function runMiniAppBootstrap(args?: {
   const onProgress = args?.onProgress
 
   if (bootResult) {
-    pushProgress(onProgress, 1, "Готово")
+    pushProgress(onProgress, 1, "boot.done")
     return bootResult
   }
 
@@ -206,31 +206,31 @@ export async function runMiniAppBootstrap(args?: {
     }
     let progressBase = 0
 
-    pushProgress(onProgress, 0.06, "Подготовка мини-приложения")
+    pushProgress(onProgress, 0.06, "boot.preparing")
 
-    pushProgress(onProgress, progressBase + 0.02, "Загружаем интерфейс и игровой движок")
+    pushProgress(onProgress, progressBase + 0.02, "boot.loadingModules")
     try {
       await preloadModules()
     } finally {
       progressBase += weights.modules
-      pushProgress(onProgress, progressBase, "Интерфейс и движок готовы")
+      pushProgress(onProgress, progressBase, "boot.modulesReady")
     }
 
-    pushProgress(onProgress, progressBase + 0.02, "Кэшируем ассеты игры")
+    pushProgress(onProgress, progressBase + 0.02, "boot.cachingAssets")
     try {
       await preloadStaticAssets()
     } finally {
       progressBase += weights.assets
-      pushProgress(onProgress, progressBase, "Ассеты игры готовы")
+      pushProgress(onProgress, progressBase, "boot.assetsReady")
     }
 
-    pushProgress(onProgress, progressBase + 0.02, "Синхронизируем данные аккаунта")
+    pushProgress(onProgress, progressBase + 0.02, "boot.syncingAccount")
     let warmData: MiniAppWarmData = {}
     try {
       warmData = await warmApiData()
     } finally {
       progressBase += weights.data
-      pushProgress(onProgress, progressBase, "Данные аккаунта синхронизированы")
+      pushProgress(onProgress, progressBase, "boot.accountReady")
     }
 
     const finishedAt = Date.now()
@@ -241,7 +241,7 @@ export async function runMiniAppBootstrap(args?: {
     }
 
     bootResult = result
-    pushProgress(onProgress, 1, "Запуск приложения")
+    pushProgress(onProgress, 1, "page.launchingApp")
     return result
   })()
 

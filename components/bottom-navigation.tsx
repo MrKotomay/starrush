@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { motion, useReducedMotion } from "framer-motion"
 import { Rocket, TrendingUp, User } from "lucide-react"
 
+import { useI18n } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 import { BottomNavShell } from "@/components/ui/bottom-nav-shell"
 
@@ -14,15 +15,15 @@ interface BottomNavigationProps {
   onTabChange: (tab: TabId) => void
 }
 
-const tabs = [
-  { id: "staking" as TabId, label: "Стейкинг", icon: TrendingUp },
-  { id: "mine" as TabId, label: "Раш", icon: Rocket },
-  { id: "profile" as TabId, label: "Профиль", icon: User },
-]
-
 export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationProps) {
+  const { t } = useI18n()
   const shouldReduceMotion = useReducedMotion()
   const [rushLaunchTick, setRushLaunchTick] = useState(0)
+  const tabs = [
+    { id: "staking" as TabId, label: t("bottomNav.staking"), icon: TrendingUp },
+    { id: "mine" as TabId, label: t("bottomNav.rush"), icon: Rocket },
+    { id: "profile" as TabId, label: t("bottomNav.profile"), icon: User },
+  ]
 
   useEffect(() => {
     const root = document.documentElement

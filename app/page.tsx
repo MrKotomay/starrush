@@ -3,48 +3,31 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import dynamic from "next/dynamic"
 import { AnimatePresence, LayoutGroup, MotionConfig, motion, useReducedMotion } from "framer-motion"
-import { useTelegramUser } from "@/lib/use-telegram-user"
-import { runMiniAppBootstrap } from "@/lib/mini-app-bootstrap"
-import { ProfileHeader } from "@/components/profile-header"
-import { StatCards } from "@/components/stat-cards"
-import { ActionButtons } from "@/components/action-buttons"
+
+import { AppBootstrapSplash } from "@/components/app-bootstrap-splash"
 import { Achievements } from "@/components/achievements"
+import { ActionButtons } from "@/components/action-buttons"
+import { BottomNavigation } from "@/components/bottom-navigation"
+import { DepositFundsModal } from "@/components/deposit-funds-modal"
+import { ParticleBackground } from "@/components/particle-background"
+import { ProfileHeader } from "@/components/profile-header"
 import { ReferralProgram } from "@/components/referral-program"
 import { SettingsMenu } from "@/components/settings-menu"
-import { BottomNavigation } from "@/components/bottom-navigation"
-import { ParticleBackground } from "@/components/particle-background"
 import { StakingContent } from "@/components/staking-content"
+import { StatCards } from "@/components/stat-cards"
 import { TopHud } from "@/components/top-hud"
 import { WalletActionModal } from "@/components/wallet-action-modal"
 import { WalletOverviewModal } from "@/components/wallet-overview-modal"
-import { AppBootstrapSplash } from "@/components/app-bootstrap-splash"
-import { DepositFundsModal } from "@/components/deposit-funds-modal"
-
-const CrashGame = dynamic(
-  () => import("@/components/crash/CrashGame").then((mod) => mod.CrashGame),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-[320px] w-full rounded-3xl border border-border/60 bg-card/80 flex items-center justify-center sm:h-[380px] lg:h-[460px]">
-        <div className="text-center">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground/70">Загрузка игры...</p>
-        </div>
-      </div>
-    ),
-  }
-)
-
-const mockAchievements = [
-  { id: 1, color: "from-primary to-primarySoft", unlocked: true },
-  { id: 2, color: "from-primarySoft to-primary", unlocked: true },
-  { id: 3, color: "from-primary/85 to-primarySoft/75", unlocked: true },
-  { id: 4, color: "from-primarySoft/85 to-primary/72", unlocked: true },
-]
+import { AppSettingsProvider } from "@/lib/app-settings"
+import { useI18n } from "@/lib/i18n"
+import { runMiniAppBootstrap } from "@/lib/mini-app-bootstrap"
+import { useAdaptiveOverlayMotion } from "@/lib/use-adaptive-overlay-motion"
+import { useTelegramUser } from "@/lib/use-telegram-user"
 
 type WalletCurrency = "TON" | "STARS"
 type TabId = "staking" | "mine" | "profile"
 type WalletActionMode = "withdraw" | null
+type TelegramState = ReturnType<typeof useTelegramUser>["state"]
 
 type WalletView = {
   id: string
@@ -109,6 +92,13 @@ type ReferralSummaryApiResponse = {
   summary?: ReferralSummaryView
 }
 
+const mockAchievements = [
+  { id: 1, color: "from-primary to-primarySoft", unlocked: true },
+  { id: 2, color: "from-primarySoft to-primary", unlocked: true },
+  { id: 3, color: "from-primary/85 to-primarySoft/75", unlocked: true },
+  { id: 4, color: "from-primarySoft/85 to-primary/72", unlocked: true },
+]
+
 function toNumber(value: string | number | null | undefined, fallback = 0) {
   if (typeof value === "number" && Number.isFinite(value)) return value
   if (typeof value === "string") {
@@ -118,32 +108,58 @@ function toNumber(value: string | number | null | undefined, fallback = 0) {
   return fallback
 }
 
-function mapWalletActionError(code: string | undefined) {
+function mapWalletActionError(
+  code: string | undefined,
+  t: (key: string, vars?: Record<string, string | number>) => string,
+) {
   switch (code) {
     case "UNAUTHORIZED":
-      return "Нужна авторизация"
+      return t("walletAction.errorUnauthorized")
     case "RATE_LIMIT":
-      return "Слишком часто, попробуйте чуть позже"
+      return t("walletAction.errorRateLimit")
     case "INVALID_INPUT":
     case "INVALID_AMOUNT":
-      return "Некорректная сумма"
+      return t("walletAction.errorInvalid")
     case "INSUFFICIENT_BALANCE":
-      return "Недостаточно доступного баланса"
+      return t("walletAction.errorInsufficient")
     case "DEV_WALLET_ACTIONS_DISABLED":
-      return "Dev wallet actions выключен. Включите ENABLE_DEV_WALLET_ACTIONS=1"
+      return t("walletAction.errorDevDisabled")
     case "DEPOSIT_FAILED":
-      return "Не удалось выполнить пополнение"
+      return t("walletAction.errorDepositFailed")
     case "WITHDRAW_FAILED":
-      return "Не удалось выполнить вывод"
+      return t("walletAction.errorWithdrawFailed")
     default:
-      return "Операция не выполнена"
+      return t("walletAction.errorGeneric")
   }
 }
 
-export default function ProfilePage() {
+function CrashGameLoadingFallback() {
+  const { t } = useI18n()
+
+  return (
+    <div className="flex h-[320px] w-full items-center justify-center rounded-3xl border border-border/60 bg-card/80 sm:h-[380px] lg:h-[460px]">
+      <div className="text-center">
+        <div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <p className="text-sm text-muted-foreground/70">{t("game.loading")}</p>
+      </div>
+    </div>
+  )
+}
+
+const CrashGame = dynamic(
+  () => import("@/components/crash/CrashGame").then((mod) => mod.CrashGame),
+  {
+    ssr: false,
+    loading: () => <CrashGameLoadingFallback />,
+  },
+)
+
+function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
+  const { t } = useI18n()
+  const shouldReduceMotion = useReducedMotion()
+  const adaptiveOverlayMotion = useAdaptiveOverlayMotion()
   const [activeTab, setActiveTab] = useState<TabId>("mine")
   const [selectedBalanceCurrency, setSelectedBalanceCurrency] = useState<"TON" | "STARS">("TON")
-  const { state: telegram } = useTelegramUser()
   const initialWalletsFromAuth = telegram.status === "ready" ? telegram.wallets : undefined
   const [walletsState, setWalletsState] = useState<WalletView[]>([])
   const [ledgerState, setLedgerState] = useState<LedgerView[]>([])
@@ -158,7 +174,7 @@ export default function ProfilePage() {
   const [referralSummary, setReferralSummary] = useState<ReferralSummaryView | null>(null)
   const [isAppBootReady, setAppBootReady] = useState(false)
   const [bootProgress, setBootProgress] = useState(0.06)
-  const [bootLabel, setBootLabel] = useState("Проверяем авторизацию Telegram")
+  const [bootLabel, setBootLabel] = useState("page.checkingTelegram")
   const bootStartedRef = useRef(false)
   const telegramReadySentRef = useRef(false)
 
@@ -178,14 +194,14 @@ export default function ProfilePage() {
 
     if (telegram.status === "error") {
       setBootProgress(1)
-      setBootLabel("Не удалось авторизоваться")
+      setBootLabel("page.authFailed")
       setAppBootReady(true)
       return
     }
 
     if (telegram.status !== "ready") {
       setBootProgress((prev) => Math.max(prev, 0.08))
-      setBootLabel("Проверяем авторизацию Telegram")
+      setBootLabel("page.checkingTelegram")
       return
     }
 
@@ -218,13 +234,13 @@ export default function ProfilePage() {
         if (cancelled) return
 
         setBootProgress(1)
-        setBootLabel("Запуск приложения")
+        setBootLabel("page.launchingApp")
         setAppBootReady(true)
       })
       .catch(() => {
         if (cancelled) return
         setBootProgress(1)
-        setBootLabel("Запуск без предзагрузки")
+        setBootLabel("page.launchNoPreload")
         setAppBootReady(true)
       })
 
@@ -303,7 +319,7 @@ export default function ProfilePage() {
       if (!response.ok || payload.ok !== true || !payload.summary) return
       setReferralSummary(payload.summary)
     } catch {
-      // ignore summary refresh errors to keep profile usable
+      // keep profile usable if referrals refresh fails
     }
   }, [])
 
@@ -344,21 +360,26 @@ export default function ProfilePage() {
 
         const payload = (await response.json().catch(() => ({}))) as WalletActionApiResponse
         if (!response.ok || payload.ok !== true) {
-          setToast(mapWalletActionError(payload.error))
+          setToast(mapWalletActionError(payload.error, t))
           return
         }
 
         await refreshWallets()
         await refreshLedger()
         setWalletActionMode(null)
-        setToast(`Вывод ${input.amount.toFixed(2)} ${input.currency} выполнен`)
+        setToast(
+          t("walletAction.successWithdraw", {
+            amount: input.amount.toFixed(2),
+            currency: input.currency,
+          }),
+        )
       } finally {
         setWalletActionSubmitting(false)
       }
     },
-    [refreshLedger, refreshWallets, walletActionMode]
+    [refreshLedger, refreshWallets, t, walletActionMode],
   )
-  const shouldReduceMotion = useReducedMotion()
+
   const hasHeavyOverlay = isDepositModalOpen || isWalletOverviewOpen || walletActionMode !== null
   const isMineSceneActive = activeTab === "mine" && !hasHeavyOverlay
   const tabEnter = { opacity: 0 }
@@ -370,7 +391,8 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (typeof document === "undefined") return
-    if (hasHeavyOverlay) {
+
+    if (hasHeavyOverlay && adaptiveOverlayMotion) {
       document.body.dataset.adaptiveMotion = "reduced"
     } else {
       delete document.body.dataset.adaptiveMotion
@@ -379,22 +401,22 @@ export default function ProfilePage() {
     return () => {
       delete document.body.dataset.adaptiveMotion
     }
-  }, [hasHeavyOverlay])
+  }, [adaptiveOverlayMotion, hasHeavyOverlay])
 
   if (telegram.status === "error") {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-6">
-        <div className="max-w-md w-full rounded-2xl border border-border bg-card/70 backdrop-blur-sm p-6 text-center">
-          <h1 className="text-xl font-bold text-foreground mb-2">Ошибка авторизации Telegram</h1>
-          <p className="text-muted-foreground text-sm mb-4">
-            Код: <span className="text-foreground font-semibold">{telegram.error}</span>
+      <div className="flex min-h-screen items-center justify-center bg-background px-6">
+        <div className="w-full max-w-md rounded-2xl border border-border bg-card/70 p-6 text-center backdrop-blur-sm">
+          <h1 className="mb-2 text-xl font-bold text-foreground">{t("auth.errorTitle")}</h1>
+          <p className="mb-4 text-sm text-muted-foreground">
+            {t("auth.code", { code: telegram.error })}
           </p>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:brightness-105"
+            className="w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground hover:brightness-105"
           >
-            Перезагрузить
+            {t("auth.reload")}
           </button>
         </div>
       </div>
@@ -406,11 +428,11 @@ export default function ProfilePage() {
   }
 
   const tgUser = telegram.status === "ready" ? telegram.user : undefined
-  const username = tgUser?.username || tgUser?.first_name || "guest"
+  const username = tgUser?.username || tgUser?.first_name || t("profile.guest")
   const avatarUrl = tgUser?.photo_url
   const bio = tgUser
-    ? `${tgUser.first_name || ""}${tgUser.last_name ? ` ${tgUser.last_name}` : ""}`.trim() || "Telegram user"
-    : "Crypto enthusiast • DeFi explorer"
+    ? `${tgUser.first_name || ""}${tgUser.last_name ? ` ${tgUser.last_name}` : ""}`.trim() || t("profile.telegramUser")
+    : t("profile.bioDefault")
 
   const tonWallet = walletsState.find((wallet) => wallet.currency === "TON")
   const tonBalance = toNumber(tonWallet?.balance)
@@ -420,6 +442,7 @@ export default function ProfilePage() {
   const handleTabChange = (nextTab: TabId) => {
     setActiveTab(nextTab)
   }
+
   const sharedAvatarLayoutId = "shared-profile-avatar"
   const topHudProps = {
     activeTab,
@@ -519,7 +542,7 @@ export default function ProfilePage() {
 
                   <Achievements
                     achievements={mockAchievements}
-                    onViewAll={() => setToast("Экран достижений пока в работе")}
+                    onViewAll={() => setToast(t("toast.achievementsSoon"))}
                   />
 
                   <div className="mt-[var(--section-gap)] px-[var(--page-px)]">
@@ -536,7 +559,7 @@ export default function ProfilePage() {
                     <SettingsMenu
                       onWalletClick={openWalletOverview}
                       onStakingClick={() => handleTabChange("staking")}
-                      onSettingsClick={() => setToast("Настройки будут подключены следующим шагом")}
+                      onSettingsClick={() => setToast(t("toast.profileSettingsSoon"))}
                     />
                   </div>
                 </motion.section>
@@ -595,5 +618,16 @@ export default function ProfilePage() {
         </div>
       ) : null}
     </div>
+  )
+}
+
+export default function ProfilePage() {
+  const { state: telegram } = useTelegramUser()
+  const telegramLanguageCode = telegram.status === "ready" ? telegram.user?.language_code : undefined
+
+  return (
+    <AppSettingsProvider telegramLanguageCode={telegramLanguageCode}>
+      <ProfilePageContent telegram={telegram} />
+    </AppSettingsProvider>
   )
 }

@@ -3,6 +3,8 @@
 import { motion } from "framer-motion"
 import { QrCode, Settings } from "lucide-react"
 
+import { useI18n } from "@/lib/i18n"
+
 interface ProfileHeaderProps {
   username: string
   bio: string
@@ -19,6 +21,8 @@ export function ProfileHeader({
   avatarUrl,
   avatarLayoutId = "shared-profile-avatar",
 }: ProfileHeaderProps) {
+  const { t } = useI18n()
+
   return (
     <div className="flex flex-col items-center pb-6 pt-0">
       {/* Icon row */}
@@ -26,7 +30,7 @@ export function ProfileHeader({
         <button
           className={ICON_BTN}
           data-sheen="event"
-          aria-label="Settings"
+          aria-label={t("profileHeader.settings")}
           type="button"
         >
           <Settings className="h-5 w-5" />
@@ -34,7 +38,7 @@ export function ProfileHeader({
         <button
           className={ICON_BTN}
           data-sheen="event"
-          aria-label="QR Code"
+          aria-label={t("profileHeader.qr")}
           type="button"
         >
           <QrCode className="h-5 w-5" />
@@ -56,7 +60,7 @@ export function ProfileHeader({
             {avatarUrl ? (
               <img
                 src={avatarUrl || "/placeholder.svg"}
-                alt={`${username}'s avatar`}
+                alt={t("profileHeader.avatarAlt", { username })}
                 className="h-full w-full object-cover"
               />
             ) : (

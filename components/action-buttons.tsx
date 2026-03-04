@@ -1,6 +1,7 @@
 "use client"
 
 import { PrimaryButton } from "@/components/ui/primary-button"
+import { useI18n } from "@/lib/i18n"
 
 interface ActionButtonsProps {
   onDeposit: () => void
@@ -15,6 +16,7 @@ export function ActionButtons({
   isDepositLoading = false,
   isWithdrawLoading = false,
 }: ActionButtonsProps) {
+  const { t } = useI18n()
   const isBusy = isDepositLoading || isWithdrawLoading
 
   return (
@@ -30,7 +32,7 @@ export function ActionButtons({
         variant="brand"
         className="btn-deposit-gradient h-12 rounded-[var(--radius-md)] text-base font-semibold"
       >
-        {isDepositLoading ? "Пополнение..." : "Пополнить"}
+        {isDepositLoading ? t("action.depositLoading") : t("action.deposit")}
       </PrimaryButton>
 
       <PrimaryButton
@@ -44,7 +46,7 @@ export function ActionButtons({
         variant="brandSoft"
         className="btn-withdraw-gradient h-12 rounded-[var(--radius-md)] text-base font-semibold"
       >
-        {isWithdrawLoading ? "Вывод..." : "Вывод"}
+        {isWithdrawLoading ? t("action.withdrawLoading") : t("action.withdraw")}
       </PrimaryButton>
     </div>
   )

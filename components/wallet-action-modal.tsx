@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { Sparkles, Wallet, X } from "lucide-react"
 
+import { useI18n } from "@/lib/i18n"
 import { PrimaryButton } from "@/components/ui/primary-button"
 import { GlassSegmentedControl, type GlassSegmentedItem } from "@/components/ui/glass-segmented-control"
 
@@ -19,11 +20,6 @@ interface WalletActionModalProps {
 }
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
-const CURRENCY_ITEMS: Array<GlassSegmentedItem<WalletCurrency>> = [
-  { id: "TON", label: "TON", icon: Wallet },
-  { id: "STARS", label: "Stars", icon: Sparkles },
-]
-
 export function WalletActionModal({
   open,
   mode,
@@ -31,10 +27,15 @@ export function WalletActionModal({
   onClose,
   onSubmit,
 }: WalletActionModalProps) {
+  const { t } = useI18n()
   const [amountInput, setAmountInput] = useState("1")
   const [currency, setCurrency] = useState<WalletCurrency>("TON")
   const [error, setError] = useState<string | null>(null)
   const shouldReduceMotion = useReducedMotion()
+  const currencyItems: Array<GlassSegmentedItem<WalletCurrency>> = [
+    { id: "TON", label: t("common.ton"), icon: Wallet },
+    { id: "STARS", label: t("common.stars"), icon: Sparkles },
+  ]
 
   useEffect(() => {
     if (!open) return
@@ -45,13 +46,13 @@ export function WalletActionModal({
 
   if (!mode) return null
 
-  const title = mode === "deposit" ? "Пополнение кошелька" : "Вывод средств"
-  const submitLabel = mode === "deposit" ? "Пополнить" : "Вывести"
+  const title = mode === "deposit" ? t("walletAction.depositTitle") : t("walletAction.withdrawTitle")
+  const submitLabel = mode === "deposit" ? t("walletAction.submitDeposit") : t("walletAction.submitWithdraw")
 
   const handleSubmit = async () => {
     const amount = Number.parseFloat(amountInput)
     if (!Number.isFinite(amount) || amount <= 0) {
-      setError("Введите корректную сумму")
+      setError(t("walletAction.invalidAmount"))
       return
     }
 
@@ -86,15 +87,13 @@ export function WalletActionModal({
             <div className="mb-3 flex items-start justify-between gap-3">
               <div>
                 <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Доступно только при dev-флаге `ENABLE_DEV_WALLET_ACTIONS=1`.
-                </p>
+                <p className="mt-1 text-xs text-muted-foreground">{t("walletAction.devHint")}</p>
               </div>
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isSubmitting}
-                aria-label="Закрыть"
+                aria-label={t("common.close")}
                 className="focus-brand inline-flex h-8 w-8 items-center justify-center rounded-xl border border-white/16 bg-white/6 text-muted-foreground transition-colors duration-200 hover:text-foreground"
               >
                 <X size={15} />
@@ -103,7 +102,7 @@ export function WalletActionModal({
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-medium text-muted-foreground">Сумма</label>
+                <label className="text-xs font-medium text-muted-foreground">{t("common.amount")}</label>
                 <input
                   type="number"
                   min={0}
@@ -117,13 +116,13 @@ export function WalletActionModal({
               </div>
 
               <div>
-                <label className="text-xs font-medium text-muted-foreground">Валюта</label>
+                <label className="text-xs font-medium text-muted-foreground">{t("common.currency")}</label>
                 <GlassSegmentedControl
                   className="mt-1.5"
-                  items={CURRENCY_ITEMS}
+                  items={currencyItems}
                   value={currency}
                   onChange={(next) => setCurrency(next)}
-                  ariaLabel="Валюта операции"
+                  ariaLabel={t("common.currency")}
                   layoutId="wallet-action-currency-indicator"
                   disabled={isSubmitting}
                 />
@@ -140,7 +139,7 @@ export function WalletActionModal({
                 className="btn-secondary focus-brand liquid-sheen rounded-xl px-3 py-2.5 text-sm font-semibold"
                 data-sheen="event"
               >
-                Отмена
+                {t("common.cancel")}
               </button>
               <PrimaryButton
                 type="button"
@@ -151,7 +150,7 @@ export function WalletActionModal({
                 className="h-[42px] rounded-xl text-sm font-semibold"
                 data-sheen={isSubmitting ? "off" : "always"}
               >
-                {isSubmitting ? "Обработка..." : submitLabel}
+                {isSubmitting ? t("common.processing") : submitLabel}
               </PrimaryButton>
             </div>
           </motion.section>

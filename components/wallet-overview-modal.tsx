@@ -4,6 +4,8 @@ import React from "react"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { RefreshCw, X } from "lucide-react"
 
+import { useI18n } from "@/lib/i18n"
+
 type WalletCurrency = "TON" | "STARS"
 
 interface WalletItem {
@@ -41,10 +43,10 @@ function formatAmount(raw: string) {
   return parsed.toFixed(4)
 }
 
-function formatDate(raw: string) {
+function formatDate(raw: string, formatter: (value: string | number | Date, options?: Intl.DateTimeFormatOptions) => string) {
   const ts = Date.parse(raw)
   if (!Number.isFinite(ts)) return raw
-  return new Date(ts).toLocaleString("ru-RU")
+  return formatter(ts)
 }
 
 export function WalletOverviewModal({
@@ -58,6 +60,7 @@ export function WalletOverviewModal({
   onClose,
 }: WalletOverviewModalProps) {
   const shouldReduceMotion = useReducedMotion()
+  const { t, formatDateTime } = useI18n()
 
   return (
     <AnimatePresence>
@@ -85,13 +88,13 @@ export function WalletOverviewModal({
           >
             <div className="mb-3 flex items-start justify-between gap-3">
               <div>
-                <h3 className="text-lg font-semibold text-foreground">Кошелек</h3>
-                <p className="mt-1 text-xs text-muted-foreground">Актуальные балансы и последние операции</p>
+                <h3 className="text-lg font-semibold text-foreground">{t("walletOverview.title")}</h3>
+                <p className="mt-1 text-xs text-muted-foreground">{t("walletOverview.subtitle")}</p>
               </div>
               <button
                 type="button"
                 onClick={onClose}
-                aria-label="Закрыть"
+                aria-label={t("common.close")}
                 className="focus-brand inline-flex h-8 w-8 items-center justify-center rounded-xl border border-white/16 bg-white/6 text-muted-foreground transition-colors duration-200 hover:text-foreground"
               >
                 <X size={15} />
@@ -101,7 +104,7 @@ export function WalletOverviewModal({
             <div className="space-y-3">
               <section className="rounded-2xl border border-white/12 bg-white/[0.03] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                 <div className="mb-2 flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-foreground">Балансы</h4>
+                  <h4 className="text-sm font-semibold text-foreground">{t("walletOverview.balances")}</h4>
                   <button
                     type="button"
                     onClick={onRefreshWallets}
@@ -110,13 +113,13 @@ export function WalletOverviewModal({
                     data-sheen="event"
                   >
                     <RefreshCw className={`h-3.5 w-3.5 ${isWalletsLoading ? "animate-spin" : ""}`} />
-                    {isWalletsLoading ? "Обновление" : "Обновить"}
+                    {isWalletsLoading ? t("common.refreshing") : t("common.refresh")}
                   </button>
                 </div>
 
                 <div className="space-y-2">
                   {wallets.length === 0 ? (
-                    <p className="rounded-xl border border-white/10 bg-background/40 px-3 py-2 text-xs text-muted-foreground">Кошельки не найдены</p>
+                    <p className="rounded-xl border border-white/10 bg-background/40 px-3 py-2 text-xs text-muted-foreground">{t("walletOverview.noWallets")}</p>
                   ) : (
                     wallets.map((wallet) => (
                       <div
@@ -128,7 +131,7 @@ export function WalletOverviewModal({
                           <span className="font-medium text-foreground">{formatAmount(wallet.balance)}</span>
                         </div>
                         <div className="mt-1 text-xs text-muted-foreground">
-                          Locked: {formatAmount(wallet.lockedBalance)}
+                          {t("walletOverview.locked", { amount: formatAmount(wallet.lockedBalance) })}
                         </div>
                       </div>
                     ))
@@ -138,7 +141,7 @@ export function WalletOverviewModal({
 
               <section className="rounded-2xl border border-white/12 bg-white/[0.03] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                 <div className="mb-2 flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-foreground">Последние операции</h4>
+                  <h4 className="text-sm font-semibold text-foreground">{t("walletOverview.recentOperations")}</h4>
                   <button
                     type="button"
                     onClick={onRefreshLedger}
@@ -147,13 +150,13 @@ export function WalletOverviewModal({
                     data-sheen="event"
                   >
                     <RefreshCw className={`h-3.5 w-3.5 ${isLedgerLoading ? "animate-spin" : ""}`} />
-                    {isLedgerLoading ? "Обновление" : "Обновить"}
+                    {isLedgerLoading ? t("common.refreshing") : t("common.refresh")}
                   </button>
                 </div>
 
                 <div className="space-y-2">
                   {ledger.length === 0 ? (
-                    <p className="rounded-xl border border-white/10 bg-background/40 px-3 py-2 text-xs text-muted-foreground">Операций пока нет</p>
+                    <p className="rounded-xl border border-white/10 bg-background/40 px-3 py-2 text-xs text-muted-foreground">{t("walletOverview.noOperations")}</p>
                   ) : (
                     ledger.map((entry) => (
                       <div key={entry.id} className="rounded-xl border border-white/12 bg-background/55 px-3 py-2 text-xs">
@@ -163,7 +166,7 @@ export function WalletOverviewModal({
                         </div>
                         <div className="mt-1 flex items-center justify-between gap-2 text-muted-foreground">
                           <span>{entry.status}</span>
-                          <span>{formatDate(entry.createdAt)}</span>
+                          <span>{formatDate(entry.createdAt, formatDateTime)}</span>
                         </div>
                       </div>
                     ))

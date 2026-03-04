@@ -21,6 +21,7 @@ interface GlassSegmentedControlProps<T extends string> {
   ariaLabel: string
   size?: "sm" | "md"
   layoutId?: string
+  motionMode?: "default" | "static"
   indicatorTransition?: Transition
   indicatorSheen?: "on" | "off"
   activeButtonChrome?: "on" | "off"
@@ -63,6 +64,7 @@ export function GlassSegmentedControl<T extends string>({
   ariaLabel,
   size = "md",
   layoutId = "glass-segmented-indicator",
+  motionMode = "default",
   indicatorTransition,
   indicatorSheen = "on",
   activeButtonChrome = "on",
@@ -80,6 +82,11 @@ export function GlassSegmentedControl<T extends string>({
   const itemIdsKey = React.useMemo(() => items.map((item) => item.id).join("|"), [items])
 
   const updateIndicatorMetrics = React.useCallback(() => {
+    if (motionMode === "static") {
+      setIndicatorMetrics(null)
+      return
+    }
+
     const root = rootRef.current
     const activeButton = buttonRefs.current[value]
     if (!root || !activeButton) {
@@ -111,13 +118,22 @@ export function GlassSegmentedControl<T extends string>({
       }
       return next
     })
-  }, [value])
+  }, [motionMode, value])
 
   React.useLayoutEffect(() => {
+    if (motionMode === "static") {
+      setIndicatorMetrics(null)
+      return
+    }
     updateIndicatorMetrics()
-  }, [updateIndicatorMetrics, itemIdsKey, size])
+  }, [motionMode, updateIndicatorMetrics, itemIdsKey, size])
 
   React.useEffect(() => {
+    if (motionMode === "static") {
+      setIndicatorMetrics(null)
+      return
+    }
+
     const root = rootRef.current
     if (!root || typeof window === "undefined" || typeof window.ResizeObserver === "undefined") {
       return
@@ -138,7 +154,7 @@ export function GlassSegmentedControl<T extends string>({
       window.removeEventListener("resize", updateIndicatorMetrics)
       window.visualViewport?.removeEventListener("resize", updateIndicatorMetrics)
     }
-  }, [items, updateIndicatorMetrics])
+  }, [items, motionMode, updateIndicatorMetrics])
 
   return (
     <div
@@ -146,12 +162,13 @@ export function GlassSegmentedControl<T extends string>({
       className={cn("glass-segmented", className)}
       data-size={size}
       data-layout-id={layoutId}
+      data-motion-mode={motionMode}
       data-indicator-sheen={indicatorSheen}
       data-active-chrome={activeButtonChrome}
       role="tablist"
       aria-label={ariaLabel}
     >
-      {indicatorMetrics ? (
+      {motionMode === "default" && indicatorMetrics ? (
         <motion.span
           className="glass-segmented-indicator"
           style={{

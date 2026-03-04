@@ -20,6 +20,9 @@ import {
   BackendRoundStateAdapter,
   type BackendRoundConnectionState,
 } from "@/lib/game/backend-round-state-adapter";
+import { useAppSettings } from "@/lib/app-settings";
+import { useHaptics } from "@/lib/haptics";
+import { useI18n } from "@/lib/i18n";
 
 const MIN_BET = 0.1;
 const MAX_BET = 1000;
@@ -31,15 +34,15 @@ const MIN_RENDER_SURFACE_PX = 24;
 const HISTORY_POPOVER_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 const HISTORY_POPOVER_SIDE_GAP_PX = 22;
 const HISTORY_POPOVER_MAX_WIDTH_PX = 250;
-const CONNECTION_CTA_LABEL = "\u041d\u0435\u0442 \u0441\u043e\u0435\u0434\u0438\u043d\u0435\u043d\u0438\u044f";
-const CONNECTION_HINT_BASE =
-  "\u0421\u043e\u0435\u0434\u0438\u043d\u0435\u043d\u0438\u0435 \u043f\u043e\u0442\u0435\u0440\u044f\u043d\u043e. \u041f\u044b\u0442\u0430\u0435\u043c\u0441\u044f \u043f\u0435\u0440\u0435\u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0438\u0442\u044c\u0441\u044f.";
 
-function formatConnectionHint(attempt: number): string {
+function formatConnectionHint(
+  attempt: number,
+  t: (key: string, vars?: Record<string, string | number>) => string,
+): string {
   if (attempt > 0) {
-    return `\u0421\u043e\u0435\u0434\u0438\u043d\u0435\u043d\u0438\u0435 \u043f\u043e\u0442\u0435\u0440\u044f\u043d\u043e. \u041f\u0435\u0440\u0435\u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0430\u0435\u043c\u0441\u044f, \u043f\u043e\u043f\u044b\u0442\u043a\u0430 ${attempt}.`;
+    return t("rush.connectionRetry", { attempt });
   }
-  return CONNECTION_HINT_BASE;
+  return t("rush.connectionLost");
 }
 
 const INITIAL_SNAPSHOT: RoundSnapshot = {
@@ -115,14 +118,20 @@ function toFiniteNumber(value: unknown, fallback = 0): number {
   return fallback;
 }
 
-function formatRoundDate(timestamp: number | null): string {
+function formatRoundDate(
+  timestamp: number | null,
+  formatter: (value: number | string | Date, options?: Intl.DateTimeFormatOptions) => string,
+): string {
   if (!timestamp || !Number.isFinite(timestamp)) return "--.--.----";
-  return new Date(timestamp).toLocaleDateString("ru-RU");
+  return formatter(timestamp);
 }
 
-function formatRoundTime(timestamp: number | null): string {
+function formatRoundTime(
+  timestamp: number | null,
+  formatter: (value: number | string | Date, options?: Intl.DateTimeFormatOptions) => string,
+): string {
   if (!timestamp || !Number.isFinite(timestamp)) return "--:--:--";
-  return new Date(timestamp).toLocaleTimeString("ru-RU", { hour12: false });
+  return formatter(timestamp);
 }
 
 function isRoundSwitchErrorMessage(message: string): boolean {
@@ -133,6 +142,112 @@ function isRoundSwitchErrorMessage(message: string): boolean {
     normalized.includes("раунд сейчас не принимает ставки")
   );
 }
+
+function localizeAdapterMessage(
+  message: string,
+  t: (key: string, vars?: Record<string, string | number>) => string,
+): string {
+  const normalized = message.trim().toLowerCase();
+
+  if (
+    normalized.includes("per-bet risk cap exceeded") ||
+    normalized.includes("queued per-bet risk cap exceeded") ||
+    normalized.includes("ставка слишком большая для текущих лимитов")
+  ) {
+    return t("rush.error.betTooLarge");
+  }
+
+  if (
+    normalized.includes("round exposure cap exceeded") ||
+    normalized.includes("queued round exposure cap exceeded") ||
+    normalized.includes("лимит нагрузки на раунд достигнут")
+  ) {
+    return t("rush.error.roundExposureCap");
+  }
+
+  if (normalized.includes("queue risk buffer depleted") || normalized.includes("ставка на следующий раунд временно недоступна")) {
+    return t("rush.error.queueUnavailable");
+  }
+
+  if (
+    normalized.includes("risk-active state") ||
+    normalized.includes("not running for queue acceptance") ||
+    normalized.includes("раунд сейчас не принимает эту ставку")
+  ) {
+    return t("rush.error.roundNotAcceptingThisBet");
+  }
+
+  if (normalized.includes("ставка отклонена по лимиту риска")) {
+    return t("rush.error.riskRejected");
+  }
+
+  if (
+    normalized.includes("round is not accepting bets") ||
+    normalized.includes("betting closed") ||
+    normalized.includes("раунд сейчас не принимает ставки")
+  ) {
+    return t("rush.error.roundNotAccepting");
+  }
+
+  if (
+    normalized.includes("нет соединения") ||
+    normalized.includes("trying to reconnect") ||
+    normalized.includes("пытаемся переподключиться")
+  ) {
+    return t("rush.connectionLost");
+  }
+
+  if (normalized.includes("вы уже поставили ставку") || normalized.includes("already placed a bet")) {
+    return t("rush.error.alreadyBet");
+  }
+
+  if (normalized.includes("следующий раунд") && normalized.includes("у вас уже есть")) {
+    return t("rush.error.queuedBetExists");
+  }
+
+  if (normalized.includes("недостаточно средств") || normalized.includes("insufficient balance")) {
+    return t("rush.error.insufficientBalance");
+  }
+
+  if (normalized.includes("некорректная сумма ставки") || normalized.includes("invalid bet amount")) {
+    return t("rush.error.invalidBetAmount");
+  }
+
+  if (normalized.includes("ошибка сервера при размещении ставки") || normalized.includes("server error while placing the bet")) {
+    return t("rush.error.betServer");
+  }
+
+  if (normalized.includes("требуется авторизация") || normalized.includes("authorization required")) {
+    return t("rush.error.authRequired");
+  }
+
+  if (normalized.includes("не удалось поставить ставку") || normalized.includes("could not place the bet")) {
+    return t("rush.error.betFailed");
+  }
+
+  if (normalized.includes("round is not running")) {
+    return t("rush.error.roundNotRunning");
+  }
+
+  if (normalized.includes("bet already cashed out")) {
+    return t("rush.error.alreadyCashedOut");
+  }
+
+  if (normalized.includes("active bet not found")) {
+    return t("rush.error.activeBetNotFound");
+  }
+
+  if (normalized.includes("server error while cashing out")) {
+    return t("rush.error.cashoutServer");
+  }
+
+  if (normalized.includes("cashout failed")) {
+    return t("rush.error.cashoutFailed");
+  }
+
+  return message;
+}
+
 function historyPillClass(crashAt: number, isFirst: boolean): string {
   if (isFirst) return `${styles.historyPill} ${styles.historyPillFirst}`;
   if (crashAt < 1.6) return `${styles.historyPill} ${styles.historyLow}`;
@@ -226,11 +341,15 @@ export function StarRushPanel({
   onOnlineCountChange,
   onWalletNeedsRefresh,
 }: StarRushPanelProps) {
+  const { locale, setLocale, hapticsEnabled, setHapticsEnabled } = useAppSettings();
+  const { t, formatDate, formatTime } = useI18n();
+  const haptics = useHaptics();
   const panelRootRef = useRef<HTMLDivElement | null>(null);
   const mountRef = useRef<HTMLDivElement | null>(null);
   const historyRowRef = useRef<HTMLDivElement | null>(null);
   const historyRailRef = useRef<HTMLDivElement | null>(null);
   const historyPopoverRef = useRef<HTMLDivElement | null>(null);
+  const settingsPopoverRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<StarRushGame | null>(null);
   const resizeObRef = useRef<ResizeObserver | null>(null);
   const roundAdapterRef = useRef<BackendRoundStateAdapter | null>(null);
@@ -249,6 +368,7 @@ export function StarRushPanel({
   const [panelAnchorRect, setPanelAnchorRect] = useState<{ left: number; width: number } | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [isPlaceModalOpen, setPlaceModalOpen] = useState(false);
+  const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [showHistoryEdgeFade, setShowHistoryEdgeFade] = useState(false);
   const [openHistoryKey, setOpenHistoryKey] = useState<string | null>(null);
   const [historyPopoverPos, setHistoryPopoverPos] = useState<HistoryPopoverPosition | null>(null);
@@ -267,6 +387,8 @@ export function StarRushPanel({
   const historyCopyResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onOnlineCountChangeRef = useRef(onOnlineCountChange);
   const onWalletNeedsRefreshRef = useRef(onWalletNeedsRefresh);
+  const lastPhaseRef = useRef<RoundPhase>(INITIAL_SNAPSHOT.phase);
+  const lastCrashHapticRoundRef = useRef<string | null>(null);
   renderCountRef.current += 1;
 
   useEffect(() => {
@@ -480,6 +602,34 @@ export function StarRushPanel({
   }, [snapshot.onlineCount]);
 
   useEffect(() => {
+    if (!isActive) {
+      setSettingsOpen(false);
+    }
+  }, [isActive]);
+
+  useEffect(() => {
+    if (isPlaceModalOpen) {
+      setSettingsOpen(false);
+    }
+  }, [isPlaceModalOpen]);
+
+  useEffect(() => {
+    const previousPhase = lastPhaseRef.current;
+    const phaseChanged = previousPhase !== snapshot.phase;
+    const crashedNow =
+      phaseChanged &&
+      previousPhase === RoundPhase.RUNNING &&
+      (snapshot.phase === RoundPhase.CRASHED || snapshot.phase === RoundPhase.RESETTING);
+
+    if (crashedNow && lastCrashHapticRoundRef.current !== snapshot.roundId) {
+      haptics.roundCrash();
+      lastCrashHapticRoundRef.current = snapshot.roundId;
+    }
+
+    lastPhaseRef.current = snapshot.phase;
+  }, [haptics, snapshot.phase, snapshot.roundId]);
+
+  useEffect(() => {
     return () => {
       if (historyCopyResetTimerRef.current) {
         clearTimeout(historyCopyResetTimerRef.current);
@@ -526,6 +676,9 @@ export function StarRushPanel({
     if (interrupted && isPlaceModalOpen) {
       setPlaceModalOpen(false);
     }
+    if (interrupted) {
+      setSettingsOpen(false);
+    }
     rendererRef.current?.setConnectionSuspended(interrupted);
   }, [connectionState.status, isPlaceModalOpen]);
 
@@ -551,7 +704,7 @@ export function StarRushPanel({
 
       const amount = Math.round(Math.max(0, rawBetAmount) * 100) / 100;
       if (!Number.isFinite(amount) || amount < MIN_BET || amount > MAX_BET) {
-        showToast(`Допустимая ставка ${MIN_BET} - ${MAX_BET}`);
+        showToast(t("rush.betLimit", { min: MIN_BET, max: MAX_BET }));
         return false;
       }
 
@@ -579,18 +732,19 @@ export function StarRushPanel({
         }
 
         if (!result.ok) {
-          showToast(result.message);
+          showToast(localizeAdapterMessage(result.message, t));
           return false;
         }
 
         await refreshTonWalletBalance();
         onWalletNeedsRefreshRef.current?.();
+        haptics.betPlaced();
         return true;
       } finally {
         setBetSubmitting(false);
       }
     },
-    [isBetSubmitting, isCashoutSubmitting, refreshTonWalletBalance, showToast],
+    [haptics, isBetSubmitting, isCashoutSubmitting, refreshTonWalletBalance, showToast, t],
   );
 
   const onCashOut = useCallback(async () => {
@@ -602,21 +756,25 @@ export function StarRushPanel({
     try {
       const result = await adapter.cashOut();
       if (!result.ok) {
-        showToast(result.message);
+        showToast(localizeAdapterMessage(result.message, t));
         return;
       }
 
-      showToast(`Вывод ${result.payout.toFixed(2)} TON (${result.multiplier.toFixed(2)}x)`);
+      haptics.cashoutSuccess();
+      showToast(t("rush.cashoutToast", {
+        payout: result.payout.toFixed(2),
+        multiplier: result.multiplier.toFixed(2),
+      }));
       await refreshTonWalletBalance();
       onWalletNeedsRefreshRef.current?.();
     } finally {
       setCashoutSubmitting(false);
     }
-  }, [isBetSubmitting, isCashoutSubmitting, refreshTonWalletBalance, showToast]);
+  }, [haptics, isBetSubmitting, isCashoutSubmitting, refreshTonWalletBalance, showToast, t]);
 
   const onPlaceFromModal = useCallback(async (payload: PlaceBetSubmitPayload) => {
     if (payload.tab === "GIFTS") {
-      showToast("Инвентарь пуст");
+      showToast(t("placeBet.emptyInventory"));
       return;
     }
 
@@ -628,7 +786,7 @@ export function StarRushPanel({
     if (!accepted) return;
 
     setPlaceModalOpen(false);
-  }, [placeBetAmount, showToast]);
+  }, [placeBetAmount, showToast, t]);
 
   const isPreparing = snapshot.phase === RoundPhase.PREPARING;
   const isRunning = snapshot.phase === RoundPhase.RUNNING;
@@ -672,12 +830,12 @@ export function StarRushPanel({
   const connectionHint = useMemo(() => {
     if (!isConnectionInterrupted) return "";
     if (connectionState.reconnectAttempt > 0) {
-      return `Соединение потеряно. Переподключаемся, попытка ${connectionState.reconnectAttempt}.`;
+      return t("rush.connectionRetry", { attempt: connectionState.reconnectAttempt });
     }
-    return "Соединение потеряно. Пытаемся переподключиться.";
-  }, [connectionState.reconnectAttempt, isConnectionInterrupted]);
+    return t("rush.connectionLost");
+  }, [connectionState.reconnectAttempt, isConnectionInterrupted, t]);
   const connectionStatusText = isConnectionInterrupted
-    ? connectionHint || formatConnectionHint(connectionState.reconnectAttempt)
+    ? connectionHint || formatConnectionHint(connectionState.reconnectAttempt, t)
     : "";
   const ctaState = useMemo<MainCtaState>(() => {
     if (isConnectionInterrupted) return "connection-lost";
@@ -686,13 +844,13 @@ export function StarRushPanel({
     return "bet-ready";
   }, [canCashOutNow, isActionBusy, isConnectionInterrupted]);
   const mainBetLabel = useMemo(() => {
-    if (ctaState === "connection-lost") return CONNECTION_CTA_LABEL;
+    if (ctaState === "connection-lost") return t("rush.noConnection");
     if (ctaState === "submitting") {
-      return isCashoutSubmitting ? "Вывод..." : "Отправка...";
+      return isCashoutSubmitting ? t("rush.cashoutShort") : t("rush.submit");
     }
-    if (ctaState === "cashout-ready") return `Забрать ${cashoutAmount.toFixed(2)} TON`;
-    return "Сделать ставку";
-  }, [cashoutAmount, ctaState, isCashoutSubmitting]);
+    if (ctaState === "cashout-ready") return t("rush.cashout", { amount: cashoutAmount.toFixed(2) });
+    return t("rush.bet");
+  }, [cashoutAmount, ctaState, isCashoutSubmitting, t]);
   const isMainActionDisabled =
     ctaState === "submitting" || ctaState === "connection-lost";
   const ctaStateClass = ctaState === "cashout-ready"
@@ -709,13 +867,13 @@ export function StarRushPanel({
     ? `x${coefficient.toFixed(2)}`
     : isSettling
       ? `x${snapshot.crashAt.toFixed(2)}`
-      : "Ожидание";
+      : t("rush.waiting");
   const statusChipClass = isRunning
     ? styles.historyPillLive
     : isSettling
       ? styles.historyPillSettling
       : styles.historyPillWaiting;
-  const statusChipTextKey = `${snapshot.roundId}-${snapshot.phase}`;
+  const statusChipTextKey = `${snapshot.roundId}-${snapshot.phase}-${locale}`;
 
   const buildCompletedHistoryDetails = useCallback((item: RoundHistoryItem): HistoryDetailsState => ({
     key: `round-${item.roundId}`,
@@ -812,7 +970,7 @@ export function StarRushPanel({
     }
 
     if (!copied) {
-      showToast("Не удалось скопировать");
+      showToast(t("rush.copyFailed"));
       return;
     }
 
@@ -825,8 +983,8 @@ export function StarRushPanel({
       setCopiedHistoryField(null);
       historyCopyResetTimerRef.current = null;
     }, 1200);
-    showToast(field === "hash" ? "Server Seed Hash скопирован" : "Server Seed скопирован");
-  }, [showToast]);
+    showToast(field === "hash" ? t("rush.hashCopied") : t("rush.seedCopied"));
+  }, [showToast, t]);
 
   useEffect(() => {
     if (!openHistoryKey) return;
@@ -846,6 +1004,25 @@ export function StarRushPanel({
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, [openHistoryKey]);
+
+  useEffect(() => {
+    if (!isSettingsOpen) return;
+
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      const row = historyRowRef.current;
+      if (!row) return;
+
+      const settingsButton = row.querySelector<HTMLElement>("[data-rush-settings-button]");
+      if (settingsButton?.contains(target)) return;
+      if (settingsPopoverRef.current?.contains(target)) return;
+      setSettingsOpen(false);
+    };
+
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [isSettingsOpen]);
 
   useEffect(() => {
     if (!openHistoryKey) {
@@ -904,6 +1081,7 @@ export function StarRushPanel({
   }, [snapshot.phase, snapshot.roundId]);
 
   const onMainAction = useCallback(() => {
+    setSettingsOpen(false);
     if (ctaState === "connection-lost") return;
     if (ctaState === "cashout-ready") {
       void onCashOut();
@@ -941,7 +1119,7 @@ export function StarRushPanel({
 
         {isConnectionInterrupted ? (
           <div className={styles.connectionBanner} role="status" aria-live="polite">
-            <span className={styles.connectionBannerTitle}>{CONNECTION_CTA_LABEL}</span>
+            <span className={styles.connectionBannerTitle}>{t("rush.noConnection")}</span>
             <span className={styles.connectionBannerText}>{connectionStatusText}</span>
           </div>
         ) : null}
@@ -955,7 +1133,7 @@ export function StarRushPanel({
                   className={styles.historyPillBtn}
                   data-history-key={currentRoundHistoryDetails.key}
                   onClick={() => onToggleHistoryDetails(currentRoundHistoryDetails.key)}
-                  aria-label="Round fairness details"
+                  aria-label={t("rush.fairness.currentRound")}
                 >
                   <span
                     className={`${styles.historyPill} ${styles.historyPillFirst} ${statusChipClass} ${
@@ -998,7 +1176,7 @@ export function StarRushPanel({
                       className={styles.historyPillBtn}
                       data-history-key={details.key}
                       onClick={() => onToggleHistoryDetails(details.key)}
-                      aria-label={`Round ${item.roundId} fairness details`}
+                      aria-label={t("rush.fairness.roundDetails", { roundId: item.roundId })}
                     >
                       <span className={`${historyPillClass(item.crashAt, false)} ${isOpen ? styles.historyPillActive : ""}`}>
                         {`x${item.crashAt.toFixed(2)}`}
@@ -1016,9 +1194,69 @@ export function StarRushPanel({
           />
 
           {/* settings gear */}
-          <button type="button" className={styles.settingsBtn} aria-label="Settings">
+          <button
+            type="button"
+            data-rush-settings-button="true"
+            className={styles.settingsBtn}
+            aria-label={t("rush.settingsButton")}
+            aria-expanded={isSettingsOpen}
+            onClick={() => setSettingsOpen((prev) => !prev)}
+          >
             <Settings2 size={16} strokeWidth={2.1} />
           </button>
+
+          <AnimatePresence initial={false}>
+            {isSettingsOpen ? (
+              <motion.div
+                ref={settingsPopoverRef}
+                className={styles.settingsPopover}
+                initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                transition={{ duration: 0.18, ease: HISTORY_POPOVER_EASE }}
+              >
+                <div className={styles.settingsRow}>
+                  <div className={styles.settingsMeta}>
+                    <span className={styles.settingsLabel}>{t("rush.settings.haptics")}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className={`${styles.settingsToggle} ${hapticsEnabled ? styles.settingsToggleActive : ""}`}
+                    aria-pressed={hapticsEnabled}
+                    onClick={() => setHapticsEnabled(!hapticsEnabled)}
+                  >
+                    <span className={styles.settingsToggleThumb} />
+                  </button>
+                </div>
+
+                <div className={styles.settingsRow}>
+                  <div className={styles.settingsMeta}>
+                    <span className={styles.settingsLabel}>{t("rush.settings.language")}</span>
+                  </div>
+                  <div className={styles.settingsLangGroup}>
+                    <button
+                      type="button"
+                      className={`${styles.settingsLangBtn} ${locale === "ru" ? styles.settingsLangBtnActive : ""}`}
+                      aria-label={t("rush.settings.russian")}
+                      onClick={() => setLocale("ru")}
+                    >
+                      <span aria-hidden="true">🇷🇺</span>
+                      <span>RU</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.settingsLangBtn} ${locale === "en" ? styles.settingsLangBtnActive : ""}`}
+                      aria-label={t("rush.settings.english")}
+                      onClick={() => setLocale("en")}
+                    >
+                      <span aria-hidden="true">🇺🇸</span>
+                      <span>EN</span>
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
         </div>
 
         {typeof document !== "undefined"
@@ -1038,7 +1276,7 @@ export function StarRushPanel({
                   transition={{ duration: 0.18, ease: HISTORY_POPOVER_EASE }}
                 >
                   <div className={styles.historyInfoSection}>
-                    <span className={styles.historyInfoLabel}>Server Seed Hash</span>
+                    <span className={styles.historyInfoLabel}>{t("rush.fairness.serverSeedHash")}</span>
                     <button
                       type="button"
                       className={styles.historyInfoCopyBtn}
@@ -1061,7 +1299,7 @@ export function StarRushPanel({
                   {showExpandedHistoryDetails ? (
                     <>
                       <div className={styles.historyInfoSection}>
-                        <span className={styles.historyInfoLabel}>Server Seed</span>
+                        <span className={styles.historyInfoLabel}>{t("rush.fairness.serverSeed")}</span>
                         <button
                           type="button"
                           className={styles.historyInfoCopyBtn}
@@ -1082,12 +1320,12 @@ export function StarRushPanel({
                       </div>
 
                       <div className={styles.historyInfoGrid}>
-                        <span className={styles.historyInfoGridLabel}>Коэффициент:</span>
+                        <span className={styles.historyInfoGridLabel}>{t("rush.fairness.coefficient")}</span>
                         <span className={styles.historyInfoGridValue}>{`${selectedHistoryDetails.crashAt.toFixed(2)}x`}</span>
-                        <span className={styles.historyInfoGridLabel}>Дата:</span>
-                        <span className={styles.historyInfoGridValue}>{formatRoundDate(selectedHistoryDetails.timestamp)}</span>
-                        <span className={styles.historyInfoGridLabel}>Время:</span>
-                        <span className={styles.historyInfoGridValue}>{formatRoundTime(selectedHistoryDetails.timestamp)}</span>
+                        <span className={styles.historyInfoGridLabel}>{t("rush.fairness.date")}</span>
+                        <span className={styles.historyInfoGridValue}>{formatRoundDate(selectedHistoryDetails.timestamp, formatDate)}</span>
+                        <span className={styles.historyInfoGridLabel}>{t("rush.fairness.time")}</span>
+                        <span className={styles.historyInfoGridValue}>{formatRoundTime(selectedHistoryDetails.timestamp, formatTime)}</span>
                       </div>
                     </>
                   ) : null}
@@ -1109,7 +1347,7 @@ export function StarRushPanel({
             aria-busy={isActionBusy}
             onClick={onMainAction}
           >
-            {ctaState === "connection-lost" ? CONNECTION_CTA_LABEL : mainBetLabel}
+            {ctaState === "connection-lost" ? t("rush.noConnection") : mainBetLabel}
           </button>
           {ctaState === "connection-lost" ? (
             <p className={styles.queueHint}>{connectionStatusText}</p>
@@ -1133,6 +1371,9 @@ export function StarRushPanel({
         isSubmitting={isBetSubmitting}
         onOpenChange={(open) => {
           if (isBetSubmitting) return;
+          if (open) {
+            setSettingsOpen(false);
+          }
           setPlaceModalOpen(open);
         }}
         onSubmit={onPlaceFromModal}

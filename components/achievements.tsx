@@ -2,6 +2,7 @@
 
 import { ChevronRight, Star } from "lucide-react"
 
+import { useI18n } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 import { GlassCard } from "@/components/ui/glass-card"
 
@@ -17,17 +18,19 @@ interface AchievementsProps {
 }
 
 export function Achievements({ achievements, onViewAll }: AchievementsProps) {
+  const { t } = useI18n()
+
   return (
     <div className="mt-[var(--section-gap)] px-[var(--page-px)]">
       <GlassCard variant="elevated" className="rounded-[var(--radius-lg)] p-4">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="type-body font-semibold text-foreground">Инвентарь</h2>
+          <h2 className="type-body font-semibold text-foreground">{t("achievements.title")}</h2>
           <button
             onClick={onViewAll}
             type="button"
             className="focus-brand inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground"
           >
-            Все
+            {t("achievements.all")}
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>

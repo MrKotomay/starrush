@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "framer-motion"
 import { Rocket } from "lucide-react"
 
 import { ParticleBackground } from "@/components/particle-background"
+import { useI18n } from "@/lib/i18n"
 
 interface AppBootstrapSplashProps {
   progress: number
@@ -17,6 +18,7 @@ function clampProgress(value: number): number {
 
 export function AppBootstrapSplash({ progress, label }: AppBootstrapSplashProps) {
   const shouldReduceMotion = useReducedMotion()
+  const { t } = useI18n()
   const normalized = clampProgress(progress)
   const percent = Math.round(normalized * 100)
   const fill = `${Math.max(6, percent)}%`
@@ -38,8 +40,8 @@ export function AppBootstrapSplash({ progress, label }: AppBootstrapSplashProps)
             <Rocket className="h-7 w-7 text-foreground" />
           </motion.div>
 
-          <p className="text-center text-base font-semibold text-foreground">Запуск StarRush</p>
-          <p className="mt-1 text-center text-xs text-muted-foreground">{label}</p>
+          <p className="text-center text-base font-semibold text-foreground">{t("app.launchTitle")}</p>
+          <p className="mt-1 text-center text-xs text-muted-foreground">{t(label)}</p>
 
           <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-white/10">
             <motion.span
@@ -56,4 +58,3 @@ export function AppBootstrapSplash({ progress, label }: AppBootstrapSplashProps)
     </div>
   )
 }
-

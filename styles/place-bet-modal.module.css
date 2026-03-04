@@ -116,21 +116,17 @@
 
 .contentViewport {
   position: relative;
-  overflow: hidden;
-  transition: height 220ms cubic-bezier(0.22, 1, 0.36, 1);
-  flex-shrink: 0;
+  flex: 1 1 auto;
   min-height: 0;
-}
-
-.contentPane {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  min-height: 0;
+  padding-right: 2px;
 }
 
 .contentInner {
-  min-height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -202,19 +198,6 @@
 .amountInput:focus-visible {
   outline: none;
   box-shadow: none;
-}
-
-.amountInputMock {
-  flex: 1;
-  min-width: 0;
-  color: hsl(var(--foreground));
-  font-size: min(1.58rem, 6.9vw);
-  line-height: 1;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .amountInput::placeholder {
@@ -389,23 +372,6 @@
   flex-shrink: 0;
 }
 
-.measureHost {
-  position: fixed;
-  top: -10000px;
-  left: 0;
-  width: 100%;
-  max-width: 520px;
-  box-sizing: border-box;
-  padding: 0 16px;
-  visibility: hidden;
-  pointer-events: none;
-  z-index: -1;
-}
-
-.measurePane {
-  width: 100%;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .sheet,
   .contentViewport,
@@ -418,6 +384,24 @@
   .quickButton::after {
     animation: none !important;
   }
+}
+
+:global(body[data-adaptive-motion="reduced"]) .backdrop {
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+:global(body[data-adaptive-motion="reduced"]) .sheet {
+  box-shadow: 0 18px 36px rgba(4, 7, 22, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+:global(body[data-adaptive-motion="reduced"]) .sheet::before {
+  opacity: 0.58;
+}
+
+:global(body[data-adaptive-motion="reduced"]) .quickButton::after {
+  animation: none !important;
+  opacity: 0 !important;
 }
 
 /* placeQuickSheen removed — uses global liquidSheenSweepOnce */

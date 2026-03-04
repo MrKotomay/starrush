@@ -1,27 +1,43 @@
-'use client';
+"use client"
 
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic"
+
+import { AppSettingsProvider } from "@/lib/app-settings"
+import { useI18n } from "@/lib/i18n"
+
+function CrashLoadingFallback() {
+  const { t } = useI18n()
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="text-center">
+        <div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <p className="text-sm text-muted-foreground/70">{t("common.loading")}</p>
+      </div>
+    </div>
+  )
+}
 
 const CrashGame = dynamic(
-  () => import('@/components/crash/CrashGame').then((mod) => mod.CrashGame),
+  () => import("@/components/crash/CrashGame").then((mod) => mod.CrashGame),
   {
     ssr: false,
-    loading: () => (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground/70">Загрузка…</p>
-        </div>
-      </div>
-    ),
-  }
-);
+    loading: () => <CrashLoadingFallback />,
+  },
+)
 
-export default function CrashPage() {
+function CrashPageContent() {
   return (
     <div className="min-h-screen bg-background">
       <CrashGame demoMode={true} />
     </div>
-  );
+  )
 }
 
+export default function CrashPage() {
+  return (
+    <AppSettingsProvider>
+      <CrashPageContent />
+    </AppSettingsProvider>
+  )
+}

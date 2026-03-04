@@ -2,6 +2,8 @@
 
 import { memo, useCallback, useMemo } from "react";
 import { FixedSizeList, ListChildComponentProps } from "react-window";
+
+import { useI18n } from "@/lib/i18n"
 import styles from "@/styles/starrush.module.css";
 import { BetStatus, PlayerBetView, RoundPhase } from "@/game/types";
 import { avatarPalette } from "@/theme/colors";
@@ -59,6 +61,7 @@ interface BetRowProps {
 
 const BetRow = memo(
   function BetRow({ row }: BetRowProps) {
+    const { t } = useI18n()
     const pay = useMemo(() => computePayout(row), [row]);
     const bgColor = useMemo(() => avatarColor(row.username), [row.username]);
     const userInitials = useMemo(() => initials(row.username), [row.username]);
@@ -72,7 +75,7 @@ const BetRow = memo(
 
         <div className={styles.betInfo}>
           <p className={styles.betName}>
-            {row.isCurrentUser ? `${row.username} (\u0412\u044b)` : row.username}
+            {row.isCurrentUser ? `${row.username} (${t("rush.players.you")})` : row.username}
           </p>
           <p className={styles.betMeta}>
             <img src="/ton.svg" alt="" className={styles.tonIconSmall} />
@@ -123,6 +126,7 @@ export const PlayersBetsList = memo(function PlayersBetsList({
   queuedBet,
   phase = RoundPhase.PREPARING,
 }: PlayersBetsListProps) {
+  const { t } = useI18n()
   const sortedPlayers = useMemo(() => sortRowsWithCurrentUserFirst(players), [players]);
   const allRows = useMemo(
     () => (queuedBet ? [queuedBet, ...sortedPlayers] : sortedPlayers),
@@ -130,14 +134,14 @@ export const PlayersBetsList = memo(function PlayersBetsList({
   );
   const emptyText =
     phase === RoundPhase.RUNNING
-      ? "\u0421\u0442\u0430\u0432\u043e\u043a \u043f\u043e\u043a\u0430 \u043d\u0435\u0442"
+      ? t("rush.players.noneRunning")
       : phase === RoundPhase.PREPARING
-        ? "\u041f\u043e\u0434\u0433\u043e\u0442\u043e\u0432\u043a\u0430 \u043a \u0440\u0430\u0443\u043d\u0434\u0443"
-        : "\u041e\u0436\u0438\u0434\u0430\u043d\u0438\u0435 \u0441\u043b\u0435\u0434\u0443\u044e\u0449\u0435\u0433\u043e \u0440\u0430\u0443\u043d\u0434\u0430";
+        ? t("rush.players.nonePreparing")
+        : t("rush.players.noneWaiting");
   const queuedHint = queuedBet
     ? phase === RoundPhase.PREPARING
-      ? "\u0421\u0442\u0430\u0432\u043a\u0430 \u043f\u043e\u0441\u0442\u0430\u0432\u043b\u0435\u043d\u0430 \u043d\u0430 \u0441\u043b\u0435\u0434\u0443\u044e\u0449\u0438\u0439 \u0440\u0430\u0443\u043d\u0434"
-      : "\u0421\u0442\u0430\u0432\u043a\u0430 \u043e\u0436\u0438\u0434\u0430\u0435\u0442 \u0441\u043b\u0435\u0434\u0443\u044e\u0449\u0438\u0439 \u0440\u0430\u0443\u043d\u0434"
+      ? t("rush.players.queuedPreparing")
+      : t("rush.players.queuedWaiting")
     : null;
   const listHeight = useMemo(
     () => Math.min(MAX_LIST_HEIGHT, Math.max(ROW_HEIGHT, allRows.length * ROW_HEIGHT)),

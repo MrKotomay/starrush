@@ -3,6 +3,7 @@
 import type { ReactNode } from "react"
 import { ChevronRight, Settings, Wallet, Zap } from "lucide-react"
 
+import { useI18n } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 import { GlassCard } from "@/components/ui/glass-card"
 
@@ -11,8 +12,8 @@ type MenuItemId = "wallet" | "staking" | "settings"
 interface MenuItem {
   id: MenuItemId
   icon: ReactNode
-  label: string
-  value?: string
+  labelKey: string
+  valueKey?: string
   valueColor?: string
   iconClassName: string
 }
@@ -21,23 +22,23 @@ const menuItems: MenuItem[] = [
   {
     id: "wallet",
     icon: <Wallet className="h-5 w-5 text-foreground" />,
-    label: "Кошелек",
-    value: "Открыть",
+    labelKey: "settingsMenu.wallet",
+    valueKey: "settingsMenu.open",
     valueColor: "text-brand-soft",
     iconClassName: "bg-gradient-to-br from-brand-1 to-brand-2",
   },
   {
     id: "staking",
     icon: <Zap className="h-5 w-5 text-foreground" />,
-    label: "Стейкинг",
-    value: "Активен",
+    labelKey: "settingsMenu.staking",
+    valueKey: "settingsMenu.active",
     valueColor: "text-brand-soft",
     iconClassName: "bg-gradient-to-br from-brand-2 to-brand-1",
   },
   {
     id: "settings",
     icon: <Settings className="h-5 w-5 text-foreground" />,
-    label: "Настройки",
+    labelKey: "settingsMenu.settings",
     iconClassName: "bg-gradient-to-br from-surface-3 to-surface-2",
   },
 ]
@@ -53,6 +54,8 @@ export function SettingsMenu({
   onStakingClick,
   onSettingsClick,
 }: SettingsMenuProps) {
+  const { t } = useI18n()
+
   const handleClick = (id: MenuItemId) => {
     if (id === "wallet") {
       onWalletClick?.()
@@ -82,11 +85,11 @@ export function SettingsMenu({
             <div className={cn("flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] border border-white/12 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]", item.iconClassName)}>
               {item.icon}
             </div>
-            <span className="font-medium text-foreground">{item.label}</span>
+            <span className="font-medium text-foreground">{t(item.labelKey)}</span>
           </div>
           <div className="flex items-center gap-2">
-            {item.value ? (
-              <span className={cn("text-sm", item.valueColor)}>{item.value}</span>
+            {item.valueKey ? (
+              <span className={cn("text-sm", item.valueColor)}>{t(item.valueKey)}</span>
             ) : null}
             <ChevronRight className="h-5 w-5 text-text-tertiary" />
           </div>

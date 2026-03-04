@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { ChevronUp, Wallet } from "lucide-react"
 
+import { useI18n } from "@/lib/i18n"
 import rushStyles from "@/styles/starrush.module.css"
 
 type HudTab = "staking" | "mine" | "profile"
@@ -50,6 +51,7 @@ export function TopHud({
   onActiveBalanceCurrencyChange,
   avatarLayoutId = "shared-profile-avatar",
 }: TopHudProps) {
+  const { t } = useI18n()
   const [isBalanceSelectorOpen, setBalanceSelectorOpen] = useState(false)
   const currencySwitchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const shouldReduceMotion = useReducedMotion()
@@ -134,7 +136,7 @@ export function TopHud({
                 transition={hudTransition}
               >
                 <Wallet className="h-4 w-4" />
-                Кошелек
+                {t("topHud.wallet")}
               </motion.button>
             )}
           </AnimatePresence>
@@ -167,15 +169,15 @@ export function TopHud({
         )}
 
         <div className="flex w-[148px] justify-end">
-          <div className={rushStyles.balanceSelector}>
-            <div className={rushStyles.balanceChip} data-ui="shared-balance-chip">
-              <div className={rushStyles.balanceMain} aria-label={`${activeBalanceCurrency} баланс`}>
+            <div className={rushStyles.balanceSelector}>
+              <div className={rushStyles.balanceChip} data-ui="shared-balance-chip">
+              <div className={rushStyles.balanceMain} aria-label={t("topHud.balanceAria", { currency: activeBalanceCurrency })}>
                 <button
                   type="button"
                   data-ui="shared-balance-chevron"
                   className={`${rushStyles.balanceChevronBtn} ${isBalanceSelectorOpen ? rushStyles.balanceChevronBtnOpen : ""}`}
                   onClick={() => setBalanceSelectorOpen((prev) => !prev)}
-                  aria-label="Переключить селектор баланса"
+                  aria-label={t("topHud.balanceSelector")}
                   aria-expanded={isBalanceSelectorOpen}
                 >
                   <ChevronUp size={14} strokeWidth={2.4} />
@@ -231,7 +233,7 @@ export function TopHud({
                   }
                   onRefreshBalances?.()
                 }}
-                title={onDepositClick ? "Пополнить баланс" : isRefreshingBalances ? "Обновление..." : "Обновить баланс"}
+                title={onDepositClick ? t("topHud.depositBalance") : isRefreshingBalances ? t("topHud.refreshing") : t("topHud.refreshBalance")}
               >
                 +
               </button>
