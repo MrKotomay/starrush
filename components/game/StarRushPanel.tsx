@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { StarRushGame } from "@/game/StarRushGame";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Copy, Settings2 } from "lucide-react";
+import { Check, Copy, Settings2, Vibrate, VibrateOff } from "lucide-react";
 
 import styles from "@/styles/starrush.module.css";
 
@@ -1221,11 +1221,23 @@ export function StarRushPanel({
                   </div>
                   <button
                     type="button"
-                    className={`${styles.settingsToggle} ${hapticsEnabled ? styles.settingsToggleActive : ""}`}
+                    className={styles.settingsIconBtn}
                     aria-pressed={hapticsEnabled}
+                    aria-label={t("rush.settings.haptics")}
                     onClick={() => setHapticsEnabled(!hapticsEnabled)}
                   >
-                    <span className={styles.settingsToggleThumb} />
+                    <AnimatePresence mode="wait" initial={false}>
+                      <motion.span
+                        key={hapticsEnabled ? "vibrate-on" : "vibrate-off"}
+                        className={styles.settingsIconGlyph}
+                        initial={{ opacity: 0, scale: 0.82, y: 4 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.82, y: -4 }}
+                        transition={{ duration: 0.16, ease: HISTORY_POPOVER_EASE }}
+                      >
+                        {hapticsEnabled ? <Vibrate size={15} strokeWidth={2.1} /> : <VibrateOff size={15} strokeWidth={2.1} />}
+                      </motion.span>
+                    </AnimatePresence>
                   </button>
                 </div>
 
@@ -1240,7 +1252,7 @@ export function StarRushPanel({
                       aria-label={t("rush.settings.russian")}
                       onClick={() => setLocale("ru")}
                     >
-                      <span aria-hidden="true">🇷🇺</span>
+                      <span aria-hidden="true" className={`${styles.flagBadge} ${styles.flagRu}`} />
                       <span>RU</span>
                     </button>
                     <button
@@ -1249,7 +1261,7 @@ export function StarRushPanel({
                       aria-label={t("rush.settings.english")}
                       onClick={() => setLocale("en")}
                     >
-                      <span aria-hidden="true">🇺🇸</span>
+                      <span aria-hidden="true" className={`${styles.flagBadge} ${styles.flagUs}`} />
                       <span>EN</span>
                     </button>
                   </div>
