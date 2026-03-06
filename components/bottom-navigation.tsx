@@ -52,7 +52,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
       className="fixed left-1/2 z-50 -translate-x-1/2 px-0.5 transition-opacity duration-200"
       style={{ bottom: "calc(12px + var(--content-safe-bottom))" }}
     >
-      <BottomNavShell className="relative px-2 py-2">
+      <BottomNavShell className="relative px-1.5 py-1.5">
         <div className="flex items-center gap-1">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id
@@ -63,7 +63,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                 key={tab.id}
                 onClick={() => handleTabClick(tab.id)}
                 className={cn(
-                  "focus-brand relative flex min-w-[92px] flex-col items-center gap-1 rounded-[18px] px-4 py-2 transition-colors duration-200 ease-out",
+                  "focus-brand relative flex min-w-[88px] flex-col items-center gap-1 rounded-[16px] px-3.5 py-1.5 transition-colors duration-200 ease-out",
                   isActive ? "text-foreground" : "text-text-tertiary",
                 )}
                 aria-current={isActive ? "page" : undefined}
@@ -73,7 +73,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                   <motion.span
                     layoutId="bottom-nav-active-pill"
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 rounded-[18px] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.12)_0%,rgba(255,255,255,0.04)_34%,rgba(255,255,255,0.02)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_12px_22px_rgba(2,6,18,0.12)]"
+                    className="pointer-events-none absolute inset-[2px] rounded-[14px] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.10)_0%,rgba(255,255,255,0.04)_32%,rgba(255,255,255,0.02)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_8px_16px_rgba(2,6,18,0.10)]"
                     transition={indicatorTransition}
                   />
                 ) : null}
