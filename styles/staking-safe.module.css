@@ -84,6 +84,45 @@
   padding-top: 188px;
 }
 
+.claimStrip {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 22px;
+  border: 1px solid rgba(var(--rgb-text-primary), 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 54%, rgba(255, 255, 255, 0) 100%),
+    rgba(8, 12, 28, 0.34);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 12px 24px rgba(4, 8, 22, 0.12);
+  padding: 12px 14px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.claimMeta {
+  min-width: 0;
+}
+
+.claimValue {
+  color: hsl(var(--foreground));
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.claimButton {
+  min-width: 116px;
+  height: 42px;
+  border-radius: 18px;
+  padding-inline: 18px;
+  font-size: 0.9rem;
+}
+
 .leaderboardHeader {
   margin-bottom: 12px;
   display: flex;
@@ -137,8 +176,10 @@
   align-items: center;
   gap: 8px;
   border-radius: 18px;
-  border: 1px solid rgba(var(--rgb-text-primary), 0.05);
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 58%, rgba(18, 24, 50, 0.58) 100%);
+  border: 1px solid rgba(var(--rgb-text-primary), 0.045);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.018) 58%, rgba(18, 24, 50, 0.52) 100%),
+    rgba(9, 14, 28, 0.36);
   padding: 10px;
   transition:
     border-color 0.2s ease,
@@ -166,26 +207,28 @@
 }
 
 .leaderboardRowTop {
-  border-color: hsl(var(--brand-soft) / 0.16);
-  background: linear-gradient(165deg, hsl(var(--brand-1) / 0.18) 0%, hsl(var(--brand-2) / 0.1) 48%, rgba(18, 24, 50, 0.7) 100%);
+  border-color: hsl(var(--brand-soft) / 0.12);
+  background:
+    linear-gradient(165deg, hsl(var(--brand-1) / 0.14) 0%, hsl(var(--brand-2) / 0.08) 48%, rgba(18, 24, 50, 0.62) 100%),
+    rgba(9, 14, 28, 0.42);
 }
 
 .leaderboardRowTop3 {
-  border-color: hsl(var(--brand-soft) / 0.1);
+  border-color: hsl(var(--brand-soft) / 0.08);
 }
 
 .leaderboardRowCurrent {
-  border-color: rgba(var(--rgb-text-primary), 0.18);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  border-color: rgba(var(--rgb-text-primary), 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 @media (hover: hover) {
   .leaderboardRow:hover {
     transform: translateY(-1px);
-    border-color: hsl(var(--brand-soft) / 0.14);
+    border-color: hsl(var(--brand-soft) / 0.12);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 10px 20px rgba(8, 11, 26, 0.14);
+      inset 0 1px 0 rgba(255, 255, 255, 0.07),
+      0 8px 18px rgba(8, 11, 26, 0.12);
   }
 
   .leaderboardRow:hover::after {

@@ -184,6 +184,7 @@ export function PlaceBetModal({
   const submitDisabled = !canSubmit || isSubmitting || insufficientBalance
   const tonInputIsDefault = tonAmountRaw.trim() === "" || tonAmountValue <= 0
   const starsInputIsDefault = starsAmountRaw.trim() === "" || starsAmountValue <= 0
+  const submitVariant = insufficientBalance || (!canSubmit && !isSubmitting) ? "glass" : "brand"
   const submitLabel = isSubmitting
     ? t("placeBet.submitting")
     : insufficientBalance
@@ -204,7 +205,7 @@ export function PlaceBetModal({
       return (
         <div className={`${styles.contentInner} ${styles.contentInnerCentered}`}>
           <div className={styles.emptyWrap}>
-            <X size={44} strokeWidth={2.5} className={styles.emptyIcon} />
+            <Gift size={42} strokeWidth={2.1} className={styles.emptyIcon} />
             <p className={`${styles.emptyText} ${styles.mutedText}`}>{t("placeBet.emptyInventory")}</p>
           </div>
         </div>
@@ -341,6 +342,7 @@ export function PlaceBetModal({
                 className={styles.tabs}
                 layoutId="place-bet-tab-indicator"
                 motionMode={adaptiveOverlayMotion ? "static" : "default"}
+                activeButtonChrome="off"
                 disabled={isSubmitting}
               />
 
@@ -363,11 +365,15 @@ export function PlaceBetModal({
             <div className={styles.footer}>
               <PrimaryButton
                 type="button"
-                className={`${styles.submitButton} ${isSubmitting ? styles.submitButtonLoading : ""}`}
+                variant={submitVariant}
+                depth={submitVariant === "glass" ? "flat" : "raised"}
+                className={`${styles.submitButton} ${isSubmitting ? styles.submitButtonLoading : ""} ${
+                  insufficientBalance ? styles.submitButtonInsufficient : ""
+                } ${submitVariant === "glass" && !insufficientBalance ? styles.submitButtonIdle : ""}`}
                 disabled={submitDisabled}
                 aria-busy={isSubmitting}
                 motion={adaptiveOverlayMotion ? "none" : "subtle"}
-                data-sheen={submitDisabled ? "off" : "always"}
+                data-sheen={submitVariant === "brand" && !submitDisabled ? "event" : "off"}
                 onClick={async () => {
                   if (submitDisabled) return
                   const amount = tab === "TON" ? tonAmountValue : tab === "STARS" ? starsAmountValue : 0

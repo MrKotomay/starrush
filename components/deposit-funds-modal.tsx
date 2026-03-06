@@ -405,6 +405,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
               ariaLabel={t("deposit.title")}
               layoutId="deposit-method-indicator"
               motionMode={adaptiveOverlayMotion ? "static" : "default"}
+              activeButtonChrome="off"
               disabled={isSubmitting}
               className={styles.tabs}
             />
@@ -475,7 +476,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                         onClick={() => void onPayTon()}
                         disabled={isSubmitting}
                         motion={adaptiveOverlayMotion ? "none" : "subtle"}
-                        data-sheen={isSubmitting ? "off" : "always"}
+                        data-sheen={isSubmitting ? "off" : "event"}
                         className={styles.primaryActionBtn}
                       >
                         {!walletShortAddress
@@ -526,7 +527,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                         onClick={() => void onPayStars()}
                         disabled={isSubmitting}
                         motion={adaptiveOverlayMotion ? "none" : "subtle"}
-                        data-sheen={isSubmitting ? "off" : "always"}
+                        data-sheen={isSubmitting ? "off" : "event"}
                         className={styles.primaryActionBtn}
                       >
                         {isSubmitting ? t("deposit.payStarsSubmitting") : t("deposit.payStars")}

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
-import { ChevronUp, Wallet } from "lucide-react"
+import { ChevronUp, Vault, Wallet } from "lucide-react"
 
 import { useI18n } from "@/lib/i18n"
 import rushStyles from "@/styles/starrush.module.css"
@@ -61,7 +61,7 @@ export function TopHud({
   const activeBalanceLabel = activeBalanceCurrency === "TON" ? tonBalanceLabel : starsBalanceLabel
   const inactiveBalanceLabel = inactiveBalanceCurrency === "TON" ? tonBalanceLabel : starsBalanceLabel
   const isRushTab = activeTab === "mine"
-  const showCenterAvatar = activeTab === "staking"
+  const isStakingTab = activeTab === "staking"
 
   useEffect(() => {
     setBalanceSelectorOpen(false)
@@ -124,7 +124,7 @@ export function TopHud({
                 <span className={rushStyles.greenDot} />
                 <span>{onlineCount}</span>
               </motion.div>
-            ) : (
+            ) : !isStakingTab ? (
               <motion.button
                 key="hud-wallet"
                 type="button"
@@ -138,31 +138,30 @@ export function TopHud({
                 <Wallet className="h-4 w-4" />
                 {t("topHud.wallet")}
               </motion.button>
+            ) : (
+              <motion.div
+                key="hud-spacer"
+                className="h-10 w-[116px]"
+                aria-hidden="true"
+                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -10, scale: 0.98 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -12, scale: 0.98 }}
+                transition={hudTransition}
+              />
             )}
           </AnimatePresence>
         </div>
 
-        {showCenterAvatar ? (
+        {isStakingTab ? (
           <motion.div
-            layoutId={avatarLayoutId}
+            key="staking-chip"
             transition={avatarTransition}
-            className="h-[54px] w-[54px] rounded-full p-[2px]"
-            style={{
-              backgroundImage: "var(--primary-gradient)",
-              boxShadow: "0 10px 22px rgba(107, 75, 255, 0.16), var(--shadow-sm)",
-            }}
+            className="glass-pill inline-flex h-10 items-center gap-2 rounded-full px-4 text-[0.8rem] font-semibold tracking-[0.01em] text-foreground"
           >
-            <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-surface-1">
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="Telegram avatar" className="h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-1/36 to-brand-2/24">
-                  <span className="text-base font-bold text-foreground">
-                    {username.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              )}
-            </div>
+            <span className="flex h-6 w-6 items-center justify-center rounded-full border border-white/8 bg-gradient-to-br from-brand-1/22 to-brand-2/14 text-foreground/88">
+              <Vault className="h-3.5 w-3.5" />
+            </span>
+            <span>{t("common.staking")}</span>
           </motion.div>
         ) : (
           <div className="h-[54px] w-[54px]" aria-hidden="true" />

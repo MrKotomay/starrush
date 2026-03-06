@@ -225,19 +225,19 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
           </div>
 
           <div className={styles.vaultContent}>
-            <div className="relative z-20 flex items-center justify-between gap-3 rounded-[22px] border border-white/8 bg-black/20 p-3.5 shadow-[var(--shadow-sm)] backdrop-blur-xl">
-              <div>
-                <p className="mb-1 text-[0.8rem] font-medium text-muted-foreground">{t("staking.youEarned")}</p>
+            <div className={styles.claimStrip}>
+              <div className={styles.claimMeta}>
+                <p className="mb-1 text-[0.78rem] font-medium text-muted-foreground">{t("staking.youEarned")}</p>
                 <div className="flex items-center gap-2">
                   <img src="/ton.svg" alt="TON" className="h-5 w-5 rounded-full" />
-                  <span className="text-[1.05rem] font-semibold tracking-[-0.02em] text-foreground">{stakingAmountLabel} TON</span>
+                  <span className={styles.claimValue}>{stakingAmountLabel} TON</span>
                 </div>
               </div>
               <PrimaryButton
                 depth="raised"
                 variant="brand"
                 data-sheen="event"
-                className="h-11 min-w-28 rounded-[18px] px-5 text-sm"
+                className={styles.claimButton}
               >
                 {t("staking.claim")}
               </PrimaryButton>
