@@ -50,9 +50,9 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
     <nav
       data-ui="bottom-nav"
       className="fixed left-1/2 z-50 -translate-x-1/2 px-0.5 transition-opacity duration-200"
-      style={{ bottom: "calc(10px + var(--content-safe-bottom))" }}
+      style={{ bottom: "calc(12px + var(--content-safe-bottom))" }}
     >
-      <BottomNavShell className="relative px-1.5 py-1.5">
+      <BottomNavShell className="relative px-2 py-2">
         <div className="flex items-center gap-1">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id
