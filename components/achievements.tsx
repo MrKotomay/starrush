@@ -24,7 +24,7 @@ export function Achievements({ achievements, onViewAll }: AchievementsProps) {
     <div className="mt-[var(--section-gap)] px-[var(--page-px)]">
       <GlassCard variant="elevated" className="rounded-[var(--radius-lg)] p-4">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="type-body font-semibold text-foreground">{t("achievements.title")}</h2>
+          <h2 className="type-heading text-foreground">{t("achievements.title")}</h2>
           <button
             onClick={onViewAll}
             type="button"
@@ -40,14 +40,14 @@ export function Achievements({ achievements, onViewAll }: AchievementsProps) {
             <div key={achievement.id} className="flex flex-col items-center gap-2">
               <div
                 className={cn(
-                  "relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border transition-all duration-200",
+                  "relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-[20px] border transition-all duration-200",
                   achievement.unlocked
-                    ? "border-brand-soft/35 bg-gradient-to-br from-brand-1/42 via-brand-1/30 to-brand-2/30 shadow-[var(--shadow-sm)]"
-                    : "border-border/85 bg-surface-2/70",
+                    ? "border-brand-soft/18 bg-gradient-to-br from-brand-1/24 via-brand-1/14 to-brand-2/16 shadow-[var(--shadow-sm)]"
+                    : "border-white/8 bg-surface-2/45",
                 )}
               >
                 {achievement.unlocked ? (
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-brand-1/45 via-brand-1/26 to-brand-2/28 opacity-80" />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-brand-1/24 via-brand-1/12 to-brand-2/16 opacity-80" />
                 ) : null}
                 <Star
                   className={cn(
@@ -57,7 +57,7 @@ export function Achievements({ achievements, onViewAll }: AchievementsProps) {
                   fill={achievement.unlocked ? "currentColor" : "none"}
                 />
               </div>
-              <span className="text-xs text-text-tertiary">#{achievement.id}</span>
+              <span className="text-[11px] text-text-tertiary">#{achievement.id}</span>
             </div>
           ))}
         </div>

@@ -7,56 +7,56 @@
 
 export const colors = {
   /* Background layers */
-  bg0: "#0B1024",
-  bg1: "#080B1A",
-  bgGlow: "#12183A",
+  bg0: "#070C16",
+  bg1: "#050912",
+  bgGlow: "#10192A",
 
   /* Surfaces */
-  surface1: "#141A3A",
-  surface2: "#191E3B",
-  surface3: "#242C62",
+  surface1: "#111A2B",
+  surface2: "#162033",
+  surface3: "#202B40",
 
   /* Legacy aliases (keep compat for components referencing them) */
-  primary: "#651DCB",
-  primarySoft: "#ECCCF9",
-  accent: "#D761F1",
-  secondary: "#191E3B",
-  surface: "#141A3A",
-  surfaceAlt: "#0B1024",
+  primary: "#6B4BFF",
+  primarySoft: "#E6D8FF",
+  accent: "#D36EF3",
+  secondary: "#162033",
+  surface: "#111A2B",
+  surfaceAlt: "#070C16",
 
   /* Borders */
-  border: "#2F3156",
+  border: "#283449",
   divider: "rgba(255,255,255,0.06)",
 
   /* Text */
-  textPrimary: "#F6F2FF",
-  textSecondary: "#B9C2E6",
-  textTertiary: "#7E88B6",
-  disabled: "#7E88B6",
+  textPrimary: "#F5F7FF",
+  textSecondary: "#B7C4E1",
+  textTertiary: "#7D89A9",
+  disabled: "#7D89A9",
 
   /* Brand */
-  brand1: "#651DCB",
-  brand2: "#D761F1",
-  brandSoft: "#ECCCF9",
+  brand1: "#6B4BFF",
+  brand2: "#D36EF3",
+  brandSoft: "#E6D8FF",
 
   /* Highlights */
-  star: "#FDE182",
-  flame: "#F48547",
+  star: "#F6D77A",
+  flame: "#F48A4F",
 
   /* Semantic */
-  success: "#35D39B",
-  warning: "#F4B445",
-  danger: "#FF4D6D",
-  info: "#4AA3FF",
+  success: "#34D0A8",
+  warning: "#F1B85C",
+  danger: "#FF5B74",
+  info: "#59A6FF",
 } as const;
 
 export const gradients = {
-  primary: "linear-gradient(135deg, #651DCB 0%, #7A5CFF 45%, #D761F1 100%)",
-  primaryHover: "linear-gradient(135deg, #7332D6 0%, #8A6EFF 45%, #E071F7 100%)",
-  glass: "linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%)",
-  bgRadial: "radial-gradient(60% 40% at 50% 10%, rgba(122,92,255,0.22) 0%, transparent 60%)",
-  surface: "linear-gradient(180deg, #080B1A 0%, #12183A 100%)",
-  sheet: "linear-gradient(180deg, rgba(101,29,203,0.18) 0%, rgba(11,16,36,0.96) 30%, #0B1024 100%)",
+  primary: "linear-gradient(132deg, #6B4BFF 0%, #7C69FF 46%, #D36EF3 100%)",
+  primaryHover: "linear-gradient(132deg, #7458FF 0%, #8A78FF 46%, #DB79F6 100%)",
+  glass: "linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.03) 100%)",
+  bgRadial: "radial-gradient(64% 44% at 50% 0%, rgba(126,105,255,0.18) 0%, rgba(126,105,255,0.05) 42%, transparent 72%)",
+  surface: "linear-gradient(180deg, #060A14 0%, #10192A 100%)",
+  sheet: "linear-gradient(180deg, rgba(98,85,255,0.12) 0%, rgba(8,12,22,0.96) 30%, #070C16 100%)",
 } as const;
 
 /**
@@ -105,22 +105,22 @@ export const appColorCssVariables: Record<`--${string}`, string> = {
   "--ui-sheet-gradient": gradients.sheet,
 
   /* ── overlays / glass ──────────────────────────── */
-  "--ui-overlay": "rgba(6, 9, 22, 0.72)",
-  "--ui-surface-glass-strong": "rgba(20, 26, 58, 0.94)",
-  "--ui-surface-glass": "rgba(20, 26, 58, 0.80)",
-  "--ui-surface-glass-soft": "rgba(20, 26, 58, 0.60)",
-  "--ui-surface-glow": "rgba(101, 29, 203, 0.18)",
-  "--ui-glass-border": "rgba(255,255,255,0.10)",
+  "--ui-overlay": "rgba(4, 8, 18, 0.58)",
+  "--ui-surface-glass-strong": "rgba(15, 23, 39, 0.82)",
+  "--ui-surface-glass": "rgba(15, 23, 39, 0.68)",
+  "--ui-surface-glass-soft": "rgba(15, 23, 39, 0.48)",
+  "--ui-surface-glow": "rgba(107, 75, 255, 0.12)",
+  "--ui-glass-border": "rgba(255,255,255,0.08)",
 
   /* ── shadows ───────────────────────────────────── */
-  "--ui-shadow-sm": "0 2px 8px rgba(4,7,22,0.28), 0 1px 3px rgba(11,17,38,0.18)",
-  "--ui-shadow-md": "0 8px 24px rgba(4,7,22,0.40), 0 2px 8px rgba(11,17,38,0.24)",
-  "--ui-shadow-lg": "0 18px 48px rgba(4,7,22,0.54), 0 6px 18px rgba(11,17,38,0.30)",
-  "--ui-elevated-shadow": "0 18px 44px rgba(4, 7, 22, 0.54), 0 6px 16px rgba(11, 17, 38, 0.3)",
-  "--ui-soft-shadow": "0 8px 20px rgba(4, 7, 22, 0.38), 0 2px 8px rgba(11, 17, 38, 0.24)",
-  "--ui-primary-shadow": "0 10px 22px rgba(101, 29, 203, 0.34), 0 2px 8px rgba(8, 12, 28, 0.26)",
-  "--ui-glow-primary": "0 0 20px rgba(101,29,203,0.35), 0 0 60px rgba(101,29,203,0.12)",
-  "--ui-glow-accent": "0 0 20px rgba(215,97,241,0.30), 0 0 50px rgba(215,97,241,0.10)",
+  "--ui-shadow-sm": "0 8px 22px rgba(2,6,18,0.22), 0 2px 6px rgba(7,12,26,0.12)",
+  "--ui-shadow-md": "0 14px 36px rgba(2,6,18,0.28), 0 4px 12px rgba(7,12,26,0.16)",
+  "--ui-shadow-lg": "0 24px 56px rgba(2,6,18,0.36), 0 10px 24px rgba(7,12,26,0.20)",
+  "--ui-elevated-shadow": "0 20px 44px rgba(2, 6, 18, 0.34), 0 8px 18px rgba(7, 12, 26, 0.18)",
+  "--ui-soft-shadow": "0 10px 24px rgba(2, 6, 18, 0.24), 0 4px 10px rgba(7, 12, 26, 0.14)",
+  "--ui-primary-shadow": "0 12px 26px rgba(107, 75, 255, 0.20), 0 4px 10px rgba(2, 6, 18, 0.18)",
+  "--ui-glow-primary": "0 0 18px rgba(107,75,255,0.18), 0 0 42px rgba(107,75,255,0.08)",
+  "--ui-glow-accent": "0 0 18px rgba(211,110,243,0.16), 0 0 38px rgba(211,110,243,0.07)",
 
   /* ── borders ───────────────────────────────────── */
   "--ui-border-subtle": "rgba(255,255,255,0.08)",
@@ -128,15 +128,15 @@ export const appColorCssVariables: Record<`--${string}`, string> = {
   "--ui-divider": colors.divider,
 
   /* ── RGB channels (backward compat — canonical is --rgb-* in :root) ── */
-  "--ui-rgb-primary": "101, 29, 203",
-  "--ui-rgb-primary-soft": "236, 204, 249",
-  "--ui-rgb-accent": "215, 97, 241",
-  "--ui-rgb-text-primary": "246, 242, 255",
-  "--ui-rgb-text-secondary": "185, 194, 230",
-  "--ui-rgb-success": "53, 211, 155",
-  "--ui-rgb-danger": "255, 77, 109",
-  "--ui-rgb-warning": "244, 180, 69",
-  "--ui-rgb-info": "74, 163, 255",
+  "--ui-rgb-primary": "107, 75, 255",
+  "--ui-rgb-primary-soft": "230, 216, 255",
+  "--ui-rgb-accent": "211, 110, 243",
+  "--ui-rgb-text-primary": "245, 247, 255",
+  "--ui-rgb-text-secondary": "183, 196, 225",
+  "--ui-rgb-success": "52, 208, 168",
+  "--ui-rgb-danger": "255, 91, 116",
+  "--ui-rgb-warning": "241, 184, 92",
+  "--ui-rgb-info": "89, 166, 255",
 };
 
 export const avatarPalette = [

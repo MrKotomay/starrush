@@ -1252,10 +1252,13 @@ export function StarRushPanel({
                         exit={{ opacity: 0, scale: 0.82, y: -4 }}
                         transition={{ duration: 0.16, ease: HISTORY_POPOVER_EASE }}
                       >
-                        <span
-                          aria-hidden="true"
-                          className={`${styles.flagBadge} ${locale === "ru" ? styles.flagRu : styles.flagUs}`}
-                        />
+                        <span aria-hidden="true" className={styles.flagBadge}>
+                          <img
+                            src={locale === "ru" ? "/ru-flag.svg" : "/usa-flag.svg"}
+                            alt=""
+                            className={styles.flagImage}
+                          />
+                        </span>
                       </motion.span>
                     </AnimatePresence>
                   </button>
@@ -1343,21 +1346,23 @@ export function StarRushPanel({
           : null}
 
         <section className={styles.betSection}>
-          <button
-            key={ctaState === "connection-lost" ? `offline-${connectionState.reconnectAttempt}` : ctaState}
-            type="button"
-            className={`${styles.actionButton} ${ctaStateClass} liquid-sheen`}
-            disabled={isMainActionDisabled}
-            data-sheen={ctaSheenMode}
-            data-cta-state={ctaState}
-            aria-busy={isActionBusy}
-            onClick={onMainAction}
-          >
-            {ctaState === "connection-lost" ? t("rush.noConnection") : mainBetLabel}
-          </button>
-          {ctaState === "connection-lost" ? (
-            <p className={styles.queueHint}>{connectionStatusText}</p>
-          ) : null}
+          <div className={styles.betDock}>
+            <button
+              key={ctaState === "connection-lost" ? `offline-${connectionState.reconnectAttempt}` : ctaState}
+              type="button"
+              className={`${styles.actionButton} ${ctaStateClass} liquid-sheen`}
+              disabled={isMainActionDisabled}
+              data-sheen={ctaSheenMode}
+              data-cta-state={ctaState}
+              aria-busy={isActionBusy}
+              onClick={onMainAction}
+            >
+              {ctaState === "connection-lost" ? t("rush.noConnection") : mainBetLabel}
+            </button>
+            {ctaState === "connection-lost" ? (
+              <p className={styles.queueHint}>{connectionStatusText}</p>
+            ) : null}
+          </div>
         </section>
       </div>
 

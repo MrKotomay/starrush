@@ -475,6 +475,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                         onClick={() => void onPayTon()}
                         disabled={isSubmitting}
                         motion={adaptiveOverlayMotion ? "none" : "subtle"}
+                        data-sheen={isSubmitting ? "off" : "always"}
                         className={styles.primaryActionBtn}
                       >
                         {!walletShortAddress
@@ -525,6 +526,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                         onClick={() => void onPayStars()}
                         disabled={isSubmitting}
                         motion={adaptiveOverlayMotion ? "none" : "subtle"}
+                        data-sheen={isSubmitting ? "off" : "always"}
                         className={styles.primaryActionBtn}
                       >
                         {isSubmitting ? t("deposit.payStarsSubmitting") : t("deposit.payStars")}

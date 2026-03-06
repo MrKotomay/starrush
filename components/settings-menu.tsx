@@ -82,7 +82,7 @@ export function SettingsMenu({
           )}
         >
           <div className="flex items-center gap-3">
-            <div className={cn("flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] border border-white/12 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]", item.iconClassName)}>
+            <div className={cn("flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] border border-white/8 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]", item.iconClassName)}>
               {item.icon}
             </div>
             <span className="font-medium text-foreground">{t(item.labelKey)}</span>

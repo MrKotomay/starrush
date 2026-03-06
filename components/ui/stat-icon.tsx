@@ -19,7 +19,7 @@ export function StatIcon({ tone = "violet", className, ...props }: StatIconProps
   return (
     <div
       className={cn(
-        "inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius-md)] border border-border/70 bg-transparent shadow-[inset_0_1px_0_hsl(var(--brand-soft)/0.16)]",
+        "inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius-md)] border border-white/8 bg-white/[0.03] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]",
         toneClassMap[tone],
         className,
       )}

@@ -105,7 +105,7 @@ export function TopHud({
 
   return (
     <div
-      className="relative z-20 w-full px-[var(--page-px)] pt-[calc(var(--content-safe-top)+48px)] pb-2"
+      className="relative z-20 w-full px-[var(--page-px)] pt-[calc(var(--content-safe-top)+42px)] pb-2"
       data-ui="shared-top-hud"
     >
       <div className="flex items-center justify-between">
@@ -129,7 +129,7 @@ export function TopHud({
                 key="hud-wallet"
                 type="button"
                 onClick={onWalletClick}
-                className="btn-primary-glow focus-brand inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold tracking-wide"
+                className="glass-pill focus-brand inline-flex min-h-10 items-center gap-2 rounded-full px-3.5 py-2 text-[0.8rem] font-semibold tracking-[0.01em] text-foreground"
                 initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -12, scale: 0.98 }}
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -16, scale: 0.98 }}
@@ -146,10 +146,10 @@ export function TopHud({
           <motion.div
             layoutId={avatarLayoutId}
             transition={avatarTransition}
-            className="h-14 w-14 rounded-full p-[2px]"
+            className="h-[54px] w-[54px] rounded-full p-[2px]"
             style={{
               backgroundImage: "var(--primary-gradient)",
-              boxShadow: "var(--glow-primary), var(--shadow-sm)",
+              boxShadow: "0 10px 22px rgba(107, 75, 255, 0.16), var(--shadow-sm)",
             }}
           >
             <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-surface-1">
@@ -165,10 +165,10 @@ export function TopHud({
             </div>
           </motion.div>
         ) : (
-          <div className="h-14 w-14" aria-hidden="true" />
+          <div className="h-[54px] w-[54px]" aria-hidden="true" />
         )}
 
-        <div className="flex w-[148px] justify-end">
+        <div className="flex w-[152px] justify-end">
             <div className={rushStyles.balanceSelector}>
               <div className={rushStyles.balanceChip} data-ui="shared-balance-chip">
               <div className={rushStyles.balanceMain} aria-label={t("topHud.balanceAria", { currency: activeBalanceCurrency })}>

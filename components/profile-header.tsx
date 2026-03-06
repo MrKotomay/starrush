@@ -24,9 +24,9 @@ export function ProfileHeader({
   const { t } = useI18n()
 
   return (
-    <div className="flex flex-col items-center pb-6 pt-0">
+    <div className="flex flex-col items-center pb-7 pt-1">
       {/* Icon row */}
-      <div className="mb-6 flex w-full items-center justify-between px-[var(--page-px)]">
+      <div className="mb-7 flex w-full items-center justify-between px-[var(--page-px)]">
         <button
           className={ICON_BTN}
           data-sheen="event"
@@ -46,14 +46,14 @@ export function ProfileHeader({
       </div>
 
       {/* Avatar */}
-      <div className="relative mb-4">
+      <div className="relative mb-5">
         <motion.div
           layoutId={avatarLayoutId}
           transition={{ type: "spring", stiffness: 320, damping: 30, mass: 0.75 }}
-          className="h-28 w-28 rounded-full p-[3px]"
+          className="h-[120px] w-[120px] rounded-full p-[3px]"
           style={{
             backgroundImage: "var(--primary-gradient)",
-            boxShadow: "var(--glow-primary), var(--shadow-sm)",
+            boxShadow: "0 14px 30px rgba(107, 75, 255, 0.2), var(--shadow-sm)",
           }}
         >
           <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-surface-1">
@@ -74,8 +74,8 @@ export function ProfileHeader({
         </motion.div>
       </div>
 
-      <h1 className="type-title mb-0.5 text-foreground">{username}</h1>
-      <p className="type-caption text-muted-foreground">{bio}</p>
+      <h1 className="mb-1 text-[2rem] font-semibold tracking-[-0.05em] text-foreground">{username}</h1>
+      <p className="type-caption max-w-[240px] text-center text-muted-foreground">{bio}</p>
     </div>
   )
 }

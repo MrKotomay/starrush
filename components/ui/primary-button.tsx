@@ -8,6 +8,7 @@ interface PrimaryButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   depth?: "flat" | "raised"
   motion?: "none" | "subtle"
   loading?: boolean
+  "data-sheen"?: "off" | "always" | "event"
 }
 
 export const PrimaryButton = React.forwardRef<HTMLButtonElement, PrimaryButtonProps>(
@@ -26,14 +27,16 @@ export const PrimaryButton = React.forwardRef<HTMLButtonElement, PrimaryButtonPr
     },
     ref,
   ) => {
+    const sheenMode = props["data-sheen"] ?? "off"
     const variantClass = variant === "brandSoft" ? "btn-primary-brand-soft" : variant === "glass" ? "btn-primary-glass" : ""
     return (
       <button
         ref={ref}
         type={type}
         disabled={disabled || loading}
+        data-sheen={sheenMode}
         className={cn(
-          "btn-primary-glow focus-brand inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] px-4 py-3 text-sm font-semibold tracking-wide",
+          "btn-primary-glow focus-brand inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] px-4 py-3 text-sm font-semibold tracking-[0.01em]",
           variantClass,
           depth === "flat" ? "btn-depth-flat" : "btn-depth-raised",
           motion === "none" ? "btn-motion-none" : "",

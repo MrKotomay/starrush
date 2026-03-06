@@ -66,18 +66,18 @@ export function WalletActionModal({
         <motion.div
           className="fixed inset-0 z-[95] flex items-center justify-center p-4"
           onClick={onClose}
-          style={{ background: "rgba(6,9,22,0.74)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" } as React.CSSProperties}
+          style={{ background: "rgba(4,8,18,0.62)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" } as React.CSSProperties}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
         >
           <motion.section
-            className="w-full max-w-sm rounded-[var(--radius-xl)] border border-white/12 p-4 shadow-[0_24px_58px_rgba(4,8,22,0.52)]"
+            className="w-full max-w-sm rounded-[28px] border border-white/10 p-4 shadow-[0_24px_58px_rgba(2,6,18,0.28)]"
             onClick={(event) => event.stopPropagation()}
             style={{
               background:
-                "linear-gradient(160deg, rgba(34,42,84,0.92) 0%, rgba(20,26,58,0.94) 54%, rgba(13,18,44,0.96) 100%)",
+                "radial-gradient(72% 52% at 50% 0%, rgba(107,75,255,0.12) 0%, transparent 68%), linear-gradient(160deg, rgba(28,38,64,0.92) 0%, rgba(16,24,42,0.94) 54%, rgba(10,15,30,0.96) 100%)",
             }}
             initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 18, scale: 0.985 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}

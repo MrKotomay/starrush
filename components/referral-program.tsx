@@ -142,8 +142,7 @@ export function ReferralProgram({
   }
 
   return (
-    <div className="relative rounded-[var(--radius-xl)] p-[1px]" style={{ backgroundImage: "var(--primary-gradient)" }}>
-      <GlassCard variant="elevated" className="rounded-[calc(var(--radius-xl)-1px)] p-4">
+    <GlassCard variant="elevated" className="rounded-[var(--radius-xl)] p-4">
         <div className="mb-3 flex items-start gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-1 to-brand-2 shadow-[var(--shadow-sm)]">
             <Users className="h-5 w-5 text-foreground" />
@@ -167,7 +166,7 @@ export function ReferralProgram({
                 <button
                   type="button"
                   onClick={handleInfoClick}
-                  className="focus-brand relative inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-white/14 bg-white/8 text-brand-soft shadow-[0_16px_30px_rgba(8,15,45,0.3)] backdrop-blur-xl transition-all duration-200 hover:border-white/24 hover:bg-white/12 hover:text-foreground"
+                  className="focus-brand relative inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/6 text-brand-soft shadow-[0_12px_22px_rgba(2,6,18,0.16)] backdrop-blur-xl transition-all duration-200 hover:border-white/18 hover:bg-white/10 hover:text-foreground"
                   aria-label={t("referral.infoAria")}
                   aria-expanded={isInfoOpen}
                   aria-controls={infoId}
@@ -181,8 +180,8 @@ export function ReferralProgram({
                   role="tooltip"
                   aria-hidden={!isInfoOpen}
                   className={[
-                    "absolute right-0 top-full z-20 mt-2 w-[min(18rem,calc(100vw-4rem))] origin-top-right rounded-2xl border border-white/16 px-3.5 py-3 text-left shadow-[0_22px_44px_rgba(2,6,23,0.34)] backdrop-blur-2xl transition-all duration-250 ease-out",
-                    "bg-[linear-gradient(145deg,rgba(255,255,255,0.2),rgba(255,255,255,0.09)_38%,rgba(168,85,247,0.16)_100%)]",
+                    "absolute right-0 top-full z-20 mt-2 w-[min(18rem,calc(100vw-4rem))] origin-top-right rounded-2xl border border-white/12 px-3.5 py-3 text-left shadow-[0_18px_36px_rgba(2,6,18,0.18)] backdrop-blur-2xl transition-all duration-250 ease-out",
+                    "bg-[linear-gradient(145deg,rgba(255,255,255,0.16),rgba(255,255,255,0.06)_38%,rgba(168,85,247,0.12)_100%)]",
                     isInfoOpen ? "pointer-events-auto translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-1 scale-[0.96] opacity-0",
                   ].join(" ")}
                 >
@@ -222,7 +221,7 @@ export function ReferralProgram({
         </div>
 
         <div className="flex gap-2">
-          <PrimaryButton type="button" onClick={handleInvite} breathing className="h-12 flex-1 rounded-xl">
+          <PrimaryButton type="button" onClick={handleInvite} data-sheen="event" className="h-12 flex-1 rounded-[18px]">
             {t("referral.invite")}
           </PrimaryButton>
 
@@ -235,7 +234,6 @@ export function ReferralProgram({
             <Copy className={copied ? "h-5 w-5 text-brand-soft" : "h-5 w-5 text-muted-foreground"} />
           </button>
         </div>
-      </GlassCard>
-    </div>
+    </GlassCard>
   )
 }

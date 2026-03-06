@@ -66,7 +66,7 @@ export function GlassSegmentedControl<T extends string>({
   layoutId = "glass-segmented-indicator",
   motionMode = "default",
   indicatorTransition,
-  indicatorSheen = "on",
+  indicatorSheen = "off",
   activeButtonChrome = "on",
   className,
   disabled = false,

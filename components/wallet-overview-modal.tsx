@@ -68,18 +68,18 @@ export function WalletOverviewModal({
         <motion.div
           className="fixed inset-0 z-[94] flex items-center justify-center p-3"
           onClick={onClose}
-          style={{ background: "rgba(6,9,22,0.74)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" } as React.CSSProperties}
+          style={{ background: "rgba(4,8,18,0.62)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" } as React.CSSProperties}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
         >
           <motion.section
-            className="w-full max-w-lg max-h-[86vh] overflow-y-auto rounded-[var(--radius-xl)] border border-white/12 p-4 shadow-[0_24px_58px_rgba(4,8,22,0.52)]"
+            className="w-full max-w-lg max-h-[86vh] overflow-y-auto rounded-[28px] border border-white/10 p-4 shadow-[0_24px_58px_rgba(2,6,18,0.28)]"
             onClick={(event) => event.stopPropagation()}
             style={{
               background:
-                "linear-gradient(160deg, rgba(34,42,84,0.92) 0%, rgba(20,26,58,0.94) 54%, rgba(13,18,44,0.96) 100%)",
+                "radial-gradient(72% 52% at 50% 0%, rgba(107,75,255,0.12) 0%, transparent 68%), linear-gradient(160deg, rgba(28,38,64,0.92) 0%, rgba(16,24,42,0.94) 54%, rgba(10,15,30,0.96) 100%)",
             }}
             initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 18, scale: 0.985 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -102,7 +102,7 @@ export function WalletOverviewModal({
             </div>
 
             <div className="space-y-3">
-              <section className="rounded-2xl border border-white/12 bg-white/[0.03] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+              <section className="rounded-[22px] border border-white/8 bg-white/[0.03] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                 <div className="mb-2 flex items-center justify-between">
                   <h4 className="text-sm font-semibold text-foreground">{t("walletOverview.balances")}</h4>
                   <button
@@ -122,10 +122,7 @@ export function WalletOverviewModal({
                     <p className="rounded-xl border border-white/10 bg-background/40 px-3 py-2 text-xs text-muted-foreground">{t("walletOverview.noWallets")}</p>
                   ) : (
                     wallets.map((wallet) => (
-                      <div
-                        key={wallet.id}
-                        className="rounded-xl border border-white/12 bg-background/55 px-3 py-2 text-sm"
-                      >
+                      <div key={wallet.id} className="rounded-[18px] border border-white/8 bg-background/45 px-3 py-2 text-sm">
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-semibold text-foreground">{wallet.currency}</span>
                           <span className="font-medium text-foreground">{formatAmount(wallet.balance)}</span>
@@ -139,7 +136,7 @@ export function WalletOverviewModal({
                 </div>
               </section>
 
-              <section className="rounded-2xl border border-white/12 bg-white/[0.03] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+              <section className="rounded-[22px] border border-white/8 bg-white/[0.03] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                 <div className="mb-2 flex items-center justify-between">
                   <h4 className="text-sm font-semibold text-foreground">{t("walletOverview.recentOperations")}</h4>
                   <button
@@ -159,7 +156,7 @@ export function WalletOverviewModal({
                     <p className="rounded-xl border border-white/10 bg-background/40 px-3 py-2 text-xs text-muted-foreground">{t("walletOverview.noOperations")}</p>
                   ) : (
                     ledger.map((entry) => (
-                      <div key={entry.id} className="rounded-xl border border-white/12 bg-background/55 px-3 py-2 text-xs">
+                      <div key={entry.id} className="rounded-[18px] border border-white/8 bg-background/45 px-3 py-2 text-xs">
                         <div className="flex items-center justify-between gap-2 text-foreground">
                           <span className="font-semibold">{entry.type}</span>
                           <span className="font-medium">{entry.currency} {formatAmount(entry.amount)}</span>

@@ -28,7 +28,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
   useEffect(() => {
     const root = document.documentElement
     const prev = root.style.getPropertyValue("--bottom-nav-h")
-    root.style.setProperty("--bottom-nav-h", "66px")
+    root.style.setProperty("--bottom-nav-h", "78px")
     return () => {
       if (prev) root.style.setProperty("--bottom-nav-h", prev)
       else root.style.removeProperty("--bottom-nav-h")
@@ -50,10 +50,10 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
     <nav
       data-ui="bottom-nav"
       className="fixed left-1/2 z-50 -translate-x-1/2 px-0.5 transition-opacity duration-200"
-      style={{ bottom: "calc(12px + var(--content-safe-bottom))" }}
+      style={{ bottom: "calc(10px + var(--content-safe-bottom))" }}
     >
-      <BottomNavShell className="relative px-1 py-1">
-        <div className="flex items-center gap-0.5">
+      <BottomNavShell className="relative px-1.5 py-1.5">
+        <div className="flex items-center gap-1">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id
             const Icon = tab.icon
@@ -63,7 +63,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                 key={tab.id}
                 onClick={() => handleTabClick(tab.id)}
                 className={cn(
-                  "focus-brand relative flex min-w-[95px] flex-col items-center gap-0.5 rounded-[var(--radius-lg)] px-4 py-1.5 transition-colors duration-200 ease-out",
+                  "focus-brand relative flex min-w-[92px] flex-col items-center gap-1 rounded-[18px] px-4 py-2 transition-colors duration-200 ease-out",
                   isActive ? "text-foreground" : "text-text-tertiary",
                 )}
                 aria-current={isActive ? "page" : undefined}
@@ -73,7 +73,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                   <motion.span
                     layoutId="bottom-nav-active-pill"
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 rounded-[var(--radius-lg)] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.08)_0%,rgba(255,255,255,0.03)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]"
+                    className="pointer-events-none absolute inset-0 rounded-[18px] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.12)_0%,rgba(255,255,255,0.04)_34%,rgba(255,255,255,0.02)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_12px_22px_rgba(2,6,18,0.12)]"
                     transition={indicatorTransition}
                   />
                 ) : null}
@@ -87,7 +87,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                     {isActive ? (
                       <motion.span
                         aria-hidden="true"
-                        className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-brand-1 to-brand-2 shadow-[0_6px_18px_rgba(101,29,203,0.44)]"
+                        className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-brand-1/95 to-brand-2/88 shadow-[0_8px_18px_rgba(107,75,255,0.22)]"
                         initial={{ scale: 0.82, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
@@ -178,7 +178,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
 
                         <Icon
                           className={cn(
-                            "relative z-10 h-3.5 w-3.5 transition-colors duration-200",
+                            "relative z-10 h-[15px] w-[15px] transition-colors duration-200",
                             isActive ? "text-foreground" : "text-text-tertiary",
                           )}
                         />
@@ -186,7 +186,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                     ) : (
                       <Icon
                         className={cn(
-                          "relative z-10 h-3.5 w-3.5 transition-colors duration-200",
+                          "relative z-10 h-[15px] w-[15px] transition-colors duration-200",
                           isActive ? "text-foreground" : "text-text-tertiary",
                         )}
                       />
@@ -196,7 +196,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
 
                 <span
                   className={cn(
-                    "relative z-10 text-[9px] font-medium tracking-wide transition-colors duration-200",
+                    "relative z-10 text-[10px] font-medium tracking-[0.01em] transition-colors duration-200",
                     isActive ? "text-foreground" : "text-text-tertiary",
                   )}
                 >

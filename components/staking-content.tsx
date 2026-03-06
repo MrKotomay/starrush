@@ -125,7 +125,7 @@ function AvatarCell({ entry, isTop }: { entry: LeaderboardEntry; isTop: boolean 
 export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
   const { t, intlLocale } = useI18n()
   const stakingAmountLabel = formatTonAmount(stakeAmountTon)
-  const [sortBy, setSortBy] = useState<LeaderboardSort>("gifts")
+  const [sortBy, setSortBy] = useState<LeaderboardSort>("ton")
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [totalPlayers, setTotalPlayers] = useState(0)
   const [yourRank, setYourRank] = useState<number | null>(null)
@@ -138,7 +138,7 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
 
   const activeSortLabel = useMemo(
     () => {
-      const key = SORT_OPTIONS.find((option) => option.id === sortBy)?.labelKey ?? "staking.gifts"
+      const key = SORT_OPTIONS.find((option) => option.id === sortBy)?.labelKey ?? "common.ton"
       return t(key)
     },
     [sortBy, t],
@@ -206,7 +206,7 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
         animate={sectionAnimate}
         transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
       >
-        <GlassCard variant="hero" className={cn("mb-4 p-4 pb-3", styles.vaultCard)}>
+        <GlassCard variant="hero" className={cn("mb-5 p-4 pb-4", styles.vaultCard)}>
           <div className={styles.safeHero} aria-hidden="true">
             <div className={styles.backGlow} />
             <div className={styles.leftGlow} />
@@ -225,15 +225,20 @@ export function StakingContent({ stakeAmountTon = 0 }: StakingContentProps) {
           </div>
 
           <div className={styles.vaultContent}>
-            <div className="relative z-20 flex items-center justify-between rounded-2xl border border-border/80 bg-surface-2/88 p-3 shadow-[var(--shadow-sm)]">
+            <div className="relative z-20 flex items-center justify-between gap-3 rounded-[22px] border border-white/8 bg-black/20 p-3.5 shadow-[var(--shadow-sm)] backdrop-blur-xl">
               <div>
-                <p className="mb-1 text-sm text-muted-foreground">{t("staking.youEarned")}</p>
+                <p className="mb-1 text-[0.8rem] font-medium text-muted-foreground">{t("staking.youEarned")}</p>
                 <div className="flex items-center gap-2">
                   <img src="/ton.svg" alt="TON" className="h-5 w-5 rounded-full" />
-                  <span className="text-base font-semibold text-foreground">{stakingAmountLabel} TON</span>
+                  <span className="text-[1.05rem] font-semibold tracking-[-0.02em] text-foreground">{stakingAmountLabel} TON</span>
                 </div>
               </div>
-              <PrimaryButton breathing depth="raised" variant="brandSoft" className="h-10 min-w-28 rounded-xl px-5 text-sm">
+              <PrimaryButton
+                depth="raised"
+                variant="brand"
+                data-sheen="event"
+                className="h-11 min-w-28 rounded-[18px] px-5 text-sm"
+              >
                 {t("staking.claim")}
               </PrimaryButton>
             </div>

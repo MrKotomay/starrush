@@ -38,8 +38,8 @@ export function StatCard({
           {icon}
         </div>
       ) : null}
-      <p className="mb-1 text-xs text-muted-foreground">{label}</p>
-      <p className="text-xl font-semibold leading-tight text-foreground">{value}</p>
+      <p className="mb-1 text-[0.74rem] font-medium text-muted-foreground">{label}</p>
+      <p className="text-[1.65rem] font-semibold leading-none tracking-[-0.03em] text-foreground">{value}</p>
     </GlassCard>
   )
 }

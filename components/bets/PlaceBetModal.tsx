@@ -367,6 +367,7 @@ export function PlaceBetModal({
                 disabled={submitDisabled}
                 aria-busy={isSubmitting}
                 motion={adaptiveOverlayMotion ? "none" : "subtle"}
+                data-sheen={submitDisabled ? "off" : "always"}
                 onClick={async () => {
                   if (submitDisabled) return
                   const amount = tab === "TON" ? tonAmountValue : tab === "STARS" ? starsAmountValue : 0
