@@ -464,7 +464,7 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
     <div className="relative min-h-screen overflow-x-hidden bg-background bg-cosmic-radial">
       <ParticleBackground active={!hasHeavyOverlay} />
 
-      {activeTab === "mine" || activeTab === "staking" ? (
+      {activeTab === "mine" ? (
         <div className="pointer-events-none absolute inset-x-0 top-0 z-30 mx-auto w-full max-w-md">
           <div className="pointer-events-auto">
             <TopHud {...topHudProps} />
