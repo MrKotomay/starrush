@@ -2,7 +2,7 @@ import postgres from "postgres"
 import { serializeError, type StudioBFFRequest } from "@prisma/studio-core/data/bff"
 import { createPostgresJSExecutor } from "@prisma/studio-core/data/postgresjs"
 import { getAdminStudioDatabaseUrl } from "@/lib/admin"
-import { requireAdminRead } from "@/lib/admin-request"
+import { originMatchesRequest, requireAdminRead } from "@/lib/admin-request"
 import { jsonUtf8 } from "@/lib/http"
 
 export const runtime = "nodejs"
@@ -16,22 +16,12 @@ const studioSql = studioDatabaseUrl
   : null
 const studioExecutor = studioSql ? createPostgresJSExecutor(studioSql) : null
 
-function sameOrigin(req: Request) {
-  const origin = req.headers.get("origin")
-  if (!origin) return true
-  try {
-    return new URL(origin).origin === new URL(req.url).origin
-  } catch {
-    return false
-  }
-}
-
 export async function POST(req: Request) {
   const access = await requireAdminRead()
   if (!access.ok) {
     return access.response
   }
-  if (!sameOrigin(req)) {
+  if (!originMatchesRequest(req, { allowMissingOrigin: true })) {
     return jsonUtf8({ ok: false, error: "INVALID_ORIGIN" }, { status: 403 })
   }
   if (!studioExecutor) {

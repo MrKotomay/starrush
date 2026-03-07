@@ -17,12 +17,44 @@ export function getRequestUserAgent(req: Request) {
   return req.headers.get("user-agent")
 }
 
-function originMatchesRequest(req: Request) {
+function getFirstHeaderValue(value: string | null) {
+  return value?.split(",")[0]?.trim() ?? null
+}
+
+function getAllowedRequestOrigins(req: Request) {
+  const candidates = new Set<string>()
+  const forwardedProto = getFirstHeaderValue(req.headers.get("x-forwarded-proto"))
+  const forwardedHost = getFirstHeaderValue(req.headers.get("x-forwarded-host"))
+  const host = getFirstHeaderValue(req.headers.get("host"))
+
+  if (forwardedProto && forwardedHost) {
+    candidates.add(`${forwardedProto}://${forwardedHost}`)
+  }
+  if (host) {
+    candidates.add(`${forwardedProto ?? "http"}://${host}`)
+  }
+  if (process.env.APP_BASE_URL) {
+    try {
+      candidates.add(new URL(process.env.APP_BASE_URL).origin)
+    } catch {
+      // ignore invalid env
+    }
+  }
+  try {
+    candidates.add(new URL(req.url).origin)
+  } catch {
+    // ignore invalid runtime url
+  }
+
+  return candidates
+}
+
+export function originMatchesRequest(req: Request, options?: { allowMissingOrigin?: boolean }) {
   const origin = req.headers.get("origin")
-  if (!origin) return false
+  if (!origin) return options?.allowMissingOrigin === true
 
   try {
-    return new URL(origin).origin === new URL(req.url).origin
+    return getAllowedRequestOrigins(req).has(new URL(origin).origin)
   } catch {
     return false
   }

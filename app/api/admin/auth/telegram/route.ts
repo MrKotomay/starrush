@@ -11,6 +11,7 @@ import {
   getAdminLoginClientId,
   isAdminTelegramId,
 } from "@/lib/admin"
+import { originMatchesRequest } from "@/lib/admin-request"
 import { jsonUtf8 } from "@/lib/http"
 import { createSession, SESSION_COOKIE_NAME } from "@/lib/session"
 import { verifyTelegramIdToken } from "@/lib/telegram-login"
@@ -20,18 +21,8 @@ const schema = z.object({
   id_token: z.string().min(1),
 })
 
-function sameOrigin(req: Request) {
-  const origin = req.headers.get("origin")
-  if (!origin) return false
-  try {
-    return new URL(origin).origin === new URL(req.url).origin
-  } catch {
-    return false
-  }
-}
-
 export async function POST(req: Request) {
-  if (!sameOrigin(req)) {
+  if (!originMatchesRequest(req)) {
     return jsonUtf8({ ok: false, error: "INVALID_ORIGIN" }, { status: 403 })
   }
 
