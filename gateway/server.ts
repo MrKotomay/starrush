@@ -41,6 +41,35 @@ async function resolveCurrentRound() {
 async function boot() {
   const subscriber = createRedisSubscriber({ redisUrl: process.env.REDIS_URL, rooms })
   const server = http.createServer(async (req, res) => {
+    if (req.url === "/internal/stats") {
+      const internalKey = req.headers["x-internal-key"]
+      const expectedKey = process.env.INTERNAL_API_KEY ?? ""
+      if (typeof internalKey !== "string" || expectedKey.length === 0 || internalKey !== expectedKey) {
+        res.statusCode = 403
+        res.end("Forbidden")
+        return
+      }
+
+      const currentRoom = rooms.getCurrentRoom()
+      const payload = jsonUtf8({
+        ok: true,
+        service: "gateway",
+        ready: gatewayState.ready,
+        bootedAt: gatewayState.bootedAt,
+        currentRoundId: rooms.getCurrentRoundId() ?? null,
+        roomCount: rooms.roomCount(),
+        totalOpenConnections: rooms.totalOpenConnections(),
+        onlineCount: currentRoom?.onlineCount() ?? 0,
+      })
+
+      res.statusCode = payload.status
+      payload.headers.forEach((value, key) => {
+        res.setHeader(key, value)
+      })
+      res.end(await payload.text())
+      return
+    }
+
     if (req.url !== "/healthz") {
       res.statusCode = 404
       res.end("Not Found")

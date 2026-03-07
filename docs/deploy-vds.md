@@ -55,6 +55,10 @@ Fill `.env`:
 - `COOKIE_SECURE=true`
 - `ALLOWED_WS_ORIGINS=https://<APP_DOMAIN>`
 - `MAX_WS_CONNECTIONS_PER_USER=5`
+- admin allowlist (`ADMIN_TELEGRAM_IDS`)
+- Telegram Web Login client id (`TELEGRAM_LOGIN_CLIENT_ID`) from BotFather
+- Caddy admin credentials (`ADMIN_BASIC_AUTH_USER`, `ADMIN_BASIC_AUTH_HASH`)
+- optional Studio DB override (`ADMIN_STUDIO_DATABASE_URL`) if you want admin data view to use a separate read-only user
 
 ## 3) First deploy
 
@@ -80,6 +84,7 @@ docker compose logs -f edge app gateway worker
 3. Caddy will issue TLS certificate automatically.
 4. Set Telegram Mini App URL in BotFather to:
    - `https://<APP_DOMAIN>`
+5. In BotFather Web Login settings, allow `https://<APP_DOMAIN>` and copy the Web Login client ID into `TELEGRAM_LOGIN_CLIENT_ID`.
 
 ## 5) Manual update flow
 

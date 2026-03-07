@@ -14,6 +14,9 @@ x-app-common: &app-common
     DATABASE_URL: ${DOCKER_DATABASE_URL:?DOCKER_DATABASE_URL is required for docker-compose.yml (DBaaS mode)}
     REDIS_URL: ${DOCKER_REDIS_URL:?DOCKER_REDIS_URL is required for docker-compose.yml (DBaaS mode)}
     APP_INTERNAL_BASE_URL: ${APP_INTERNAL_BASE_URL:-http://app:3000}
+    GATEWAY_INTERNAL_BASE_URL: ${GATEWAY_INTERNAL_BASE_URL:-http://gateway:8081}
+    WORKER_INTERNAL_BASE_URL: ${WORKER_INTERNAL_BASE_URL:-http://worker:8082}
+    ADMIN_STUDIO_DATABASE_URL: ${ADMIN_STUDIO_DATABASE_URL:-}
   logging: &default-logging
     driver: json-file
     options:
@@ -97,6 +100,8 @@ services:
     environment:
       APP_DOMAIN: ${APP_DOMAIN:-localhost}
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:-admin@example.com}
+      ADMIN_BASIC_AUTH_USER: ${ADMIN_BASIC_AUTH_USER:?ADMIN_BASIC_AUTH_USER is required for admin routes}
+      ADMIN_BASIC_AUTH_HASH: ${ADMIN_BASIC_AUTH_HASH:?ADMIN_BASIC_AUTH_HASH is required for admin routes}
     ports:
       - "80:80"
       - "443:443"

@@ -137,4 +137,20 @@ export class RoundRoomManager {
     }
     return count
   }
+
+  roomCount(): number {
+    return this.rooms.size
+  }
+
+  totalOpenConnections(): number {
+    let count = 0
+    for (const room of this.rooms.values()) {
+      for (const client of room.clients) {
+        if (client.socket.readyState === WebSocket.OPEN) {
+          count += 1
+        }
+      }
+    }
+    return count
+  }
 }

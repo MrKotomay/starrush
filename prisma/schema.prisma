@@ -27,9 +27,11 @@ model User {
   giftStubs         UserGiftStub[]
   roundPlayers      RoundPlayer[]
   queuedRoundBet    RoundQueuedBet?
+  adminAuditLogs    AdminAuditLog[]
   referredBy        User?              @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
   referrals         User[]             @relation("UserReferrals")
 
+  @@index([createdAt])
   @@index([referredById])
 }
 
@@ -230,6 +232,7 @@ model RoundPlayer {
   user  User  @relation(fields: [userId], references: [id])
 
   @@unique([roundId, userId])
+  @@index([createdAt])
   @@index([roundId, status])
   @@index([roundId, currency, status])
   @@index([userId])
@@ -344,4 +347,23 @@ model UserGiftStub {
 
   @@unique([userId, giftIngressEventId, giftType])
   @@index([userId, createdAt])
+}
+
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  actorUserId String
+  action     String   @db.VarChar(64)
+  targetType String?  @db.VarChar(64)
+  targetId   String?  @db.VarChar(128)
+  requestId  String?  @unique @db.VarChar(128)
+  ip         String?  @db.VarChar(128)
+  userAgent  String?  @db.VarChar(512)
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  actorUser User @relation(fields: [actorUserId], references: [id], onDelete: Cascade)
+
+  @@index([actorUserId, createdAt])
+  @@index([action, createdAt])
+  @@index([targetType, targetId, createdAt])
 }
