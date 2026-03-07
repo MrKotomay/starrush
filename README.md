@@ -54,7 +54,7 @@ docker compose logs -f edge app gateway worker
    - `ADMIN_TELEGRAM_IDS=comma,separated,telegram,ids`
    - `TELEGRAM_LOGIN_CLIENT_ID=<BotFather Web Login client id>`
    - `ADMIN_BASIC_AUTH_USER=...`
-   - `ADMIN_BASIC_AUTH_HASH=...`
+   - `ADMIN_BASIC_AUTH_HASH='...'` (wrap bcrypt hash in single quotes)
 3. In BotFather set Mini App URL to `https://your-domain`.
 4. In BotFather Web Login settings, allow `https://your-domain` and copy the Web Login client ID into `TELEGRAM_LOGIN_CLIENT_ID`.
 

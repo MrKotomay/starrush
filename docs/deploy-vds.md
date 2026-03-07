@@ -58,6 +58,7 @@ Fill `.env`:
 - admin allowlist (`ADMIN_TELEGRAM_IDS`)
 - Telegram Web Login client id (`TELEGRAM_LOGIN_CLIENT_ID`) from BotFather
 - Caddy admin credentials (`ADMIN_BASIC_AUTH_USER`, `ADMIN_BASIC_AUTH_HASH`)
+  - wrap the bcrypt hash in single quotes in `.env`, otherwise Docker Compose will try to expand `$...` parts
 - optional Studio DB override (`ADMIN_STUDIO_DATABASE_URL`) if you want admin data view to use a separate read-only user
 
 ## 3) First deploy
