@@ -7,14 +7,25 @@ import { jsonUtf8 } from "@/lib/http"
 
 export const runtime = "nodejs"
 
-const studioDatabaseUrl = getAdminStudioDatabaseUrl()
-const studioSql = studioDatabaseUrl
-  ? postgres(studioDatabaseUrl, {
-      max: 1,
-      prepare: false,
-    })
-  : null
-const studioExecutor = studioSql ? createPostgresJSExecutor(studioSql) : null
+let cachedStudioExecutor: ReturnType<typeof createPostgresJSExecutor> | null = null
+
+function getStudioExecutor() {
+  if (cachedStudioExecutor) {
+    return cachedStudioExecutor
+  }
+
+  const studioDatabaseUrl = getAdminStudioDatabaseUrl()
+  if (!studioDatabaseUrl) {
+    return null
+  }
+
+  const studioSql = postgres(studioDatabaseUrl, {
+    max: 1,
+    prepare: false,
+  })
+  cachedStudioExecutor = createPostgresJSExecutor(studioSql)
+  return cachedStudioExecutor
+}
 
 export async function POST(req: Request) {
   const access = await requireAdminRead()
@@ -24,6 +35,7 @@ export async function POST(req: Request) {
   if (!originMatchesRequest(req, { allowMissingOrigin: true })) {
     return jsonUtf8({ ok: false, error: "INVALID_ORIGIN" }, { status: 403 })
   }
+  const studioExecutor = getStudioExecutor()
   if (!studioExecutor) {
     return jsonUtf8({ ok: false, error: "STUDIO_DATABASE_NOT_CONFIGURED" }, { status: 500 })
   }

@@ -28,7 +28,7 @@ export function getAdminLoginClientId() {
 }
 
 export function getAdminStudioDatabaseUrl() {
-  return process.env.ADMIN_STUDIO_DATABASE_URL ?? process.env.DATABASE_URL ?? ""
+  return process.env.ADMIN_STUDIO_DATABASE_URL || process.env.DATABASE_URL || ""
 }
 
 export function getGatewayInternalBaseUrl() {
