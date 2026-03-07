@@ -27,13 +27,59 @@ export function getAdminLoginClientId() {
   return process.env.TELEGRAM_LOGIN_CLIENT_ID ?? ""
 }
 
+function setUrlSearchParams(url: URL, entries: Array<[string, string]>) {
+  const search = entries
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    .join("&")
+
+  url.search = search ? `?${search}` : ""
+}
+
+function normalizeAdminStudioDatabaseUrl(databaseUrl: string) {
+  if (!databaseUrl) {
+    return ""
+  }
+
+  try {
+    const url = new URL(databaseUrl)
+    const schema = url.searchParams.get("schema")?.trim()
+    if (!schema) {
+      return databaseUrl
+    }
+
+    const params = Array.from(url.searchParams.entries()).filter(([key]) => key !== "schema")
+
+    if (schema !== "public") {
+      const searchPathOption = `-csearch_path=${schema}`
+      const existingOptionsIndex = params.findIndex(([key]) => key === "options")
+
+      if (existingOptionsIndex === -1) {
+        params.push(["options", searchPathOption])
+      } else if (!params[existingOptionsIndex][1].includes("search_path")) {
+        params[existingOptionsIndex] = [
+          "options",
+          `${params[existingOptionsIndex][1]} ${searchPathOption}`.trim(),
+        ]
+      }
+    }
+
+    setUrlSearchParams(url, params)
+    return url.toString()
+  } catch {
+    return databaseUrl
+  }
+}
+
 export function getAdminStudioDatabaseUrl() {
-  return (
+  const rawDatabaseUrl =
     process.env.ADMIN_STUDIO_DATABASE_URL ||
     process.env.DATABASE_URL ||
     process.env.DOCKER_DATABASE_URL ||
     ""
-  )
+
+  // Prisma uses `schema=` in DATABASE_URL, but postgres.js expects a standard
+  // Postgres startup option such as `options=-csearch_path=...`.
+  return normalizeAdminStudioDatabaseUrl(rawDatabaseUrl)
 }
 
 export function getGatewayInternalBaseUrl() {
