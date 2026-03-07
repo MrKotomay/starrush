@@ -41,6 +41,7 @@ function buildDataHref(input: {
   table?: string
   page?: number
   pageSize?: number
+  row?: number
   q?: string
 }) {
   const params = new URLSearchParams()
@@ -60,6 +61,9 @@ function buildDataHref(input: {
   if (input.pageSize && input.pageSize !== 25) {
     params.set("pageSize", String(input.pageSize))
   }
+  if (typeof input.row === "number" && input.row >= 0) {
+    params.set("row", String(input.row))
+  }
   if (input.q) {
     params.set("q", input.q)
   }
@@ -68,21 +72,111 @@ function buildDataHref(input: {
   return query ? `/admin/data?${query}` : "/admin/data"
 }
 
-function renderExplorerRow(row: AdminExplorerRow, columns: Array<{ name: string }>, rowIndex: number) {
+function getExplorerRowTitle(row: AdminExplorerRow) {
+  const username = typeof row.username === "string" && row.username.trim().length > 0 ? row.username.trim() : null
+  if (username) {
+    return `@${username}`
+  }
+
+  const firstName = typeof row.firstName === "string" ? row.firstName.trim() : ""
+  const lastName = typeof row.lastName === "string" ? row.lastName.trim() : ""
+  const fullName = `${firstName} ${lastName}`.trim()
+  if (fullName) {
+    return fullName
+  }
+
+  if (typeof row.eventType === "string" && row.eventType.trim().length > 0) {
+    return row.eventType
+  }
+
+  if (typeof row.id === "string" && row.id.trim().length > 0) {
+    return row.id
+  }
+
+  return "Record"
+}
+
+function getExplorerQuickLinks(tableName: string, row: AdminExplorerRow) {
+  const links: Array<{ href: string; label: string }> = []
+  const id = typeof row.id === "string" ? row.id : null
+  const userId = typeof row.userId === "string" ? row.userId : null
+  const roundId = typeof row.roundId === "string" ? row.roundId : null
+  const intentId = typeof row.intentId === "string" ? row.intentId : null
+
+  if (tableName === "User" && id) {
+    links.push({ href: `/admin/users/${id}`, label: "Open user card" })
+  } else if (userId) {
+    links.push({ href: `/admin/users/${userId}`, label: "Open user card" })
+  }
+
+  if (tableName === "Round" || roundId) {
+    links.push({ href: "/admin/rounds", label: "Open rounds" })
+  }
+
+  if (tableName === "DepositIntent" || tableName === "PaymentProviderEvent" || intentId) {
+    links.push({ href: "/admin/payments", label: "Open payments" })
+  }
+
+  return links.filter(
+    (link, index, source) =>
+      source.findIndex((candidate) => candidate.href === link.href && candidate.label === link.label) === index,
+  )
+}
+
+function renderDetailValue(value: unknown) {
+  if (value !== null && typeof value === "object" && !Buffer.isBuffer(value) && !(value instanceof Date)) {
+    try {
+      return (
+        <pre className="overflow-x-auto rounded-2xl bg-background/70 p-3 text-xs leading-6 text-foreground/90">
+          {JSON.stringify(value, null, 2)}
+        </pre>
+      )
+    } catch {
+      return <div className="text-sm text-muted-foreground">[unserializable object]</div>
+    }
+  }
+
+  const formatted = formatCellValue(value)
+  const isEmpty = formatted === "null" || formatted === "undefined"
+
   return (
-    <tr key={`row-${rowIndex}`} className="border-b border-border/30 align-top">
+    <div className={isEmpty ? "break-words text-sm text-muted-foreground" : "break-words text-sm text-foreground/90"}>
+      {formatted}
+    </div>
+  )
+}
+
+function renderExplorerRow(input: {
+  row: AdminExplorerRow
+  columns: Array<{ name: string }>
+  rowIndex: number
+  href: string
+  isActive: boolean
+}) {
+  const { row, columns, rowIndex, href, isActive } = input
+
+  return (
+    <tr
+      key={`row-${rowIndex}`}
+      className={isActive ? "border-b border-primary/20 bg-primary/10 align-top" : "border-b border-border/30 align-top"}
+    >
       {columns.map((column) => {
         const formatted = formatCellValue(row[column.name])
         const isEmpty = formatted === "null" || formatted === "undefined"
 
         return (
           <td key={`${rowIndex}-${column.name}`} className="px-3 py-3 text-xs text-foreground/90">
-            <div
-              className={isEmpty ? "max-w-[26rem] truncate text-muted-foreground" : "max-w-[26rem] truncate"}
+            <Link
+              href={href}
+              className={
+                isEmpty
+                  ? "block max-w-[26rem] truncate rounded-lg text-muted-foreground transition hover:text-foreground"
+                  : "block max-w-[26rem] truncate rounded-lg transition hover:text-primary"
+              }
               title={formatted}
             >
               {formatted}
-            </div>
+            </Link>
           </td>
         )
       })}
@@ -99,6 +193,7 @@ export default async function AdminDataPage({
     table?: string
     page?: string
     pageSize?: string
+    row?: string
     q?: string
   }>
 }) {
@@ -114,6 +209,15 @@ export default async function AdminDataPage({
           query: params.q,
         })
       : null
+
+  const requestedRowIndex = params.row ? Number(params.row) : Number.NaN
+  const selectedRowIndex =
+    explorer && Number.isFinite(requestedRowIndex) && requestedRowIndex >= 0 && requestedRowIndex < explorer.rows.length
+      ? Math.floor(requestedRowIndex)
+      : null
+  const selectedRow = selectedRowIndex === null || !explorer ? null : explorer.rows[selectedRowIndex]
+  const quickLinks =
+    explorer?.selectedTable && selectedRow ? getExplorerQuickLinks(explorer.selectedTable.name, selectedRow) : []
 
   return (
     <div className="space-y-6">
@@ -136,6 +240,7 @@ export default async function AdminDataPage({
                 table: params.table,
                 page: params.page ? Number(params.page) : undefined,
                 pageSize: params.pageSize ? Number(params.pageSize) : undefined,
+                row: params.row ? Number(params.row) : undefined,
                 q: params.q,
               })}
               className={
@@ -220,7 +325,7 @@ export default async function AdminDataPage({
                     >
                       <div className="text-sm font-semibold text-foreground">{table.name}</div>
                       <div className="mt-1 text-xs text-muted-foreground">
-                        {table.schema} • {table.kind === "VIEW" ? "view" : "table"}
+                        {table.schema} | {table.kind === "VIEW" ? "view" : "table"}
                       </div>
                     </Link>
                   )
@@ -236,10 +341,10 @@ export default async function AdminDataPage({
                   <div>
                     <div className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Explorer</div>
                     <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-                      {explorer.selectedTable.schema}.{explorer.selectedTable.name}
+                      {explorer.selectedTable!.schema}.{explorer.selectedTable!.name}
                     </h2>
                     <div className="mt-2 text-sm text-muted-foreground">
-                      {explorer.columns.length} columns • page {explorer.page}
+                      {explorer.columns.length} columns | page {explorer.page}
                     </div>
                   </div>
 
@@ -251,8 +356,8 @@ export default async function AdminDataPage({
                           key={size}
                           href={buildDataHref({
                             mode: "explorer",
-                            schema: explorer.selectedTable?.schema,
-                            table: explorer.selectedTable?.name,
+                            schema: explorer.selectedTable!.schema,
+                            table: explorer.selectedTable!.name,
                             page: 1,
                             pageSize: size,
                             q: explorer.tableQuery,
@@ -277,87 +382,171 @@ export default async function AdminDataPage({
                       className="rounded-full border border-border/50 bg-background/55 px-3 py-2 text-xs text-muted-foreground"
                     >
                       <span className="font-semibold text-foreground">{column.name}</span>
-                      <span className="mx-1">•</span>
+                      <span className="mx-1">|</span>
                       <span>{column.datatype}</span>
                       {column.pkPosition !== null ? <span className="ml-1 text-primary">PK</span> : null}
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-5 overflow-x-auto rounded-[1.3rem] border border-border/50 bg-background/50">
-                  <table className="min-w-full text-left">
-                    <thead className="border-b border-border/50 bg-background/80 text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                      <tr>
-                        {explorer.columns.map((column) => (
-                          <th key={column.name} className="px-3 py-3 font-semibold">
-                            {column.name}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {explorer.rows.length === 0 ? (
-                        <tr>
-                          <td
-                            colSpan={Math.max(explorer.columns.length, 1)}
-                            className="px-4 py-10 text-center text-sm text-muted-foreground"
+                <div className="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1fr)_360px]">
+                  <div className="space-y-4">
+                    <div className="rounded-[1.25rem] border border-border/50 bg-background/35 px-4 py-3 text-sm text-muted-foreground">
+                      Click any row to open its detail view. This keeps the fast table browser on the left and the
+                      Prisma-like record inspection on the right.
+                    </div>
+
+                    <div className="overflow-x-auto rounded-[1.3rem] border border-border/50 bg-background/50">
+                      <table className="min-w-full text-left">
+                        <thead className="border-b border-border/50 bg-background/80 text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                          <tr>
+                            {explorer.columns.map((column) => (
+                              <th key={column.name} className="px-3 py-3 font-semibold">
+                                {column.name}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {explorer.rows.length === 0 ? (
+                            <tr>
+                              <td
+                                colSpan={Math.max(explorer.columns.length, 1)}
+                                className="px-4 py-10 text-center text-sm text-muted-foreground"
+                              >
+                                No rows on this page.
+                              </td>
+                            </tr>
+                          ) : (
+                            explorer.rows.map((row, rowIndex) =>
+                              renderExplorerRow({
+                                row,
+                                columns: explorer.columns,
+                                rowIndex,
+                                href: buildDataHref({
+                                  mode: "explorer",
+                                  schema: explorer.selectedTable!.schema,
+                                  table: explorer.selectedTable!.name,
+                                  page: explorer.page,
+                                  pageSize: explorer.pageSize,
+                                  row: rowIndex,
+                                  q: explorer.tableQuery,
+                                }),
+                                isActive: selectedRowIndex === rowIndex,
+                              }),
+                            )
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-muted-foreground">
+                        Showing {explorer.rows.length} row{explorer.rows.length === 1 ? "" : "s"} on this page.
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {explorer.page > 1 ? (
+                          <Link
+                            href={buildDataHref({
+                              mode: "explorer",
+                              schema: explorer.selectedTable!.schema,
+                              table: explorer.selectedTable!.name,
+                              page: explorer.page - 1,
+                              pageSize: explorer.pageSize,
+                              q: explorer.tableQuery,
+                            })}
+                            className="rounded-full border border-border/60 px-4 py-2 text-sm font-semibold text-foreground transition hover:border-border"
                           >
-                            No rows on this page.
-                          </td>
-                        </tr>
-                      ) : (
-                        explorer.rows.map((row, rowIndex) => renderExplorerRow(row, explorer.columns, rowIndex))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                            Previous
+                          </Link>
+                        ) : (
+                          <span className="rounded-full border border-border/40 px-4 py-2 text-sm font-semibold text-muted-foreground/60">
+                            Previous
+                          </span>
+                        )}
 
-                <div className="mt-5 flex items-center justify-between">
-                  <div className="text-sm text-muted-foreground">
-                    Showing {explorer.rows.length} row{explorer.rows.length === 1 ? "" : "s"} on this page.
+                        {explorer.hasNextPage ? (
+                          <Link
+                            href={buildDataHref({
+                              mode: "explorer",
+                              schema: explorer.selectedTable!.schema,
+                              table: explorer.selectedTable!.name,
+                              page: explorer.page + 1,
+                              pageSize: explorer.pageSize,
+                              q: explorer.tableQuery,
+                            })}
+                            className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                          >
+                            Next
+                          </Link>
+                        ) : (
+                          <span className="rounded-full border border-border/40 px-4 py-2 text-sm font-semibold text-muted-foreground/60">
+                            Next
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    {explorer.page > 1 ? (
-                      <Link
-                        href={buildDataHref({
-                          mode: "explorer",
-                          schema: explorer.selectedTable.schema,
-                          table: explorer.selectedTable.name,
-                          page: explorer.page - 1,
-                          pageSize: explorer.pageSize,
-                          q: explorer.tableQuery,
-                        })}
-                        className="rounded-full border border-border/60 px-4 py-2 text-sm font-semibold text-foreground transition hover:border-border"
-                      >
-                        Previous
-                      </Link>
-                    ) : (
-                      <span className="rounded-full border border-border/40 px-4 py-2 text-sm font-semibold text-muted-foreground/60">
-                        Previous
-                      </span>
-                    )}
+                  <aside className="rounded-[1.3rem] border border-border/50 bg-background/45 p-4 2xl:sticky 2xl:top-6 2xl:self-start">
+                    {selectedRow ? (
+                      <>
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Record</div>
+                            <h3 className="mt-2 text-xl font-semibold tracking-tight text-foreground">
+                              {getExplorerRowTitle(selectedRow)}
+                            </h3>
+                            <div className="mt-2 text-sm text-muted-foreground">Row {selectedRowIndex! + 1} on current page</div>
+                          </div>
 
-                    {explorer.hasNextPage ? (
-                      <Link
-                        href={buildDataHref({
-                          mode: "explorer",
-                          schema: explorer.selectedTable.schema,
-                          table: explorer.selectedTable.name,
-                          page: explorer.page + 1,
-                          pageSize: explorer.pageSize,
-                          q: explorer.tableQuery,
-                        })}
-                        className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
-                      >
-                        Next
-                      </Link>
+                          <Link
+                            href={buildDataHref({
+                              mode: "explorer",
+                              schema: explorer.selectedTable!.schema,
+                              table: explorer.selectedTable!.name,
+                              page: explorer.page,
+                              pageSize: explorer.pageSize,
+                              q: explorer.tableQuery,
+                            })}
+                            className="rounded-full border border-border/60 px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:text-foreground"
+                          >
+                            Close
+                          </Link>
+                        </div>
+
+                        {quickLinks.length > 0 ? (
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            {quickLinks.map((link) => (
+                              <Link
+                                key={`${link.href}:${link.label}`}
+                                href={link.href}
+                                className="rounded-full border border-primary/25 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary transition hover:bg-primary/15"
+                              >
+                                {link.label}
+                              </Link>
+                            ))}
+                          </div>
+                        ) : null}
+
+                        <div className="mt-5 space-y-3">
+                          {explorer.columns.map((column) => (
+                            <div key={column.name} className="rounded-2xl border border-border/45 bg-background/60 p-3">
+                              <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                                {column.name}
+                              </div>
+                              <div className="mt-2">{renderDetailValue(selectedRow[column.name])}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
                     ) : (
-                      <span className="rounded-full border border-border/40 px-4 py-2 text-sm font-semibold text-muted-foreground/60">
-                        Next
-                      </span>
+                      <div className="rounded-2xl border border-dashed border-border/50 bg-background/35 px-4 py-8 text-center text-sm text-muted-foreground">
+                        Select a row to open its detail view.
+                      </div>
                     )}
-                  </div>
+                  </aside>
                 </div>
               </>
             ) : (
