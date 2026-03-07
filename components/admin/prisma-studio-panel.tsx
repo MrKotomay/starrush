@@ -1,20 +1,41 @@
 "use client"
 
+import dynamic from "next/dynamic"
+import { useMemo } from "react"
 import { createStudioBFFClient } from "@prisma/studio-core/data/bff"
 import { createPostgresAdapter } from "@prisma/studio-core/data/postgres-core"
-import { Studio } from "@prisma/studio-core/ui"
+import styles from "@/components/admin/prisma-studio-panel.module.css"
 
-const adapter = createPostgresAdapter({
-  executor: createStudioBFFClient({
-    url: "/api/admin/studio",
-  }),
-})
+const Studio = dynamic(
+  () => import("@prisma/studio-core/ui").then((module) => module.Studio),
+  {
+    ssr: false,
+    loading: () => (
+      <div className={styles.loadingShell}>
+        <div className={styles.loadingTitle}>Loading Prisma Studio...</div>
+        <div className={styles.loadingText}>Preparing the embedded database view.</div>
+      </div>
+    ),
+  }
+)
 
 export function PrismaStudioPanel() {
+  const adapter = useMemo(
+    () =>
+      createPostgresAdapter({
+        executor: createStudioBFFClient({
+          url: "/api/admin/studio",
+        }),
+      }),
+    []
+  )
+
   return (
-    <div className="overflow-hidden rounded-[2rem] border border-border/60 bg-card/90 p-2 shadow-[0_35px_120px_rgba(0,0,0,0.18)]">
-      <div className="rounded-[1.4rem] bg-white">
-        <Studio adapter={adapter} />
+    <div className={styles.panel}>
+      <div className={styles.surface}>
+        <div className={styles.studioRoot}>
+          <Studio adapter={adapter} />
+        </div>
       </div>
     </div>
   )
