@@ -4,6 +4,7 @@ import { createPostgresJSExecutor } from "@prisma/studio-core/data/postgresjs"
 import { getAdminStudioDatabaseUrl } from "@/lib/admin"
 import { originMatchesRequest, requireAdminRead } from "@/lib/admin-request"
 import { jsonUtf8 } from "@/lib/http"
+import { serializeStudioQueryResult } from "@/lib/prisma-studio"
 
 export const runtime = "nodejs"
 
@@ -47,7 +48,7 @@ export async function POST(req: Request) {
 
   if (body.procedure === "query") {
     const [error, result] = await studioExecutor.execute(body.query)
-    return jsonUtf8([error ? serializeError(error) : null, result ?? null])
+    return jsonUtf8([error ? serializeError(error) : null, serializeStudioQueryResult(result ?? null)])
   }
 
   if (body.procedure === "sequence") {
@@ -58,8 +59,10 @@ export async function POST(req: Request) {
 
     const second = await studioExecutor.execute(body.sequence[1])
     return jsonUtf8([
-      [null, first[1] ?? null],
-      second[0] ? [serializeError(second[0]), null] : [null, second[1] ?? null],
+      [null, serializeStudioQueryResult(first[1] ?? null)],
+      second[0]
+        ? [serializeError(second[0]), null]
+        : [null, serializeStudioQueryResult(second[1] ?? null)],
     ])
   }
 

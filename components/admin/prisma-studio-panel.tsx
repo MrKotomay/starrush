@@ -5,6 +5,7 @@ import { useMemo } from "react"
 import { createStudioBFFClient } from "@prisma/studio-core/data/bff"
 import { createPostgresAdapter } from "@prisma/studio-core/data/postgres-core"
 import styles from "@/components/admin/prisma-studio-panel.module.css"
+import { deserializeStudioQueryResult } from "@/lib/prisma-studio"
 
 const Studio = dynamic(
   () => import("@prisma/studio-core/ui").then((module) => module.Studio),
@@ -25,6 +26,7 @@ export function PrismaStudioPanel() {
       createPostgresAdapter({
         executor: createStudioBFFClient({
           url: "/api/admin/studio",
+          resultDeserializerFn: deserializeStudioQueryResult,
         }),
       }),
     []
