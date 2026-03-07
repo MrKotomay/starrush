@@ -28,7 +28,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
   useEffect(() => {
     const root = document.documentElement
     const prev = root.style.getPropertyValue("--bottom-nav-h")
-    root.style.setProperty("--bottom-nav-h", "78px")
+    root.style.setProperty("--bottom-nav-h", "74px")
     return () => {
       if (prev) root.style.setProperty("--bottom-nav-h", prev)
       else root.style.removeProperty("--bottom-nav-h")
@@ -52,8 +52,8 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
       className="fixed left-1/2 z-50 -translate-x-1/2 px-0.5 transition-opacity duration-200"
       style={{ bottom: "calc(12px + var(--content-safe-bottom))" }}
     >
-      <BottomNavShell className="relative px-1.5 py-1.5">
-        <div className="flex items-center gap-1">
+      <BottomNavShell className="relative px-1 py-1">
+        <div className="flex items-center gap-0.5">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id
             const Icon = tab.icon
@@ -63,7 +63,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                 key={tab.id}
                 onClick={() => handleTabClick(tab.id)}
                 className={cn(
-                  "focus-brand relative flex min-w-[88px] flex-col items-center gap-1 rounded-[16px] px-3.5 py-1.5 transition-colors duration-200 ease-out",
+                  "focus-brand relative flex min-w-[84px] flex-col items-center gap-1 rounded-full px-3 py-1 transition-colors duration-200 ease-out",
                   isActive ? "text-foreground" : "text-text-tertiary",
                 )}
                 aria-current={isActive ? "page" : undefined}
@@ -73,7 +73,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                   <motion.span
                     layoutId="bottom-nav-active-pill"
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-[2px] rounded-[14px] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.10)_0%,rgba(255,255,255,0.04)_32%,rgba(255,255,255,0.02)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_8px_16px_rgba(2,6,18,0.10)]"
+                    className="pointer-events-none absolute inset-x-[3px] inset-y-[2px] rounded-full border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.10)_0%,rgba(255,255,255,0.04)_28%,rgba(255,255,255,0.02)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_6px_12px_rgba(2,6,18,0.08)]"
                     transition={indicatorTransition}
                   />
                 ) : null}
