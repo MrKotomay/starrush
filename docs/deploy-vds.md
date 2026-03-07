@@ -68,6 +68,7 @@ bash infra/deploy/deploy-vds.sh
 ```
 
 `infra/deploy/deploy-vds.sh` runs the Prisma `migrate` service before starting app services. This migration step is mandatory for the new security/accounting indexes and unique constraint.
+It also prunes unused Docker containers, images, build cache, and networks before the build and once again after the deploy, so old deploy artifacts do not keep filling the disk.
 
 If deploy stops during migration with a duplicate `HouseLedgerEntry` error on `("houseWalletId", "roundId", "userId", "type")`, do not skip it. Clean duplicate rows first and rebalance `HouseWallet`, then rerun deploy.
 
