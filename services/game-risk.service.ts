@@ -1,7 +1,8 @@
-import { Currency, Prisma, RoundPlayerStatus, RoundStatus } from "@prisma/client"
+import { Currency, FairnessVersion, Prisma, RoundPlayerStatus, RoundStatus } from "@prisma/client"
 import { gameConfig } from "@/lib/game-config"
 import { db } from "@/lib/db"
 import { getOrCreateHouseWallet } from "@/lib/house-ledger.service"
+import { calculateCrashPoint } from "@/services/game-fairness.service"
 
 export class RiskLimitExceededError extends Error {
   readonly code = "RISK_LIMIT_EXCEEDED"
@@ -23,8 +24,47 @@ function asPositiveDecimal(value: Prisma.Decimal | number | string) {
 const RISK_ACTIVE_ROUND_STATUSES = new Set<RoundStatus>([RoundStatus.WAITING, RoundStatus.RUNNING])
 
 type RoundRiskParams = {
+  roundId: string
   status: RoundStatus
   maxCrash: Prisma.Decimal
+  crashMultiplier: Prisma.Decimal | null
+  houseEdge: Prisma.Decimal
+  fairnessVersion: FairnessVersion
+  fairnessNonce: number
+  clientSeed: string | null
+  serverSeedHash: string
+  serverSeed: string | null
+}
+
+function getFallbackRiskMultiplier(maxCrashInput: Prisma.Decimal | number | string) {
+  const maxCrash = new Prisma.Decimal(maxCrashInput)
+  const fallbackCap = new Prisma.Decimal(gameConfig.riskAcceptanceMaxMultiplier)
+  return maxCrash.lessThan(fallbackCap) ? maxCrash : fallbackCap
+}
+
+function resolveEffectiveRiskMultiplier(params: RoundRiskParams) {
+  if (params.crashMultiplier && params.crashMultiplier.gte(1.01)) {
+    return params.crashMultiplier
+  }
+
+  if (params.status === RoundStatus.WAITING && params.serverSeed) {
+    const exactCrashPoint = calculateCrashPoint({
+      fairnessVersion: params.fairnessVersion,
+      serverSeed: params.serverSeed,
+      serverSeedHash: params.serverSeedHash,
+      roundId: params.roundId,
+      fairnessNonce: params.fairnessNonce,
+      clientSeed: params.clientSeed,
+      houseEdge: Number(params.houseEdge.toString()),
+      maxCrash: Number(params.maxCrash.toString()),
+    })
+
+    if (Number.isFinite(exactCrashPoint) && exactCrashPoint >= 1.01) {
+      return new Prisma.Decimal(exactCrashPoint.toString())
+    }
+  }
+
+  return getFallbackRiskMultiplier(params.maxCrash)
 }
 
 async function acquireRoundCurrencyRiskLock(
@@ -45,13 +85,32 @@ async function readRoundRiskParams(roundId: string, tx?: Prisma.TransactionClien
   const client = tx ?? db
   const round = await client.round.findUnique({
     where: { id: roundId },
-    select: { id: true, status: true, maxCrash: true },
+    select: {
+      id: true,
+      status: true,
+      maxCrash: true,
+      crashMultiplier: true,
+      houseEdge: true,
+      fairnessVersion: true,
+      fairnessNonce: true,
+      clientSeed: true,
+      serverSeedHash: true,
+      serverSeed: true,
+    },
   })
 
   if (!round) throw new Error("ROUND_NOT_FOUND")
   return {
+    roundId: round.id,
     status: round.status,
     maxCrash: new Prisma.Decimal(round.maxCrash),
+    crashMultiplier: round.crashMultiplier ? new Prisma.Decimal(round.crashMultiplier) : null,
+    houseEdge: new Prisma.Decimal(round.houseEdge),
+    fairnessVersion: round.fairnessVersion,
+    fairnessNonce: round.fairnessNonce,
+    clientSeed: round.clientSeed,
+    serverSeedHash: round.serverSeedHash,
+    serverSeed: round.serverSeed,
   }
 }
 
@@ -82,9 +141,9 @@ export async function computeCurrentRoundExposure(
     return new Prisma.Decimal(0)
   }
 
-  const maxCrash = params.maxCrash
-  const maxCrashMinusOne = maxCrash.minus(1)
-  if (maxCrashMinusOne.lte(0)) {
+  const riskMultiplier = resolveEffectiveRiskMultiplier(params)
+  const riskMultiplierMinusOne = riskMultiplier.minus(1)
+  if (riskMultiplierMinusOne.lte(0)) {
     return new Prisma.Decimal(0)
   }
 
@@ -101,7 +160,7 @@ export async function computeCurrentRoundExposure(
     ? new Prisma.Decimal(aggregate._sum.betAmount)
     : new Prisma.Decimal(0)
 
-  return totalStake.mul(maxCrashMinusOne)
+  return totalStake.mul(riskMultiplierMinusOne)
 }
 
 export async function computeQueuedRoundExposure(
@@ -110,9 +169,9 @@ export async function computeQueuedRoundExposure(
   tx?: Prisma.TransactionClient
 ) {
   const client = tx ?? db
-  const maxCrash = new Prisma.Decimal(maxCrashInput)
-  const maxCrashMinusOne = maxCrash.minus(1)
-  if (maxCrashMinusOne.lte(0)) {
+  const riskMultiplier = getFallbackRiskMultiplier(maxCrashInput)
+  const riskMultiplierMinusOne = riskMultiplier.minus(1)
+  if (riskMultiplierMinusOne.lte(0)) {
     return new Prisma.Decimal(0)
   }
 
@@ -125,7 +184,7 @@ export async function computeQueuedRoundExposure(
     ? new Prisma.Decimal(aggregate._sum.betAmount)
     : new Prisma.Decimal(0)
 
-  return totalStake.mul(maxCrashMinusOne)
+  return totalStake.mul(riskMultiplierMinusOne)
 }
 
 export async function assertCanAcceptBet(input: {
@@ -147,7 +206,8 @@ export async function assertCanAcceptBet(input: {
   }
 
   const maxCrash = roundRiskParams.maxCrash
-  const maxCrashMinusOne = maxCrash.minus(1)
+  const riskMultiplier = resolveEffectiveRiskMultiplier(roundRiskParams)
+  const riskMultiplierMinusOne = riskMultiplier.minus(1)
   const bankroll = await computeHouseBankroll(input.currency, input.tx)
   const existingExposure = await computeCurrentRoundExposure(
     input.currency,
@@ -155,7 +215,7 @@ export async function assertCanAcceptBet(input: {
     input.tx,
     roundRiskParams
   )
-  const betWorstCaseProfit = stake.mul(maxCrashMinusOne)
+  const betWorstCaseProfit = stake.mul(riskMultiplierMinusOne)
   const maxPerBet = bankroll.mul(gameConfig.riskMaxPayoutFractionPerBet)
   const maxPerRound = bankroll.mul(gameConfig.riskMaxExposureFractionPerRound)
   const projectedExposure = existingExposure.plus(betWorstCaseProfit)
@@ -166,6 +226,7 @@ export async function assertCanAcceptBet(input: {
       roundId: input.roundId,
       bankroll: bankroll.toString(),
       maxCrash: maxCrash.toString(),
+      riskMultiplier: riskMultiplier.toString(),
       betWorstCaseProfit: betWorstCaseProfit.toString(),
       maxPerBet: maxPerBet.toString(),
     })
@@ -177,6 +238,7 @@ export async function assertCanAcceptBet(input: {
       roundId: input.roundId,
       bankroll: bankroll.toString(),
       maxCrash: maxCrash.toString(),
+      riskMultiplier: riskMultiplier.toString(),
       existingExposure: existingExposure.toString(),
       projectedExposure: projectedExposure.toString(),
       maxPerRound: maxPerRound.toString(),
@@ -188,6 +250,7 @@ export async function assertCanAcceptBet(input: {
     roundId: input.roundId,
     bankroll,
     maxCrash,
+    riskMultiplier,
     existingExposure,
     betWorstCaseProfit,
     projectedExposure,
@@ -215,7 +278,6 @@ export async function assertCanAcceptQueuedBet(input: {
   }
 
   const maxCrash = roundRiskParams.maxCrash
-  const maxCrashMinusOne = maxCrash.minus(1)
   const bankroll = await computeHouseBankroll(input.currency, input.tx)
   const runningRoundExposure = await computeCurrentRoundExposure(
     input.currency,
@@ -236,8 +298,10 @@ export async function assertCanAcceptQueuedBet(input: {
     })
   }
 
-  const existingQueuedExposure = await computeQueuedRoundExposure(input.currency, maxCrash, input.tx)
-  const betWorstCaseProfit = stake.mul(maxCrashMinusOne)
+  const queuedRiskMultiplier = getFallbackRiskMultiplier(maxCrash)
+  const queuedRiskMultiplierMinusOne = queuedRiskMultiplier.minus(1)
+  const existingQueuedExposure = await computeQueuedRoundExposure(input.currency, queuedRiskMultiplier, input.tx)
+  const betWorstCaseProfit = stake.mul(queuedRiskMultiplierMinusOne)
   const maxPerBet = availableBankrollForQueue.mul(gameConfig.riskMaxPayoutFractionPerBet)
   const maxPerRound = availableBankrollForQueue.mul(gameConfig.riskMaxExposureFractionPerRound)
   const projectedQueuedExposure = existingQueuedExposure.plus(betWorstCaseProfit)
@@ -250,6 +314,7 @@ export async function assertCanAcceptQueuedBet(input: {
       runningRoundExposure: runningRoundExposure.toString(),
       availableBankrollForQueue: availableBankrollForQueue.toString(),
       maxCrash: maxCrash.toString(),
+      riskMultiplier: queuedRiskMultiplier.toString(),
       betWorstCaseProfit: betWorstCaseProfit.toString(),
       maxPerBet: maxPerBet.toString(),
     })
@@ -263,6 +328,7 @@ export async function assertCanAcceptQueuedBet(input: {
       runningRoundExposure: runningRoundExposure.toString(),
       availableBankrollForQueue: availableBankrollForQueue.toString(),
       maxCrash: maxCrash.toString(),
+      riskMultiplier: queuedRiskMultiplier.toString(),
       existingQueuedExposure: existingQueuedExposure.toString(),
       projectedQueuedExposure: projectedQueuedExposure.toString(),
       maxPerRound: maxPerRound.toString(),
@@ -274,6 +340,7 @@ export async function assertCanAcceptQueuedBet(input: {
     roundId: input.sourceRoundId,
     bankroll,
     maxCrash,
+    riskMultiplier: queuedRiskMultiplier,
     runningRoundExposure,
     availableBankrollForQueue,
     existingQueuedExposure,
