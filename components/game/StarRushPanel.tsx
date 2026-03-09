@@ -891,7 +891,7 @@ export function StarRushPanel({
   const statusChipClass = isRunning
     ? styles.historyPillLive
     : isSettling
-      ? styles.historyPillCrash
+      ? styles.historyPillActive
       : styles.historyPillWaiting;
   const statusChipTextKey = `${snapshot.roundId}-${snapshot.phase}-${locale}`;
 

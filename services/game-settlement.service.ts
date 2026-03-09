@@ -47,7 +47,15 @@ function quantizeMoney(value: Prisma.Decimal) {
   return value.toDecimalPlaces(CASHOUT_MONEY_SCALE, Prisma.Decimal.ROUND_HALF_UP)
 }
 
-export function computeCashoutAmounts(stakeInput: Prisma.Decimal | number | string, rawMultiplier: number) {
+function quantizeStarsMoney(value: Prisma.Decimal) {
+  return value.toDecimalPlaces(0, Prisma.Decimal.ROUND_FLOOR)
+}
+
+export function computeCashoutAmounts(
+  stakeInput: Prisma.Decimal | number | string,
+  rawMultiplier: number,
+  currency: "TON" | "STARS" = "TON",
+) {
   const stake = new Prisma.Decimal(stakeInput)
   if (stake.lte(0)) throw new Error("INVALID_STAKE")
   if (!Number.isFinite(rawMultiplier) || rawMultiplier < 1) throw new Error("INVALID_MULTIPLIER")
@@ -56,8 +64,10 @@ export function computeCashoutAmounts(stakeInput: Prisma.Decimal | number | stri
   const multiplierDecimal = new Prisma.Decimal(multiplier.toFixed(CASHOUT_MULTIPLIER_SCALE))
 
   // Settlement semantics: payout = stake * multiplier, profit = payout - stake.
-  const payout = quantizeMoney(stake.mul(multiplierDecimal))
-  const profit = quantizeMoney(payout.minus(stake))
+  const rawPayout = quantizeMoney(stake.mul(multiplierDecimal))
+  const payout = currency === "STARS" ? quantizeStarsMoney(rawPayout) : rawPayout
+  const rawProfit = payout.minus(stake)
+  const profit = currency === "STARS" ? quantizeStarsMoney(rawProfit) : quantizeMoney(rawProfit)
 
   return {
     stake,
@@ -120,7 +130,7 @@ export async function cashoutPlayer(roundId: string, userId: string): Promise<Ca
       ? Number.parseFloat(multiplierRaw)
       : computeRoundMultiplier((Date.now() - round.startedAt.getTime()) / 1000)
 
-    const settlement = computeCashoutAmounts(player.betAmount, multiplier)
+    const settlement = computeCashoutAmounts(player.betAmount, multiplier, player.currency)
 
     const winEntry = await createTransaction(
       {

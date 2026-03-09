@@ -20,6 +20,7 @@ import { TopHud } from "@/components/top-hud"
 import { WalletActionModal } from "@/components/wallet-action-modal"
 import { WalletOverviewModal } from "@/components/wallet-overview-modal"
 import { AppSettingsProvider } from "@/lib/app-settings"
+import { formatCurrencyAmount } from "@/lib/currency"
 import { useI18n } from "@/lib/i18n"
 import { runMiniAppBootstrap } from "@/lib/mini-app-bootstrap"
 import { useAdaptiveOverlayMotion } from "@/lib/use-adaptive-overlay-motion"
@@ -371,7 +372,7 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
         setWalletActionMode(null)
         setToast(
           t("walletAction.successWithdraw", {
-            amount: input.amount.toFixed(2),
+            amount: formatCurrencyAmount(input.currency, input.amount, { compactStars: false }),
             currency: input.currency,
           }),
         )

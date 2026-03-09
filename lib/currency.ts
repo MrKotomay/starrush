@@ -17,7 +17,7 @@ export function isIntegerCurrency(currency: SupportedCurrency) {
 export function roundCurrencyAmount(currency: SupportedCurrency, amount: number) {
   const safeAmount = Math.max(0, toFiniteNumber(amount))
   if (isIntegerCurrency(currency)) {
-    return Math.round(safeAmount)
+    return Math.floor(safeAmount)
   }
   return Math.round(safeAmount * 100) / 100
 }
@@ -33,14 +33,12 @@ export function formatCurrencyAmount(
 ) {
   const safeAmount = Math.max(0, toFiniteNumber(amount))
 
-  if (currency === "STARS" && options.compactStars !== false) {
+  if (currency === "STARS") {
     return String(Math.max(0, Math.floor(safeAmount)))
   }
 
-  const minimumFractionDigits =
-    options.minimumFractionDigits ?? (currency === "TON" ? 2 : 0)
-  const maximumFractionDigits =
-    options.maximumFractionDigits ?? (currency === "TON" ? 2 : 2)
+  const minimumFractionDigits = options.minimumFractionDigits ?? 2
+  const maximumFractionDigits = options.maximumFractionDigits ?? 2
 
   return new Intl.NumberFormat("en-US", {
     minimumFractionDigits,

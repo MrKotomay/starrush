@@ -63,17 +63,17 @@ export function CoefficientDisplay({
         : t("rush.crashed");
 
   return (
-    <motion.div
-      className={`${styles.coeffWrap} ${layoutClass}`}
-      animate={
-        phase === RoundPhase.RUNNING
-          ? { y: 0, opacity: 1, scale: 1 }
-          : phase === RoundPhase.CRASHED
-            ? { y: -6, opacity: 1, scale: 1 }
-            : { y: 0, opacity: 1, scale: 1 }
-      }
-      transition={{ duration: 0.28, ease: EASE }}
-    >
+    <div className={`${styles.coeffWrap} ${layoutClass}`}>
+      <motion.div
+        animate={
+          phase === RoundPhase.RUNNING
+            ? { y: 0, opacity: 1, scale: 1 }
+            : phase === RoundPhase.CRASHED
+              ? { y: -6, opacity: 1, scale: 1 }
+              : { y: 0, opacity: 1, scale: 1 }
+        }
+        transition={{ duration: 0.28, ease: EASE }}
+      >
       <AnimatePresence mode="wait" initial={false}>
         <motion.p
           key={`${phase}-${valueText}`}
@@ -105,6 +105,7 @@ export function CoefficientDisplay({
           {subText}
         </motion.p>
       </AnimatePresence>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }

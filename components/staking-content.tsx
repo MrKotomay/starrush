@@ -133,7 +133,9 @@ function metricValue(
   const source = sortBy === "ton" ? entry.tonBalance : entry.starsBalance
   const parsed = Number.parseFloat(source)
   const safe = Number.isFinite(parsed) ? Math.max(0, parsed) : 0
-  return new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(safe)
+  return sortBy === "ton"
+    ? new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(safe)
+    : new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(Math.floor(safe))
 }
 
 function formatAssetLabel(asset: StakingAssetView) {
@@ -146,6 +148,40 @@ function buildSummary(assets: StakingAssetView[], field: "stakedPrincipal" | "cl
   return assets
     .map((asset) => `${formatCurrencyAmount(asset.assetId, toNumber(asset[field]), { compactStars: false })} ${asset.symbol}`)
     .join(" / ")
+}
+
+function AssetInlineSummary({
+  assets,
+  field,
+}: {
+  assets: StakingAssetView[]
+  field: "stakedPrincipal" | "claimableReward"
+}) {
+  const sourceAssets =
+    assets.length > 0
+      ? assets
+      : [
+          { assetId: "TON", icon: "/ton.svg", symbol: "TON", value: "0" },
+          { assetId: "STARS", icon: "/stars.svg", symbol: "Stars", value: "0" },
+        ]
+
+  return (
+    <span className={styles.inlineSummary}>
+      {sourceAssets.map((asset) => {
+        const amount =
+          "value" in asset
+            ? asset.value
+            : formatCurrencyAmount(asset.assetId, toNumber(asset[field]), { compactStars: false })
+
+        return (
+          <span key={asset.assetId} className={styles.inlineSummaryItem}>
+            <img src={asset.icon} alt={asset.symbol} className={styles.inlineSummaryIcon} />
+            <span>{amount}</span>
+          </span>
+        )
+      })}
+    </span>
+  )
 }
 
 function AvatarCell({ entry, isTop }: { entry: LeaderboardEntry; isTop: boolean }) {
@@ -221,7 +257,6 @@ export function StakingContent() {
   )
 
   const stakingSummary = useMemo(() => buildSummary(assets, "stakedPrincipal"), [assets])
-  const rewardsSummary = useMemo(() => buildSummary(assets, "claimableReward"), [assets])
   const claimableAssets = useMemo(() => assets.filter((asset) => asset.canClaim), [assets])
 
   const mapStakingError = useCallback(
@@ -467,8 +502,12 @@ export function StakingContent() {
               <div className={styles.claimMeta}>
                 <p className="mb-1 text-[0.78rem] font-medium text-muted-foreground">{t("staking.youEarned")}</p>
                 <div className="flex flex-col gap-1">
-                  <span className={styles.claimValue}>{rewardsSummary || "0 TON / 0 Stars"}</span>
-                  <span className="text-xs text-muted-foreground">{t("staking.totalStaked")}: {stakingSummary || "0 TON / 0 Stars"}</span>
+                  <span className={styles.claimValue}>
+                    <AssetInlineSummary assets={assets} field="claimableReward" />
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {t("staking.totalStaked")}: <AssetInlineSummary assets={assets} field="stakedPrincipal" />
+                  </span>
                 </div>
               </div>
               <PrimaryButton

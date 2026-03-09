@@ -23,6 +23,7 @@ type TelegramWebApp = {
 function formatDecimal(value: string, fractionDigits = 2) {
   const parsed = Number.parseFloat(value)
   if (!Number.isFinite(parsed)) return "0"
+  if (fractionDigits <= 0) return String(Math.max(0, Math.floor(parsed)))
   return parsed.toFixed(fractionDigits).replace(/\.?0+$/, "")
 }
 
@@ -47,7 +48,7 @@ export function ReferralProgram({
   const infoRef = useRef<HTMLDivElement | null>(null)
 
   const tonReward = useMemo(() => formatDecimal(earnedTon, 2), [earnedTon])
-  const starsReward = useMemo(() => formatDecimal(earnedStars, 2), [earnedStars])
+  const starsReward = useMemo(() => formatDecimal(earnedStars, 0), [earnedStars])
 
   const shareText = useMemo(() => {
     const ratePercent = Math.round(Number.parseFloat(commissionRate || "0.10") * 100)

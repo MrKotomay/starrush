@@ -2,6 +2,7 @@
 
 import { Trophy, Users } from "lucide-react"
 
+import { formatCurrencyAmount } from "@/lib/currency"
 import { useI18n } from "@/lib/i18n"
 import { StatCard } from "@/components/ui/stat-card"
 import { StatIcon } from "@/components/ui/stat-icon"
@@ -31,7 +32,7 @@ export function StatCards({
           </StatIcon>
         }
         label={t("stat.stars")}
-        value={starsBalance.toFixed(2)}
+        value={formatCurrencyAmount("STARS", starsBalance, { compactStars: false })}
       />
       <StatCard
         iconVariant="plain"

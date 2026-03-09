@@ -115,6 +115,25 @@
   letter-spacing: -0.02em;
 }
 
+.inlineSummary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.inlineSummaryItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inlineSummaryIcon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
 .claimButton {
   min-width: 116px;
   height: 42px;

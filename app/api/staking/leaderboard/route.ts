@@ -132,7 +132,7 @@ export async function GET(req: Request) {
     avatarUrl: entry.avatarUrl,
     gifts: Math.round(entry.gifts),
     tonBalance: entry.tonBalance.toFixed(2),
-    starsBalance: entry.starsBalance.toFixed(2),
+    starsBalance: Math.floor(entry.starsBalance).toFixed(0),
   }))
 
   return jsonUtf8({
@@ -150,7 +150,7 @@ export async function GET(req: Request) {
             avatarUrl: yourEntry.avatarUrl,
             gifts: Math.round(yourEntry.gifts),
             tonBalance: yourEntry.tonBalance.toFixed(2),
-            starsBalance: yourEntry.starsBalance.toFixed(2),
+            starsBalance: Math.floor(yourEntry.starsBalance).toFixed(0),
           }
         : null,
       items,
