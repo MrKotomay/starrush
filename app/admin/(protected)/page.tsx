@@ -1,3 +1,4 @@
+import { AdminStakingPoolForm } from "@/components/admin/admin-staking-pool-form"
 import { AdminTreasuryAdjustmentForm } from "@/components/admin/admin-treasury-adjustment-form"
 import { getAdminDashboardData } from "@/lib/admin-data"
 
@@ -116,6 +117,15 @@ export default async function AdminDashboardPage() {
             <div className="mt-5 space-y-4">
               <AdminTreasuryAdjustmentForm currency="TON" />
               <AdminTreasuryAdjustmentForm currency="STARS" />
+            </div>
+          </section>
+
+          <section className="rounded-[2rem] border border-border/60 bg-card/85 p-6 shadow-[0_30px_100px_rgba(0,0,0,0.16)]">
+            <h2 className="text-xl font-semibold text-foreground">Staking pools</h2>
+            <div className="mt-5 space-y-4">
+              {data.staking.pools.map((pool) => (
+                <AdminStakingPoolForm key={pool.id} pool={pool} />
+              ))}
             </div>
           </section>
         </div>

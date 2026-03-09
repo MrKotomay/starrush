@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import dynamic from "next/dynamic"
+import { useTonWallet } from "@tonconnect/ui-react"
 import { AnimatePresence, LayoutGroup, MotionConfig, motion, useReducedMotion } from "framer-motion"
 
 import { AppBootstrapSplash } from "@/components/app-bootstrap-splash"
@@ -156,6 +157,7 @@ const CrashGame = dynamic(
 
 function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
   const { t } = useI18n()
+  const tonConnectWallet = useTonWallet()
   const shouldReduceMotion = useReducedMotion()
   const adaptiveOverlayMotion = useAdaptiveOverlayMotion()
   const [activeTab, setActiveTab] = useState<TabId>("mine")
@@ -586,6 +588,8 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
         open={isWalletOverviewOpen}
         wallets={walletsState}
         ledger={ledgerState}
+        tonWalletAddress={tonConnectWallet?.account?.address ?? null}
+        tonWalletConnected={Boolean(tonConnectWallet?.account?.address)}
         isWalletsLoading={isWalletsLoading}
         isLedgerLoading={isLedgerLoading}
         onRefreshWallets={() => {

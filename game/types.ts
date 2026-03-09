@@ -73,6 +73,7 @@ export interface CashOutResult {
   message: string;
   multiplier: number;
   payout: number;
+  currency: Currency;
 }
 
 export interface RoundEngineConfig {

@@ -41,6 +41,13 @@ function getMaxBet(currency: Currency) {
   return currency === "TON" ? MAX_BET_TON : MAX_BET_STARS
 }
 
+function assertBetPrecision(currency: Currency, amount: Prisma.Decimal) {
+  if (currency !== Currency.STARS) return
+  if (!amount.mod(new Prisma.Decimal(1)).equals(0)) {
+    throw new InvalidBetAmountError()
+  }
+}
+
 async function resolveCurrentRound() {
   if (!redis) throw new Error("REDIS_NOT_CONFIGURED")
 
@@ -59,6 +66,7 @@ async function resolveCurrentRound() {
 export async function placeBet(userId: string, amount: number, currency: Currency): Promise<PlaceBetResult> {
   const betAmount = new Prisma.Decimal(amount)
   if (betAmount.lte(0)) throw new InvalidBetAmountError()
+  assertBetPrecision(currency, betAmount)
 
   const maxBet = getMaxBet(currency)
   if (betAmount.greaterThan(maxBet)) throw new InvalidBetAmountError()

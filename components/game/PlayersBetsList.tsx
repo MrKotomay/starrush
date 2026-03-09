@@ -1,8 +1,9 @@
 "use client";
 
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { FixedSizeList, ListChildComponentProps } from "react-window";
 
+import { currencyIconPath, formatCurrencyAmount } from "@/lib/currency";
 import { useI18n } from "@/lib/i18n"
 import styles from "@/styles/starrush.module.css";
 import { BetStatus, PlayerBetView, RoundPhase } from "@/game/types";
@@ -25,15 +26,26 @@ function initials(name: string): string {
   return name.slice(0, 2).toUpperCase();
 }
 
-function computePayout(row: PlayerBetView): number {
-  if (row.status === "CASHED_OUT") return row.payout ?? row.amount * (row.cashoutMultiplier ?? 1);
-  if (row.status === "ACTIVE") return row.amount;
-  if (row.status === "LOST") return 0;
+function getEffectiveStatus(row: PlayerBetView, phase: RoundPhase): BetStatus {
+  if (
+    row.status === "ACTIVE" &&
+    (phase === RoundPhase.CRASHED || phase === RoundPhase.RESETTING)
+  ) {
+    return "LOST";
+  }
+  return row.status;
+}
+
+function computePayout(row: PlayerBetView, status: BetStatus, liveCoefficient: number, phase: RoundPhase): number {
+  if (status === "CASHED_OUT") return row.payout ?? row.amount * (row.cashoutMultiplier ?? 1);
+  if (status === "ACTIVE" && phase === RoundPhase.RUNNING) return row.amount * Math.max(1, liveCoefficient);
+  if (status === "ACTIVE") return row.amount;
+  if (status === "LOST") return 0;
   return row.amount;
 }
 
 function payoutClass(status: BetStatus): string {
-  if (status === "CASHED_OUT") return "";
+  if (status === "CASHED_OUT") return styles.betPayoutWon;
   if (status === "LOST") return styles.betPayoutLost;
   if (status === "ACTIVE") return styles.betPayoutActive;
   return styles.betPayoutQueued;
@@ -57,18 +69,43 @@ function sortRowsWithCurrentUserFirst(rows: PlayerBetView[]): PlayerBetView[] {
 
 interface BetRowProps {
   row: PlayerBetView;
+  phase: RoundPhase;
+  liveCoefficient: number;
 }
 
 const BetRow = memo(
-  function BetRow({ row }: BetRowProps) {
+  function BetRow({ row, phase, liveCoefficient }: BetRowProps) {
     const { t } = useI18n()
-    const pay = useMemo(() => computePayout(row), [row]);
+    const effectiveStatus = useMemo(() => getEffectiveStatus(row, phase), [phase, row]);
+    const pay = useMemo(
+      () => computePayout(row, effectiveStatus, liveCoefficient, phase),
+      [effectiveStatus, liveCoefficient, phase, row],
+    );
     const bgColor = useMemo(() => avatarColor(row.username), [row.username]);
     const userInitials = useMemo(() => initials(row.username), [row.username]);
-    const cashMult = row.cashoutMultiplier;
+    const liveMultiplier = useMemo(() => {
+      if (effectiveStatus === "ACTIVE" && phase === RoundPhase.RUNNING) {
+        return liveCoefficient;
+      }
+      return row.cashoutMultiplier;
+    }, [effectiveStatus, liveCoefficient, phase, row.cashoutMultiplier]);
+    const currencyIcon = currencyIconPath(row.currency);
+    const amountLabel = formatCurrencyAmount(row.currency, row.amount);
+    const payoutLabel =
+      effectiveStatus === "LOST"
+        ? formatCurrencyAmount(row.currency, 0)
+        : formatCurrencyAmount(row.currency, pay, { compactStars: false });
+    const metaClass =
+      effectiveStatus === "CASHED_OUT"
+        ? styles.betMetaWon
+        : effectiveStatus === "LOST"
+          ? styles.betMetaLost
+          : phase === RoundPhase.RUNNING && effectiveStatus === "ACTIVE"
+            ? styles.betMetaLive
+            : "";
 
     return (
-      <article className={`${styles.betRow} ${row.isCurrentUser ? styles.betRowUser : ""} ${rowClass(row.status)}`}>
+      <article className={`${styles.betRow} ${row.isCurrentUser ? styles.betRowUser : ""} ${rowClass(effectiveStatus)}`}>
         <div className={styles.betAvatar} style={{ background: bgColor }}>
           {userInitials}
         </div>
@@ -77,25 +114,32 @@ const BetRow = memo(
           <p className={styles.betName}>
             {row.isCurrentUser ? `${row.username} (${t("rush.players.you")})` : row.username}
           </p>
-          <p className={styles.betMeta}>
-            <img src="/ton.svg" alt="" className={styles.tonIconSmall} />
-            <span>{row.amount.toFixed(2)}</span>
-            {cashMult !== null && <span className={styles.betMultiplier}> x{cashMult.toFixed(2)}</span>}
+          <p className={`${styles.betMeta} ${metaClass}`}>
+            <img src={currencyIcon} alt="" className={styles.currencyIconSmall} />
+            <span>{amountLabel}</span>
+            {liveMultiplier !== null ? (
+              <span className={styles.betMultiplier}>{` x${liveMultiplier.toFixed(2)}`}</span>
+            ) : null}
           </p>
         </div>
 
-        <div className={`${styles.betPayout} ${payoutClass(row.status)}`}>
-          <img src="/ton.svg" alt="" className={styles.tonIconSmall} />
-          <span>{row.status === "LOST" ? "0.00" : pay.toFixed(2)}</span>
+        <div className={`${styles.betPayout} ${payoutClass(effectiveStatus)}`}>
+          <img src={currencyIcon} alt="" className={styles.currencyIconSmall} />
+          <span>{payoutLabel}</span>
         </div>
       </article>
     );
   },
-  (prev, next) => prev.row === next.row,
+  (prev, next) =>
+    prev.row === next.row &&
+    prev.phase === next.phase &&
+    Math.abs(prev.liveCoefficient - next.liveCoefficient) < 0.0001,
 );
 
 interface RowData {
   rows: PlayerBetView[];
+  phase: RoundPhase;
+  liveCoefficient: number;
 }
 
 function VirtualizedRow({
@@ -106,7 +150,7 @@ function VirtualizedRow({
   const row = data.rows[index];
   return (
     <div style={style}>
-      <BetRow row={row} />
+      <BetRow row={row} phase={data.phase} liveCoefficient={data.liveCoefficient} />
     </div>
   );
 }
@@ -119,14 +163,17 @@ interface PlayersBetsListProps {
   players: PlayerBetView[];
   queuedBet: PlayerBetView | null;
   phase?: RoundPhase;
+  getLiveCoefficient: () => number;
 }
 
 export const PlayersBetsList = memo(function PlayersBetsList({
   players,
   queuedBet,
   phase = RoundPhase.PREPARING,
+  getLiveCoefficient,
 }: PlayersBetsListProps) {
   const { t } = useI18n()
+  const [liveCoefficient, setLiveCoefficient] = useState(() => Math.max(1, getLiveCoefficient()));
   const sortedPlayers = useMemo(() => sortRowsWithCurrentUserFirst(players), [players]);
   const allRows = useMemo(
     () => (queuedBet ? [queuedBet, ...sortedPlayers] : sortedPlayers),
@@ -147,8 +194,22 @@ export const PlayersBetsList = memo(function PlayersBetsList({
     () => Math.min(MAX_LIST_HEIGHT, Math.max(ROW_HEIGHT, allRows.length * ROW_HEIGHT)),
     [allRows.length],
   );
-  const rowData = useMemo<RowData>(() => ({ rows: allRows }), [allRows]);
+  const rowData = useMemo<RowData>(
+    () => ({ rows: allRows, phase, liveCoefficient }),
+    [allRows, liveCoefficient, phase],
+  );
   const getItemKey = useCallback(itemKey, []);
+
+  useEffect(() => {
+    setLiveCoefficient(Math.max(1, getLiveCoefficient()));
+    if (phase !== RoundPhase.RUNNING) return;
+
+    const timer = window.setInterval(() => {
+      setLiveCoefficient(Math.max(1, getLiveCoefficient()));
+    }, 120);
+
+    return () => window.clearInterval(timer);
+  }, [getLiveCoefficient, phase]);
 
   return (
     <section className={styles.betsSection}>

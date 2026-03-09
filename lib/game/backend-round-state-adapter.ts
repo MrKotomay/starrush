@@ -91,6 +91,7 @@ type CashoutApiSuccessPayload = {
     multiplier?: number | string;
     payout?: number | string;
     profit?: number | string;
+    currency?: Currency;
   };
 };
 
@@ -593,12 +594,14 @@ export class BackendRoundStateAdapter {
   }
 
   async cashOut(): Promise<CashOutResult> {
+    const fallbackCurrency = this.snapshot.userActiveBet?.currency ?? "TON";
     if (this.connectionState.status !== "connected") {
       return {
         ok: false,
         message: "Нет соединения. Пытаемся переподключиться.",
         multiplier: 0,
         payout: 0,
+        currency: fallbackCurrency,
       };
     }
     this.pendingSelfCashout = {
@@ -642,18 +645,22 @@ export class BackendRoundStateAdapter {
           message: this.mapCashoutError(code, backendMessage),
           multiplier: 0,
           payout: 0,
+          currency: fallbackCurrency,
         };
       }
 
       const payout = toNumber(payload.cashout?.payout) ?? 0;
       const multiplier = toNumber(payload.cashout?.multiplier) ?? 0;
+      const currency = payload.cashout?.currency ?? fallbackCurrency;
       await this.requestResync("event_resync");
+      this.pendingSelfCashout = null;
 
       return {
         ok: true,
         message: "Cashout completed",
         multiplier,
         payout,
+        currency,
       };
     } catch {
       this.pendingSelfCashout = null;
@@ -662,6 +669,7 @@ export class BackendRoundStateAdapter {
         message: "Network error while cashing out",
         multiplier: 0,
         payout: 0,
+        currency: fallbackCurrency,
       };
     } finally {
       if (

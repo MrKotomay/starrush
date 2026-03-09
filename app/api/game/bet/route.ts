@@ -19,6 +19,14 @@ import {
 const schema = z.object({
   amount: z.number().positive(),
   currency: z.nativeEnum(Currency),
+}).superRefine((value, ctx) => {
+  if (value.currency === Currency.STARS && !Number.isInteger(value.amount)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["amount"],
+      message: "Stars bets must be whole numbers",
+    })
+  }
 })
 
 export async function POST(req: Request) {

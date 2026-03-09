@@ -30,10 +30,7 @@ const BALANCE_DROPDOWN_CLOSE_MS = 180
 
 function formatStarsBalance(value: number): string {
   if (!Number.isFinite(value)) return "0"
-  const safe = Math.max(0, value)
-  const rounded = Math.round(safe * 100) / 100
-  if (Number.isInteger(rounded)) return String(rounded)
-  return rounded.toFixed(2).replace(/\.?0+$/, "")
+  return String(Math.max(0, Math.floor(value)))
 }
 
 export function TopHud({
@@ -42,14 +39,14 @@ export function TopHud({
   starsBalance = 0,
   activeBalanceCurrency,
   onlineCount = 0,
-  avatarUrl,
-  username = "U",
+  avatarUrl: _avatarUrl,
+  username: _username = "U",
   isRefreshingBalances = false,
   onRefreshBalances,
   onDepositClick,
   onWalletClick,
   onActiveBalanceCurrencyChange,
-  avatarLayoutId = "shared-profile-avatar",
+  avatarLayoutId: _avatarLayoutId = "shared-profile-avatar",
 }: TopHudProps) {
   const { t } = useI18n()
   const [isBalanceSelectorOpen, setBalanceSelectorOpen] = useState(false)
@@ -124,7 +121,7 @@ export function TopHud({
                 <span className={rushStyles.greenDot} />
                 <span>{onlineCount}</span>
               </motion.div>
-            ) : !isStakingTab ? (
+            ) : (
               <motion.button
                 key="hud-wallet"
                 type="button"
@@ -138,16 +135,6 @@ export function TopHud({
                 <Wallet className="h-4 w-4" />
                 {t("topHud.wallet")}
               </motion.button>
-            ) : (
-              <motion.div
-                key="hud-spacer"
-                className="h-10 w-[116px]"
-                aria-hidden="true"
-                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -10, scale: 0.98 }}
-                animate={{ opacity: 1, x: 0, scale: 1 }}
-                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -12, scale: 0.98 }}
-                transition={hudTransition}
-              />
             )}
           </AnimatePresence>
         </div>

@@ -285,12 +285,14 @@ export class RoundEngine {
 
   cashOut(): CashOutResult {
     const userBet = this.getUserRoundBet();
+    const fallbackCurrency = userBet?.currency ?? this.config.currency;
     if (this.phase !== RoundPhase.RUNNING || !userBet || userBet.status !== "ACTIVE") {
       return {
         ok: false,
         message: "Cash out unavailable",
         multiplier: 0,
         payout: 0,
+        currency: fallbackCurrency,
       };
     }
 
@@ -307,6 +309,7 @@ export class RoundEngine {
       message: `Cashed out at ${multiplier.toFixed(2)}x`,
       multiplier,
       payout,
+      currency: userBet.currency,
     };
   }
 

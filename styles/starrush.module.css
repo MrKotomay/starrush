@@ -314,8 +314,27 @@
 }
 
 .coeffWrap {
+  position: absolute;
+  left: 50%;
+  width: min(220px, calc(100% - 32px));
   text-align: center;
   padding: 0;
+  transform: translateX(-50%);
+}
+
+.coeffWrapCenter {
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.coeffWrapFloating {
+  bottom: calc(16px + var(--content-safe-bottom) + 132px);
+  transform: translateX(-50%);
+}
+
+.coeffWrapCrash {
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .connectionBanner {
@@ -371,11 +390,18 @@
   text-shadow: 0 0 16px rgba(var(--ui-rgb-primary), 0.18);
 }
 
-.coeffRunning {
-  color: var(--ui-success);
+.coeffRunningLive {
+  color: rgba(var(--ui-rgb-text-primary), 0.96);
   text-shadow:
-    0 0 18px rgba(var(--ui-rgb-success), 0.26),
-    0 0 42px rgba(var(--ui-rgb-success), 0.08);
+    0 0 18px rgba(var(--ui-rgb-primary), 0.18),
+    0 0 42px rgba(var(--ui-rgb-primary), 0.08);
+}
+
+.coeffCrashTravel {
+  color: rgba(var(--ui-rgb-text-primary), 0.96);
+  text-shadow:
+    0 0 18px rgba(var(--ui-rgb-primary), 0.18),
+    0 0 42px rgba(var(--ui-rgb-primary), 0.08);
 }
 
 .coeffCrashed {
@@ -388,8 +414,8 @@
 .coeffSub {
   margin: 4px 0 0;
   font-size: 11.5px;
-  font-weight: 600;
-  color: rgba(var(--ui-rgb-text-secondary), 0.72);
+  font-weight: 700;
+  color: rgba(var(--ui-rgb-text-secondary), 0.78);
 }
 
 /* ── settings gear ──────────────────────────────────────── */
@@ -664,6 +690,14 @@
     0 8px 16px rgba(2, 6, 18, 0.12);
 }
 
+.historyPillPinnedActive {
+  border-color: rgba(var(--ui-rgb-primary-soft), 0.32);
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--ui-rgb-primary-soft), 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 10px 18px rgba(var(--ui-rgb-primary), 0.16);
+}
+
 .historyPillAnimatedText {
   display: inline-flex;
   align-items: center;
@@ -698,6 +732,13 @@
   background: linear-gradient(165deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 54%, rgba(14, 20, 43, 0.7) 100%);
   color: rgba(var(--ui-rgb-text-secondary), 0.9);
   text-shadow: none;
+}
+
+.historyPillCrash {
+  border-color: rgba(var(--ui-rgb-danger), 0.34);
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.05) 54%, rgba(28, 10, 25, 0.76) 100%);
+  color: rgba(var(--ui-rgb-danger), 0.96);
+  text-shadow: 0 0 10px rgba(var(--ui-rgb-danger), 0.16);
 }
 
 .historyLow {
@@ -815,17 +856,12 @@
 }
 
 .betDock {
-  padding: 8px;
-  border-radius: 24px;
-  border: 1px solid rgba(var(--ui-rgb-text-primary), 0.08);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%),
-    rgba(9, 15, 28, 0.52);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 18px 34px rgba(2, 6, 18, 0.18);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   pointer-events: auto;
 }
 
@@ -1154,6 +1190,18 @@
   font-weight: 600;
 }
 
+.betMetaLive {
+  color: rgba(var(--ui-rgb-text-primary), 0.9);
+}
+
+.betMetaWon {
+  color: rgba(var(--ui-rgb-success), 0.95);
+}
+
+.betMetaLost {
+  color: rgba(var(--ui-rgb-danger), 0.95);
+}
+
 .betMultiplier {
   color: rgba(var(--ui-rgb-text-secondary), 0.72);
 }
@@ -1168,8 +1216,12 @@
   color: var(--ui-success);
 }
 
+.betPayoutWon {
+  color: var(--ui-success);
+}
+
 .betPayoutLost {
-  color: rgba(var(--ui-rgb-text-secondary), 0.55);
+  color: var(--ui-danger);
 }
 
 .betPayoutActive {
@@ -1196,10 +1248,9 @@
   text-align: left;
 }
 
-.tonIconSmall {
+.currencyIconSmall {
   width: 14px;
   height: 14px;
-  border-radius: 50%;
   vertical-align: middle;
   flex-shrink: 0;
 }

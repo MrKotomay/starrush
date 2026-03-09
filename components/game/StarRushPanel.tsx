@@ -21,11 +21,18 @@ import {
   type BackendRoundConnectionState,
 } from "@/lib/game/backend-round-state-adapter";
 import { useAppSettings } from "@/lib/app-settings";
+import { formatCurrencyAmount, isIntegerCurrency } from "@/lib/currency";
 import { useHaptics } from "@/lib/haptics";
 import { useI18n } from "@/lib/i18n";
 
-const MIN_BET = 0.1;
-const MAX_BET = 1000;
+const MIN_BET_BY_CURRENCY: Record<Currency, number> = {
+  TON: 0.1,
+  STARS: 1,
+};
+const MAX_BET_BY_CURRENCY: Record<Currency, number> = {
+  TON: 1000,
+  STARS: 1000,
+};
 const TOAST_VISIBLE_MS = 4800;
 const TOAST_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 const ROUND_SWITCH_RETRY_WINDOW_MS = 3200;
@@ -262,6 +269,7 @@ function isSameBet(a: PlayerBetView | null, b: PlayerBetView | null): boolean {
     a.id === b.id &&
     a.status === b.status &&
     a.amount === b.amount &&
+    a.currency === b.currency &&
     a.payout === b.payout &&
     a.cashoutMultiplier === b.cashoutMultiplier &&
     a.visibleToCurrentUserOnly === b.visibleToCurrentUserOnly
@@ -279,6 +287,7 @@ function isSamePlayers(a: PlayerBetView[], b: PlayerBetView[]): boolean {
       p.id !== n.id ||
       p.status !== n.status ||
       p.amount !== n.amount ||
+      p.currency !== n.currency ||
       p.payout !== n.payout ||
       p.cashoutMultiplier !== n.cashoutMultiplier ||
       p.visibleToCurrentUserOnly !== n.visibleToCurrentUserOnly
@@ -702,9 +711,13 @@ export function StarRushPanel({
       if (!adapter) return false;
       if (isBetSubmitting || isCashoutSubmitting) return false;
 
-      const amount = Math.round(Math.max(0, rawBetAmount) * 100) / 100;
-      if (!Number.isFinite(amount) || amount < MIN_BET || amount > MAX_BET) {
-        showToast(t("rush.betLimit", { min: MIN_BET, max: MAX_BET }));
+      const amount = isIntegerCurrency(currency)
+        ? Math.round(Math.max(0, rawBetAmount))
+        : Math.round(Math.max(0, rawBetAmount) * 100) / 100;
+      const minBet = MIN_BET_BY_CURRENCY[currency];
+      const maxBet = MAX_BET_BY_CURRENCY[currency];
+      if (!Number.isFinite(amount) || amount < minBet || amount > maxBet) {
+        showToast(t("rush.betLimit", { min: minBet, max: maxBet }));
         return false;
       }
 
@@ -762,8 +775,9 @@ export function StarRushPanel({
 
       haptics.cashoutSuccess();
       showToast(t("rush.cashoutToast", {
-        payout: result.payout.toFixed(2),
+        payout: formatCurrencyAmount(result.currency, result.payout, { compactStars: false }),
         multiplier: result.multiplier.toFixed(2),
+        currency: result.currency,
       }));
       await refreshTonWalletBalance();
       onWalletNeedsRefreshRef.current?.();
@@ -819,6 +833,7 @@ export function StarRushPanel({
   const isActionBusy = isBetSubmitting || isCashoutSubmitting;
   const isConnectionInterrupted = connectionState.status !== "connected";
   const cashoutAmount = userActive ? userActive.amount * coefficient : 0;
+  const activeBetCurrency = userActive?.currency ?? "TON";
   const tonAvailableBalance = useMemo(
     () => Math.max(0, walletTonBalance - walletTonLocked),
     [walletTonBalance, walletTonLocked],
@@ -848,9 +863,14 @@ export function StarRushPanel({
     if (ctaState === "submitting") {
       return isCashoutSubmitting ? t("rush.cashoutShort") : t("rush.submit");
     }
-    if (ctaState === "cashout-ready") return t("rush.cashout", { amount: cashoutAmount.toFixed(2) });
+    if (ctaState === "cashout-ready") {
+      return t("rush.cashout", {
+        amount: formatCurrencyAmount(activeBetCurrency, cashoutAmount, { compactStars: false }),
+        currency: activeBetCurrency,
+      });
+    }
     return t("rush.bet");
-  }, [cashoutAmount, ctaState, isCashoutSubmitting, t]);
+  }, [activeBetCurrency, cashoutAmount, ctaState, isCashoutSubmitting, t]);
   const isMainActionDisabled =
     ctaState === "submitting" || ctaState === "connection-lost";
   const ctaStateClass = ctaState === "cashout-ready"
@@ -871,7 +891,7 @@ export function StarRushPanel({
   const statusChipClass = isRunning
     ? styles.historyPillLive
     : isSettling
-      ? styles.historyPillSettling
+      ? styles.historyPillCrash
       : styles.historyPillWaiting;
   const statusChipTextKey = `${snapshot.roundId}-${snapshot.phase}-${locale}`;
 
@@ -1092,6 +1112,7 @@ export function StarRushPanel({
     setPlaceModalOpen(true);
   }, [ctaState, onCashOut]);
   const getRocketPose = useCallback(() => rendererRef.current?.getRocketPose() ?? null, []);
+  const getLiveCoefficient = useCallback(() => pendingCoeffRef.current, []);
   const onHistoryWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
     const rail = historyRailRef.current;
     if (!rail) return;
@@ -1136,7 +1157,7 @@ export function StarRushPanel({
                   aria-label={t("rush.fairness.currentRound")}
                 >
                   <span
-                    className={`${styles.historyPill} ${styles.historyPillFirst} ${statusChipClass} ${
+                    className={`${styles.historyPill} ${styles.historyPillFirst} ${styles.historyPillPinnedActive} ${statusChipClass} ${
                       openHistoryKey === currentRoundHistoryDetails.key ? styles.historyPillActive : ""
                     }`}
                   >
@@ -1370,6 +1391,7 @@ export function StarRushPanel({
         players={snapshot.players}
         queuedBet={snapshot.queuedBet}
         phase={snapshot.phase}
+        getLiveCoefficient={getLiveCoefficient}
       />
 
       <PlaceBetModal

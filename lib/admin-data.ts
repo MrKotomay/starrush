@@ -1,6 +1,7 @@
 import { Prisma, RoundStatus } from "@prisma/client"
 import { db } from "@/lib/db"
 import { getAppInternalBaseUrl, getGatewayInternalBaseUrl, getWorkerInternalBaseUrl } from "@/lib/admin"
+import { listAdminStakingPools } from "@/services/staking.service"
 
 function decimalToString(value: Prisma.Decimal | null | undefined) {
   return value ? value.toString() : "0"
@@ -50,6 +51,7 @@ export async function getAdminDashboardData() {
     gatewayHealth,
     gatewayStats,
     workerHealth,
+    stakingPools,
   ] = await Promise.all([
     db.user.count(),
     db.user.count({ where: { createdAt: { gte: since24h } } }),
@@ -84,6 +86,7 @@ export async function getAdminDashboardData() {
     fetchInternalJson(`${getGatewayInternalBaseUrl()}/healthz`),
     fetchInternalJson(`${getGatewayInternalBaseUrl()}/internal/stats`),
     fetchInternalJson(`${getWorkerInternalBaseUrl()}/healthz`),
+    listAdminStakingPools(),
   ])
 
   return {
@@ -123,6 +126,9 @@ export async function getAdminDashboardData() {
       balance: wallet.balance.toString(),
       updatedAt: wallet.updatedAt,
     })),
+    staking: {
+      pools: stakingPools,
+    },
     health: {
       app: appHealth.payload,
       gateway: gatewayHealth.payload,
