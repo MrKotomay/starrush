@@ -342,6 +342,10 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
     }
   }, [t, tonConnectUI])
 
+  const handleStakingWalletClick = useCallback(() => {
+    void openTonConnectMenu()
+  }, [openTonConnectMenu])
+
   const handleWalletsRefresh = useCallback(() => {
     void refreshWallets()
   }, [refreshWallets])
@@ -468,9 +472,7 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
     isRefreshingBalances: isWalletsLoading,
     onRefreshBalances: handleWalletsRefresh,
     onDepositClick: () => setDepositModalOpen(true),
-    onWalletClick: activeTab === "staking" ? () => {
-      void openTonConnectMenu()
-    } : openWalletOverview,
+    onWalletClick: activeTab === "staking" ? handleStakingWalletClick : openWalletOverview,
     onActiveBalanceCurrencyChange: setSelectedBalanceCurrency,
     avatarLayoutId: sharedAvatarLayoutId,
     showStakingChip: false,
@@ -481,10 +483,8 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
       <ParticleBackground active={!hasHeavyOverlay} />
 
       {activeTab === "mine" || activeTab === "staking" ? (
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-30 mx-auto w-full max-w-md">
-          <div className="pointer-events-auto">
-            <TopHud {...topHudProps} />
-          </div>
+        <div className="absolute inset-x-0 top-0 z-40 mx-auto w-full max-w-md">
+          <TopHud {...topHudProps} />
         </div>
       ) : null}
 

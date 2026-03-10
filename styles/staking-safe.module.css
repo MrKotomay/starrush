@@ -8,10 +8,11 @@
 .vaultCard::after {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: 0 0 auto 0;
+  height: 324px;
   z-index: 1;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent 48%, hsl(var(--surface-1) / 0.78) 78%, hsl(var(--surface-1) / 0.92) 100%);
+  background: linear-gradient(180deg, transparent 52%, hsl(var(--surface-1) / 0.72) 82%, hsl(var(--surface-1) / 0.9) 100%);
 }
 
 .safeHero {
@@ -124,9 +125,9 @@
 .claimStrip {
   position: relative;
   z-index: 20;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   border-radius: 22px;
   background: rgba(10, 16, 32, 0.5);
@@ -139,9 +140,8 @@
   min-width: 0;
   position: relative;
   z-index: 1;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  display: grid;
+  gap: 6px;
 }
 
 .claimLabel {
@@ -157,6 +157,7 @@
   font-size: 1.02rem;
   font-weight: 600;
   letter-spacing: -0.02em;
+  min-width: 0;
 }
 
 .claimTotalRow {
@@ -192,7 +193,8 @@
 }
 
 .claimActions {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 114px));
   align-items: center;
   gap: 10px;
   position: relative;
@@ -200,7 +202,7 @@
 }
 
 .manageButton {
-  min-width: 108px;
+  min-width: 0;
   height: 42px;
   border-radius: 18px;
   border: 1px solid rgba(var(--rgb-text-primary), 0.06);
@@ -231,7 +233,7 @@
 }
 
 .claimButton {
-  min-width: 116px;
+  min-width: 0;
   height: 42px;
   border-radius: 18px;
   padding-inline: 18px;
@@ -680,17 +682,18 @@
 
   .claimStrip {
     flex-direction: column;
+    grid-template-columns: 1fr;
     align-items: stretch;
   }
 
   .claimMeta {
     align-items: flex-start;
-    flex-direction: column;
     gap: 6px;
   }
 
   .claimActions {
     width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .manageButton,

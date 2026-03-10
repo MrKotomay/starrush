@@ -105,6 +105,13 @@ function formatApr(aprBps: number) {
   return `${(aprBps / 100).toFixed(2)}%`
 }
 
+function getAssetDisplayName(
+  assetId: "TON" | "STARS",
+  t: (key: string, vars?: Record<string, string | number>) => string,
+) {
+  return assetId === "STARS" ? t("common.stars") : t("common.ton")
+}
+
 function rankColor(rank: number) {
   if (rank === 1) return "text-star"
   if (rank === 2) return "text-text-secondary"
@@ -326,17 +333,38 @@ export function StakingContent() {
     }
   }, [])
 
+  const refreshOverviewSilent = useCallback(async () => {
+    try {
+      const response = await fetch("/api/staking/overview", {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+      })
+
+      const payload = (await response.json().catch(() => ({}))) as StakingOverviewApiResponse
+      if (!response.ok || payload.ok !== true || !Array.isArray(payload.assets)) {
+        return
+      }
+
+      setAssets(payload.assets)
+      setOverviewError(null)
+    } catch {
+      // Keep current staking panel state during background refreshes.
+    }
+  }, [])
+
   useEffect(() => {
     void refreshOverview()
   }, [refreshOverview])
 
   useEffect(() => {
     const interval = window.setInterval(() => {
-      void refreshOverview()
+      void refreshOverviewSilent()
     }, 15000)
 
     return () => window.clearInterval(interval)
-  }, [refreshOverview])
+  }, [refreshOverviewSilent])
 
   useEffect(() => {
     if (!toast) return
@@ -417,7 +445,7 @@ export function StakingContent() {
           setToast(
             t("staking.claimed", {
               amount: formatCurrencyAmount(asset.assetId, claimedAmount, { compactStars: false }),
-              asset: asset.symbol,
+              asset: getAssetDisplayName(asset.assetId, t),
             }),
           )
         } else {
@@ -468,11 +496,11 @@ export function StakingContent() {
           actionState.mode === "stake"
             ? t("staking.stakedSuccess", {
                 amount: formatCurrencyAmount(actionState.asset.assetId, amount, { compactStars: false }),
-                asset: actionState.asset.symbol,
+                asset: getAssetDisplayName(actionState.asset.assetId, t),
               })
             : t("staking.unstakeRequested", {
                 amount: formatCurrencyAmount(actionState.asset.assetId, amount, { compactStars: false }),
-                asset: actionState.asset.symbol,
+                asset: getAssetDisplayName(actionState.asset.assetId, t),
               }),
         )
       } finally {
@@ -511,9 +539,9 @@ export function StakingContent() {
           <div className={styles.vaultContent}>
             <div className={styles.heroHeadlineWrap}>
               <h2 className={styles.heroHeadline}>{t("staking.yourStaking")}</h2>
-              <p className={styles.heroSubline}>
-                {overviewError ? t("staking.overviewUnavailable") : t("staking.modal.subtitleStake")}
-              </p>
+                <p className={styles.heroSubline}>
+                  {overviewError ? t("staking.overviewUnavailable") : t("staking.modal.subtitleStake")}
+                </p>
             </div>
 
             <div className={styles.claimStrip}>
@@ -568,7 +596,7 @@ export function StakingContent() {
                           onClick={() => setSelectedAssetId(asset.assetId)}
                         >
                           <img src={asset.icon} alt={asset.symbol} className={styles.assetPanelTabIcon} />
-                          <span>{asset.symbol}</span>
+                          <span>{getAssetDisplayName(asset.assetId, t)}</span>
                         </button>
                       )
                     })}
@@ -581,7 +609,7 @@ export function StakingContent() {
                           <img src={selectedAsset.icon} alt={selectedAsset.symbol} className={styles.assetIcon} />
                         </span>
                         <div>
-                          <div className={styles.assetTitle}>{selectedAsset.symbol}</div>
+                          <div className={styles.assetTitle}>{getAssetDisplayName(selectedAsset.assetId, t)}</div>
                           <div className={styles.assetSubtitle}>{t("staking.apr")}: {formatApr(selectedAsset.aprBps)}</div>
                         </div>
                       </div>
@@ -594,19 +622,19 @@ export function StakingContent() {
                       <div className={styles.assetMetric}>
                         <div className={styles.assetMetricLabel}>{t("staking.walletBalance")}</div>
                         <div className={styles.assetMetricValue}>
-                          {formatAssetAmount(selectedAsset.assetId, selectedAsset.walletBalance)} {selectedAsset.symbol}
+                          {formatAssetAmount(selectedAsset.assetId, selectedAsset.walletBalance)} {getAssetDisplayName(selectedAsset.assetId, t)}
                         </div>
                       </div>
                       <div className={styles.assetMetric}>
                         <div className={styles.assetMetricLabel}>{t("staking.stakedBalance")}</div>
                         <div className={styles.assetMetricValue}>
-                          {formatAssetAmount(selectedAsset.assetId, selectedAsset.stakedPrincipal)} {selectedAsset.symbol}
+                          {formatAssetAmount(selectedAsset.assetId, selectedAsset.stakedPrincipal)} {getAssetDisplayName(selectedAsset.assetId, t)}
                         </div>
                       </div>
                       <div className={styles.assetMetric}>
                         <div className={styles.assetMetricLabel}>{t("staking.pendingReward")}</div>
                         <div className={styles.assetMetricValue}>
-                          {formatAssetAmount(selectedAsset.assetId, selectedAsset.pendingReward)} {selectedAsset.symbol}
+                          {formatAssetAmount(selectedAsset.assetId, selectedAsset.pendingReward)} {getAssetDisplayName(selectedAsset.assetId, t)}
                         </div>
                       </div>
                       <div className={styles.assetMetric}>
@@ -616,7 +644,7 @@ export function StakingContent() {
                         <div className={styles.assetMetricValue}>
                           {selectedAsset.pendingUnstake
                             ? t("staking.availableAt", { date: formatDateTime(selectedAsset.pendingUnstake.availableAt) })
-                            : `${formatAssetAmount(selectedAsset.assetId, selectedAsset.claimableReward)} ${selectedAsset.symbol}`}
+                            : `${formatAssetAmount(selectedAsset.assetId, selectedAsset.claimableReward)} ${getAssetDisplayName(selectedAsset.assetId, t)}`}
                         </div>
                       </div>
                     </div>
@@ -624,12 +652,12 @@ export function StakingContent() {
                     <div className={styles.assetMetaRow}>
                       <span>{t("staking.modal.minStake", {
                         amount: formatAssetAmount(selectedAsset.assetId, selectedAsset.minStake),
-                        asset: selectedAsset.symbol,
+                        asset: getAssetDisplayName(selectedAsset.assetId, t),
                       })}</span>
                       {selectedAsset.pendingUnstake ? (
                         <span>{t("staking.availableAt", { date: formatDateTime(selectedAsset.pendingUnstake.availableAt) })}</span>
                       ) : (
-                        <span>{t("staking.totalStaked")}: {formatAssetLabel(selectedAsset)} {selectedAsset.symbol}</span>
+                        <span>{t("staking.totalStaked")}: {formatAssetLabel(selectedAsset)} {getAssetDisplayName(selectedAsset.assetId, t)}</span>
                       )}
                     </div>
 
