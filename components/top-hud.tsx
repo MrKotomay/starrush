@@ -23,6 +23,7 @@ type TopHudProps = {
   onWalletClick?: () => void
   onActiveBalanceCurrencyChange?: (currency: "TON" | "STARS") => void
   avatarLayoutId?: string
+  showStakingChip?: boolean
 }
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
@@ -47,6 +48,7 @@ export function TopHud({
   onWalletClick,
   onActiveBalanceCurrencyChange,
   avatarLayoutId: _avatarLayoutId = "shared-profile-avatar",
+  showStakingChip = true,
 }: TopHudProps) {
   const { t } = useI18n()
   const [isBalanceSelectorOpen, setBalanceSelectorOpen] = useState(false)
@@ -139,7 +141,7 @@ export function TopHud({
           </AnimatePresence>
         </div>
 
-        {isStakingTab ? (
+        {isStakingTab && showStakingChip ? (
           <motion.div
             key="staking-chip"
             transition={avatarTransition}

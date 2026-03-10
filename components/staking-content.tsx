@@ -518,20 +518,15 @@ export function StakingContent() {
 
             <div className={styles.claimStrip}>
               <div className={styles.claimMeta}>
-                <p className="mb-1 text-[0.78rem] font-medium text-muted-foreground">{t("staking.youEarned")}</p>
-                <div className="flex flex-col gap-1">
-                  <span className={styles.claimValue}>
-                    <AssetInlineSummary assets={assets} field="claimableReward" />
-                  </span>
-                  <span className={styles.claimTotalRow}>
-                    {t("staking.totalStaked")}: <AssetInlineSummary assets={assets} field="stakedPrincipal" />
-                  </span>
-                </div>
+                <p className={styles.claimLabel}>{t("staking.youEarned")}</p>
+                <span className={styles.claimValue}>
+                  <AssetInlineSummary assets={assets} field="claimableReward" />
+                </span>
               </div>
               <div className={styles.claimActions}>
                 <button
                   type="button"
-                  className={styles.manageButton}
+                  className={cn(styles.manageButton, styles.manageButtonAccent)}
                   disabled={isOverviewLoading || assets.length === 0}
                   onClick={() => setAssetPanelOpen((current) => !current)}
                 >
