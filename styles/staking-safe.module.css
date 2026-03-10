@@ -21,6 +21,18 @@
   overflow: hidden;
 }
 
+.heroGrid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 30px 30px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.42) 0%, rgba(0, 0, 0, 0.16) 40%, transparent 100%);
+  opacity: 0.24;
+  pointer-events: none;
+}
+
 .backGlow {
   position: absolute;
   inset: -14% -10% -6%;
@@ -84,6 +96,100 @@
   padding-top: 188px;
 }
 
+.heroTopline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.heroEyebrow {
+  color: rgba(var(--rgb-text-secondary), 0.75);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.heroSignal {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--rgb-text-primary), 0.08);
+  background: rgba(7, 11, 24, 0.44);
+  color: rgba(var(--rgb-text-secondary), 0.92);
+  font-size: 0.72rem;
+  font-weight: 700;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.heroSignalDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.9) 0%, rgba(88, 229, 255, 0.9) 40%, rgba(88, 229, 255, 0.2) 100%);
+  box-shadow: 0 0 16px rgba(88, 229, 255, 0.55);
+}
+
+.heroHeadlineWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.heroHeadline {
+  margin: 0;
+  color: hsl(var(--foreground));
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+  max-width: 10ch;
+}
+
+.heroSubline {
+  margin: 8px 0 0;
+  max-width: 32ch;
+  color: rgba(var(--rgb-text-secondary), 0.82);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.heroBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--rgb-text-primary), 0.07);
+  background:
+    linear-gradient(135deg, rgba(92, 109, 255, 0.14) 0%, rgba(210, 101, 255, 0.12) 100%),
+    rgba(8, 12, 28, 0.42);
+  color: hsl(var(--foreground));
+  font-size: 0.75rem;
+  font-weight: 700;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.heroBadgeIcon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
 .claimStrip {
   position: relative;
   z-index: 20;
@@ -104,8 +210,20 @@
   -webkit-backdrop-filter: blur(16px);
 }
 
+.claimStrip::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(82, 223, 255, 0.12) 0%, transparent 36%, rgba(198, 103, 255, 0.12) 100%);
+  opacity: 0.9;
+}
+
 .claimMeta {
   min-width: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .claimValue {
@@ -151,6 +269,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  position: relative;
+  z-index: 1;
 }
 
 .manageButton {
@@ -258,6 +378,17 @@
   -webkit-backdrop-filter: blur(16px);
 }
 
+.assetPanelCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(46% 38% at 0% 0%, rgba(80, 226, 255, 0.16) 0%, transparent 74%),
+    radial-gradient(42% 36% at 100% 100%, rgba(198, 103, 255, 0.16) 0%, transparent 72%);
+}
+
 .assetPanelHeader {
   display: flex;
   align-items: flex-start;
@@ -295,6 +426,18 @@
 
 .leaderboardCard {
   border-color: rgba(var(--rgb-text-primary), 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.leaderboardCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(44% 32% at 10% 0%, rgba(84, 219, 255, 0.08) 0%, transparent 76%),
+    radial-gradient(38% 26% at 90% 100%, rgba(198, 103, 255, 0.08) 0%, transparent 74%);
 }
 
 .leaderboardHeadRow {
@@ -309,12 +452,16 @@
   font-weight: 700;
   letter-spacing: 0.01em;
   text-transform: none;
+  position: relative;
+  z-index: 1;
 }
 
 .leaderboardList {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  position: relative;
+  z-index: 1;
 }
 
 .leaderboardRow {
@@ -335,6 +482,10 @@
     background-color 0.2s ease,
     transform 0.2s ease,
     box-shadow 0.2s ease;
+}
+
+.leaderboardRowTop .metricCell {
+  color: #f6e38c;
 }
 
 .leaderboardRow::after {
@@ -580,6 +731,27 @@
   line-height: 1.2;
 }
 
+.summaryStatCard {
+  position: relative;
+  overflow: hidden;
+}
+
+.summaryStatCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(42% 34% at 0% 0%, rgba(84, 219, 255, 0.08) 0%, transparent 78%),
+    radial-gradient(38% 28% at 100% 100%, rgba(198, 103, 255, 0.08) 0%, transparent 74%);
+}
+
+.summaryStatCardPrimary::before {
+  background:
+    radial-gradient(42% 34% at 0% 0%, rgba(84, 219, 255, 0.12) 0%, transparent 78%),
+    radial-gradient(40% 28% at 100% 100%, rgba(255, 208, 99, 0.12) 0%, transparent 74%);
+}
+
 .summaryStatCard .inlineSummary {
   gap: 12px;
 }
@@ -628,6 +800,15 @@
 
   .vaultContent {
     padding-top: 186px;
+  }
+
+  .heroTopline {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .heroHeadline {
+    font-size: 1.52rem;
   }
 
   .claimStrip {

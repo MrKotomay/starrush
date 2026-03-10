@@ -494,6 +494,7 @@ export function StakingContent() {
             <div className={styles.backGlow} />
             <div className={styles.leftGlow} />
             <div className={styles.rightGlow} />
+            <div className={styles.heroGrid} />
             <div className={styles.safeFloat}>
               <Image
                 src="/safe.png"
@@ -508,6 +509,31 @@ export function StakingContent() {
           </div>
 
           <div className={styles.vaultContent}>
+            <div className={styles.heroTopline}>
+              <div className={styles.heroEyebrow}>STAR RUSH SAFE</div>
+              <div className={styles.heroSignal}>
+                <span className={styles.heroSignalDot} />
+                {isOverviewLoading ? t("staking.loading") : t("common.staking")}
+              </div>
+            </div>
+
+            <div className={styles.heroHeadlineWrap}>
+              <div>
+                <h2 className={styles.heroHeadline}>{t("staking.yourStaking")}</h2>
+                <p className={styles.heroSubline}>
+                  {overviewError ? t("staking.overviewUnavailable") : t("staking.modal.subtitleStake")}
+                </p>
+              </div>
+              <div className={styles.heroBadges}>
+                {assets.map((asset) => (
+                  <span key={asset.assetId} className={styles.heroBadge}>
+                    <img src={asset.icon} alt={asset.symbol} className={styles.heroBadgeIcon} />
+                    <span>{formatAssetAmount(asset.assetId, asset.stakedPrincipal)}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+
             <div className={styles.claimStrip}>
               <div className={styles.claimMeta}>
                 <p className="mb-1 text-[0.78rem] font-medium text-muted-foreground">{t("staking.youEarned")}</p>
@@ -680,13 +706,14 @@ export function StakingContent() {
           iconClassName="bg-gradient-to-br from-brand-1 to-brand-2"
           label={t("staking.totalStaked")}
           value={<AssetInlineSummary assets={assets} field="stakedPrincipal" />}
-          className={styles.summaryStatCard}
+          className={cn(styles.summaryStatCard, styles.summaryStatCardPrimary)}
         />
         <StatCard
           icon={<Trophy className="h-5 w-5 text-foreground" />}
           iconClassName="bg-gradient-to-br from-brand-2 to-brand-1"
           label={t("staking.yourPlace", { metric: activeSortLabel })}
           value={yourRank ? t("staking.placeValue", { rank: yourRank }) : "--"}
+          className={styles.summaryStatCard}
         />
       </motion.div>
 
