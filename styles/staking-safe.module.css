@@ -16,7 +16,8 @@
 
 .safeHero {
   position: absolute;
-  inset: 0;
+  inset: 0 0 auto 0;
+  height: 292px;
   z-index: 0;
   overflow: hidden;
 }
@@ -93,52 +94,12 @@
 .vaultContent {
   position: relative;
   z-index: 2;
-  padding-top: 188px;
-}
-
-.heroTopline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.heroEyebrow {
-  color: rgba(var(--rgb-text-secondary), 0.75);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-}
-
-.heroSignal {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(var(--rgb-text-primary), 0.08);
-  background: rgba(7, 11, 24, 0.44);
-  color: rgba(var(--rgb-text-secondary), 0.92);
-  font-size: 0.72rem;
-  font-weight: 700;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.heroSignalDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.9) 0%, rgba(88, 229, 255, 0.9) 40%, rgba(88, 229, 255, 0.2) 100%);
-  box-shadow: 0 0 16px rgba(88, 229, 255, 0.55);
+  padding-top: 200px;
 }
 
 .heroHeadlineWrap {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  gap: 8px;
   margin-bottom: 14px;
 }
 
@@ -153,41 +114,11 @@
 }
 
 .heroSubline {
-  margin: 8px 0 0;
+  margin: 0;
   max-width: 32ch;
   color: rgba(var(--rgb-text-secondary), 0.82);
   font-size: 0.82rem;
   line-height: 1.45;
-}
-
-.heroBadges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.heroBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 34px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(var(--rgb-text-primary), 0.07);
-  background:
-    linear-gradient(135deg, rgba(92, 109, 255, 0.14) 0%, rgba(210, 101, 255, 0.12) 100%),
-    rgba(8, 12, 28, 0.42);
-  color: hsl(var(--foreground));
-  font-size: 0.75rem;
-  font-weight: 700;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.heroBadgeIcon {
-  width: 16px;
-  height: 16px;
-  object-fit: contain;
 }
 
 .claimStrip {
@@ -198,26 +129,10 @@
   justify-content: space-between;
   gap: 12px;
   border-radius: 22px;
-  border: 1px solid rgba(var(--rgb-text-primary), 0.08);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 54%, rgba(255, 255, 255, 0) 100%),
-    rgba(8, 12, 28, 0.34);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 12px 24px rgba(4, 8, 22, 0.12);
+  background: rgba(10, 16, 32, 0.5);
   padding: 12px 14px;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-}
-
-.claimStrip::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: linear-gradient(90deg, rgba(82, 223, 255, 0.12) 0%, transparent 36%, rgba(198, 103, 255, 0.12) 100%);
-  opacity: 0.9;
 }
 
 .claimMeta {
@@ -277,10 +192,8 @@
   min-width: 108px;
   height: 42px;
   border-radius: 18px;
-  border: 1px solid rgba(var(--rgb-text-primary), 0.08);
-  background:
-    linear-gradient(165deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.02) 58%, rgba(18, 24, 50, 0.48) 100%),
-    rgba(9, 14, 28, 0.42);
+  border: 1px solid rgba(var(--rgb-text-primary), 0.06);
+  background: rgba(15, 22, 42, 0.58);
   color: hsl(var(--foreground));
   font-size: 0.86rem;
   font-weight: 700;
@@ -311,25 +224,22 @@
   overflow: hidden;
   margin-top: 14px;
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .assetPanelTabs {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  display: flex;
+  gap: 8px;
 }
 
 .assetPanelTab {
   display: flex;
   align-items: center;
   gap: 8px;
-  border-radius: 18px;
+  border-radius: 999px;
   border: 1px solid rgba(var(--rgb-text-primary), 0.06);
-  background:
-    linear-gradient(165deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 58%, rgba(18, 24, 50, 0.48) 100%),
-    rgba(9, 14, 28, 0.34);
-  padding: 10px 12px;
+  background: rgba(15, 22, 42, 0.42);
+  padding: 10px 14px;
   color: hsl(var(--foreground));
   text-align: left;
   transition:
@@ -343,11 +253,8 @@
 }
 
 .assetPanelTabActive {
-  border-color: hsl(var(--brand-soft) / 0.18);
-  background:
-    linear-gradient(135deg, hsl(var(--brand-1) / 0.22) 0%, hsl(var(--brand-2) / 0.16) 100%),
-    rgba(255, 255, 255, 0.04);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border-color: hsl(var(--brand-soft) / 0.14);
+  background: linear-gradient(135deg, hsl(var(--brand-1) / 0.18) 0%, hsl(var(--brand-2) / 0.12) 100%);
 }
 
 .assetPanelTabIcon {
@@ -357,22 +264,11 @@
   flex-shrink: 0;
 }
 
-.assetPanelTabAmount {
-  margin-left: auto;
-  color: rgba(var(--rgb-text-secondary), 0.92);
-  font-size: 0.72rem;
-  font-weight: 700;
-}
-
 .assetPanelCard {
+  position: relative;
   border-radius: 24px;
-  border: 1px solid rgba(var(--rgb-text-primary), 0.08);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 54%, rgba(255, 255, 255, 0) 100%),
-    rgba(8, 12, 28, 0.34);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 12px 24px rgba(4, 8, 22, 0.12);
+  border: 1px solid rgba(var(--rgb-text-primary), 0.06);
+  background: rgba(10, 16, 32, 0.44);
   padding: 14px;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -385,8 +281,8 @@
   border-radius: inherit;
   pointer-events: none;
   background:
-    radial-gradient(46% 38% at 0% 0%, rgba(80, 226, 255, 0.16) 0%, transparent 74%),
-    radial-gradient(42% 36% at 100% 100%, rgba(198, 103, 255, 0.16) 0%, transparent 72%);
+    radial-gradient(46% 38% at 0% 0%, rgba(80, 226, 255, 0.08) 0%, transparent 74%),
+    radial-gradient(42% 36% at 100% 100%, rgba(198, 103, 255, 0.08) 0%, transparent 72%);
 }
 
 .assetPanelHeader {
@@ -425,19 +321,7 @@
 }
 
 .leaderboardCard {
-  border-color: rgba(var(--rgb-text-primary), 0.08);
-  position: relative;
-  overflow: hidden;
-}
-
-.leaderboardCard::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(44% 32% at 10% 0%, rgba(84, 219, 255, 0.08) 0%, transparent 76%),
-    radial-gradient(38% 26% at 90% 100%, rgba(198, 103, 255, 0.08) 0%, transparent 74%);
+  border-color: rgba(var(--rgb-text-primary), 0.06);
 }
 
 .leaderboardHeadRow {
@@ -452,16 +336,12 @@
   font-weight: 700;
   letter-spacing: 0.01em;
   text-transform: none;
-  position: relative;
-  z-index: 1;
 }
 
 .leaderboardList {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  position: relative;
-  z-index: 1;
 }
 
 .leaderboardRow {
@@ -472,20 +352,14 @@
   align-items: center;
   gap: 8px;
   border-radius: 18px;
-  border: 1px solid rgba(var(--rgb-text-primary), 0.045);
-  background:
-    linear-gradient(165deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.018) 58%, rgba(18, 24, 50, 0.52) 100%),
-    rgba(9, 14, 28, 0.36);
+  border: 1px solid rgba(var(--rgb-text-primary), 0.04);
+  background: rgba(12, 19, 36, 0.52);
   padding: 10px;
   transition:
     border-color 0.2s ease,
     background-color 0.2s ease,
     transform 0.2s ease,
     box-shadow 0.2s ease;
-}
-
-.leaderboardRowTop .metricCell {
-  color: #f6e38c;
 }
 
 .leaderboardRow::after {
@@ -507,10 +381,8 @@
 }
 
 .leaderboardRowTop {
-  border-color: hsl(var(--brand-soft) / 0.12);
-  background:
-    linear-gradient(165deg, hsl(var(--brand-1) / 0.14) 0%, hsl(var(--brand-2) / 0.08) 48%, rgba(18, 24, 50, 0.62) 100%),
-    rgba(9, 14, 28, 0.42);
+  border-color: hsl(var(--brand-soft) / 0.08);
+  background: rgba(18, 24, 46, 0.58);
 }
 
 .leaderboardRowTop3 {
@@ -606,10 +478,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 16px;
-  border: 1px solid rgba(var(--rgb-text-primary), 0.08);
-  background:
-    linear-gradient(165deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 58%, rgba(18, 24, 50, 0.48) 100%),
-    rgba(9, 14, 28, 0.36);
+  background: rgba(15, 22, 42, 0.52);
 }
 
 .assetIcon {
@@ -637,7 +506,6 @@
   justify-content: center;
   min-height: 28px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.06);
   padding: 0 10px;
   color: hsl(var(--foreground));
@@ -655,7 +523,6 @@
 
 .assetMetric {
   border-radius: 18px;
-  border: 1px solid rgba(var(--rgb-text-primary), 0.06);
   background: rgba(255, 255, 255, 0.04);
   padding: 12px;
 }
@@ -697,10 +564,8 @@
 .assetActionButton {
   min-height: 40px;
   border-radius: 16px;
-  border: 1px solid rgba(var(--rgb-text-primary), 0.08);
-  background:
-    linear-gradient(135deg, hsl(var(--brand-1) / 0.22) 0%, hsl(var(--brand-2) / 0.18) 100%),
-    rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(var(--rgb-text-primary), 0.06);
+  background: linear-gradient(135deg, hsl(var(--brand-1) / 0.18) 0%, hsl(var(--brand-2) / 0.14) 100%);
   color: hsl(var(--foreground));
   font-size: 0.82rem;
   font-weight: 700;
@@ -720,9 +585,7 @@
 }
 
 .assetActionButtonGhost {
-  background:
-    linear-gradient(165deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 58%, rgba(18, 24, 50, 0.48) 100%),
-    rgba(9, 14, 28, 0.36);
+  background: rgba(15, 22, 42, 0.52);
 }
 
 .summaryStatCard :global(p:last-child) {
@@ -732,24 +595,7 @@
 }
 
 .summaryStatCard {
-  position: relative;
-  overflow: hidden;
-}
-
-.summaryStatCard::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(42% 34% at 0% 0%, rgba(84, 219, 255, 0.08) 0%, transparent 78%),
-    radial-gradient(38% 28% at 100% 100%, rgba(198, 103, 255, 0.08) 0%, transparent 74%);
-}
-
-.summaryStatCardPrimary::before {
-  background:
-    radial-gradient(42% 34% at 0% 0%, rgba(84, 219, 255, 0.12) 0%, transparent 78%),
-    radial-gradient(40% 28% at 100% 100%, rgba(255, 208, 99, 0.12) 0%, transparent 74%);
+  border: 1px solid rgba(var(--rgb-text-primary), 0.04);
 }
 
 .summaryStatCard .inlineSummary {
@@ -799,12 +645,7 @@
   }
 
   .vaultContent {
-    padding-top: 186px;
-  }
-
-  .heroTopline {
-    flex-direction: column;
-    align-items: flex-start;
+    padding-top: 188px;
   }
 
   .heroHeadline {

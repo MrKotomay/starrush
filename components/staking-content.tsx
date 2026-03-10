@@ -509,29 +509,11 @@ export function StakingContent() {
           </div>
 
           <div className={styles.vaultContent}>
-            <div className={styles.heroTopline}>
-              <div className={styles.heroEyebrow}>STAR RUSH SAFE</div>
-              <div className={styles.heroSignal}>
-                <span className={styles.heroSignalDot} />
-                {isOverviewLoading ? t("staking.loading") : t("common.staking")}
-              </div>
-            </div>
-
             <div className={styles.heroHeadlineWrap}>
-              <div>
-                <h2 className={styles.heroHeadline}>{t("staking.yourStaking")}</h2>
-                <p className={styles.heroSubline}>
-                  {overviewError ? t("staking.overviewUnavailable") : t("staking.modal.subtitleStake")}
-                </p>
-              </div>
-              <div className={styles.heroBadges}>
-                {assets.map((asset) => (
-                  <span key={asset.assetId} className={styles.heroBadge}>
-                    <img src={asset.icon} alt={asset.symbol} className={styles.heroBadgeIcon} />
-                    <span>{formatAssetAmount(asset.assetId, asset.stakedPrincipal)}</span>
-                  </span>
-                ))}
-              </div>
+              <h2 className={styles.heroHeadline}>{t("staking.yourStaking")}</h2>
+              <p className={styles.heroSubline}>
+                {overviewError ? t("staking.overviewUnavailable") : t("staking.modal.subtitleStake")}
+              </p>
             </div>
 
             <div className={styles.claimStrip}>
@@ -592,9 +574,6 @@ export function StakingContent() {
                         >
                           <img src={asset.icon} alt={asset.symbol} className={styles.assetPanelTabIcon} />
                           <span>{asset.symbol}</span>
-                          <span className={styles.assetPanelTabAmount}>
-                            {formatAssetAmount(asset.assetId, asset.stakedPrincipal)}
-                          </span>
                         </button>
                       )
                     })}
