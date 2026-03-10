@@ -115,23 +115,68 @@
   letter-spacing: -0.02em;
 }
 
+.claimTotalRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  color: rgba(var(--rgb-text-secondary), 0.9);
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
 .inlineSummary {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  white-space: nowrap;
+  flex-wrap: wrap;
+  vertical-align: middle;
 }
 
 .inlineSummaryItem {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  line-height: 1;
 }
 
 .inlineSummaryIcon {
   width: 18px;
   height: 18px;
   object-fit: contain;
+  flex-shrink: 0;
+}
+
+.claimActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.manageButton {
+  min-width: 108px;
+  height: 42px;
+  border-radius: 18px;
+  border: 1px solid rgba(var(--rgb-text-primary), 0.08);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.02) 58%, rgba(18, 24, 50, 0.48) 100%),
+    rgba(9, 14, 28, 0.42);
+  color: hsl(var(--foreground));
+  font-size: 0.86rem;
+  font-weight: 700;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.manageButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: hsl(var(--brand-soft) / 0.14);
+}
+
+.manageButton:disabled {
+  opacity: 0.46;
 }
 
 .claimButton {
@@ -140,6 +185,91 @@
   border-radius: 18px;
   padding-inline: 18px;
   font-size: 0.9rem;
+}
+
+.assetPanel {
+  overflow: hidden;
+  margin-top: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.assetPanelTabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.assetPanelTab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 18px;
+  border: 1px solid rgba(var(--rgb-text-primary), 0.06);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 58%, rgba(18, 24, 50, 0.48) 100%),
+    rgba(9, 14, 28, 0.34);
+  padding: 10px 12px;
+  color: hsl(var(--foreground));
+  text-align: left;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.assetPanelTab:hover {
+  transform: translateY(-1px);
+}
+
+.assetPanelTabActive {
+  border-color: hsl(var(--brand-soft) / 0.18);
+  background:
+    linear-gradient(135deg, hsl(var(--brand-1) / 0.22) 0%, hsl(var(--brand-2) / 0.16) 100%),
+    rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.assetPanelTabIcon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.assetPanelTabAmount {
+  margin-left: auto;
+  color: rgba(var(--rgb-text-secondary), 0.92);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.assetPanelCard {
+  border-radius: 24px;
+  border: 1px solid rgba(var(--rgb-text-primary), 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 54%, rgba(255, 255, 255, 0) 100%),
+    rgba(8, 12, 28, 0.34);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 12px 24px rgba(4, 8, 22, 0.12);
+  padding: 14px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.assetPanelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.assetPanelMetrics {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .leaderboardHeader {
@@ -304,16 +434,6 @@
   font-weight: 600;
 }
 
-.assetGrid {
-  display: grid;
-  gap: 12px;
-}
-
-.assetCard {
-  border-color: rgba(var(--rgb-text-primary), 0.08);
-  padding: 14px;
-}
-
 .assetHeader {
   display: flex;
   align-items: flex-start;
@@ -454,6 +574,21 @@
     rgba(9, 14, 28, 0.36);
 }
 
+.summaryStatCard :global(p:last-child) {
+  margin-top: 4px;
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.summaryStatCard .inlineSummary {
+  gap: 12px;
+}
+
+.summaryStatCard .inlineSummaryItem {
+  align-items: center;
+  font-weight: 700;
+}
+
 @keyframes levitate {
   0%,
   100% {
@@ -493,6 +628,26 @@
 
   .vaultContent {
     padding-top: 186px;
+  }
+
+  .claimStrip {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .claimActions {
+    width: 100%;
+  }
+
+  .manageButton,
+  .claimButton {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .assetPanelTabs,
+  .assetPanelMetrics {
+    grid-template-columns: 1fr;
   }
 
   .leaderboardRow {

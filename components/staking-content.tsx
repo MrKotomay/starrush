@@ -144,10 +144,8 @@ function formatAssetLabel(asset: StakingAssetView) {
     : formatCurrencyAmount("STARS", toNumber(asset.stakedPrincipal), { compactStars: false })
 }
 
-function buildSummary(assets: StakingAssetView[], field: "stakedPrincipal" | "claimableReward" | "pendingReward") {
-  return assets
-    .map((asset) => `${formatCurrencyAmount(asset.assetId, toNumber(asset[field]), { compactStars: false })} ${asset.symbol}`)
-    .join(" / ")
+function formatAssetAmount(assetId: "TON" | "STARS", value: string | number) {
+  return formatCurrencyAmount(assetId, toNumber(value), { compactStars: false })
 }
 
 function AssetInlineSummary({
@@ -232,6 +230,8 @@ export function StakingContent() {
   const [isLeaderboardLoading, setLeaderboardLoading] = useState(true)
   const [leaderboardError, setLeaderboardError] = useState<string | null>(null)
   const [assets, setAssets] = useState<StakingAssetView[]>([])
+  const [selectedAssetId, setSelectedAssetId] = useState<"TON" | "STARS">("TON")
+  const [isAssetPanelOpen, setAssetPanelOpen] = useState(false)
   const [isOverviewLoading, setOverviewLoading] = useState(true)
   const [overviewError, setOverviewError] = useState<string | null>(null)
   const [actionState, setActionState] = useState<{ mode: "stake" | "unstake"; asset: StakingAssetView } | null>(null)
@@ -256,8 +256,18 @@ export function StakingContent() {
     [t],
   )
 
-  const stakingSummary = useMemo(() => buildSummary(assets, "stakedPrincipal"), [assets])
   const claimableAssets = useMemo(() => assets.filter((asset) => asset.canClaim), [assets])
+  const selectedAsset = useMemo(
+    () => assets.find((asset) => asset.assetId === selectedAssetId) ?? assets[0] ?? null,
+    [assets, selectedAssetId],
+  )
+
+  useEffect(() => {
+    if (assets.length === 0) return
+    if (!assets.some((asset) => asset.assetId === selectedAssetId)) {
+      setSelectedAssetId(assets[0].assetId)
+    }
+  }, [assets, selectedAssetId])
 
   const mapStakingError = useCallback(
     (code?: string) => {
@@ -505,24 +515,156 @@ export function StakingContent() {
                   <span className={styles.claimValue}>
                     <AssetInlineSummary assets={assets} field="claimableReward" />
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className={styles.claimTotalRow}>
                     {t("staking.totalStaked")}: <AssetInlineSummary assets={assets} field="stakedPrincipal" />
                   </span>
                 </div>
               </div>
-              <PrimaryButton
-                depth="raised"
-                variant="brand"
-                data-sheen="event"
-                className={styles.claimButton}
-                disabled={claimableAssets.length === 0 || claimingAssetId !== null}
-                onClick={() => {
-                  void handleClaimAll()
-                }}
-              >
-                {claimingAssetId ? t("common.processing") : t("staking.claim")}
-              </PrimaryButton>
+              <div className={styles.claimActions}>
+                <button
+                  type="button"
+                  className={styles.manageButton}
+                  disabled={isOverviewLoading || assets.length === 0}
+                  onClick={() => setAssetPanelOpen((current) => !current)}
+                >
+                  {t("common.staking")}
+                </button>
+                <PrimaryButton
+                  depth="raised"
+                  variant="brand"
+                  data-sheen="event"
+                  className={styles.claimButton}
+                  disabled={claimableAssets.length === 0 || claimingAssetId !== null}
+                  onClick={() => {
+                    void handleClaimAll()
+                  }}
+                >
+                  {claimingAssetId ? t("common.processing") : t("staking.claim")}
+                </PrimaryButton>
+              </div>
             </div>
+
+            <AnimatePresence initial={false}>
+              {isAssetPanelOpen && !isOverviewLoading && !overviewError && selectedAsset ? (
+                <motion.div
+                  key="staking-asset-panel"
+                  className={styles.assetPanel}
+                  initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 18, height: 0 }}
+                  animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, height: "auto" }}
+                  exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 12, height: 0 }}
+                  transition={{ duration: shouldReduceMotion ? 0.12 : 0.24, ease: EASE }}
+                >
+                  <div className={styles.assetPanelTabs}>
+                    {assets.map((asset) => {
+                      const isActive = asset.assetId === selectedAsset.assetId
+                      return (
+                        <button
+                          key={asset.assetId}
+                          type="button"
+                          className={cn(styles.assetPanelTab, isActive && styles.assetPanelTabActive)}
+                          onClick={() => setSelectedAssetId(asset.assetId)}
+                        >
+                          <img src={asset.icon} alt={asset.symbol} className={styles.assetPanelTabIcon} />
+                          <span>{asset.symbol}</span>
+                          <span className={styles.assetPanelTabAmount}>
+                            {formatAssetAmount(asset.assetId, asset.stakedPrincipal)}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  <div className={styles.assetPanelCard}>
+                    <div className={styles.assetPanelHeader}>
+                      <div className={styles.assetTitleWrap}>
+                        <span className={styles.assetIconWrap}>
+                          <img src={selectedAsset.icon} alt={selectedAsset.symbol} className={styles.assetIcon} />
+                        </span>
+                        <div>
+                          <div className={styles.assetTitle}>{selectedAsset.symbol}</div>
+                          <div className={styles.assetSubtitle}>{t("staking.apr")}: {formatApr(selectedAsset.aprBps)}</div>
+                        </div>
+                      </div>
+                      {selectedAsset.pendingUnstake ? (
+                        <span className={styles.pendingBadge}>{t("staking.pendingUnstake")}</span>
+                      ) : null}
+                    </div>
+
+                    <div className={styles.assetPanelMetrics}>
+                      <div className={styles.assetMetric}>
+                        <div className={styles.assetMetricLabel}>{t("staking.walletBalance")}</div>
+                        <div className={styles.assetMetricValue}>
+                          {formatAssetAmount(selectedAsset.assetId, selectedAsset.walletBalance)} {selectedAsset.symbol}
+                        </div>
+                      </div>
+                      <div className={styles.assetMetric}>
+                        <div className={styles.assetMetricLabel}>{t("staking.stakedBalance")}</div>
+                        <div className={styles.assetMetricValue}>
+                          {formatAssetAmount(selectedAsset.assetId, selectedAsset.stakedPrincipal)} {selectedAsset.symbol}
+                        </div>
+                      </div>
+                      <div className={styles.assetMetric}>
+                        <div className={styles.assetMetricLabel}>{t("staking.pendingReward")}</div>
+                        <div className={styles.assetMetricValue}>
+                          {formatAssetAmount(selectedAsset.assetId, selectedAsset.pendingReward)} {selectedAsset.symbol}
+                        </div>
+                      </div>
+                      <div className={styles.assetMetric}>
+                        <div className={styles.assetMetricLabel}>
+                          {selectedAsset.pendingUnstake ? t("staking.cooldown") : t("staking.totalRewards")}
+                        </div>
+                        <div className={styles.assetMetricValue}>
+                          {selectedAsset.pendingUnstake
+                            ? t("staking.availableAt", { date: formatDateTime(selectedAsset.pendingUnstake.availableAt) })
+                            : `${formatAssetAmount(selectedAsset.assetId, selectedAsset.claimableReward)} ${selectedAsset.symbol}`}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.assetMetaRow}>
+                      <span>{t("staking.modal.minStake", {
+                        amount: formatAssetAmount(selectedAsset.assetId, selectedAsset.minStake),
+                        asset: selectedAsset.symbol,
+                      })}</span>
+                      {selectedAsset.pendingUnstake ? (
+                        <span>{t("staking.availableAt", { date: formatDateTime(selectedAsset.pendingUnstake.availableAt) })}</span>
+                      ) : (
+                        <span>{t("staking.totalStaked")}: {formatAssetLabel(selectedAsset)} {selectedAsset.symbol}</span>
+                      )}
+                    </div>
+
+                    <div className={styles.assetActions}>
+                      <button
+                        type="button"
+                        className={styles.assetActionButton}
+                        disabled={!selectedAsset.canClaim || claimingAssetId === selectedAsset.assetId}
+                        onClick={() => {
+                          void handleClaim(selectedAsset)
+                        }}
+                      >
+                        {claimingAssetId === selectedAsset.assetId ? t("common.processing") : t("staking.claim")}
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.assetActionButton}
+                        disabled={!selectedAsset.canStake || isActionSubmitting}
+                        onClick={() => setActionState({ mode: "stake", asset: selectedAsset })}
+                      >
+                        {t("staking.stakeAction")}
+                      </button>
+                      <button
+                        type="button"
+                        className={cn(styles.assetActionButton, styles.assetActionButtonGhost)}
+                        disabled={!selectedAsset.canUnstake || isActionSubmitting}
+                        onClick={() => setActionState({ mode: "unstake", asset: selectedAsset })}
+                      >
+                        {t("staking.unstakeAction")}
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
           </div>
         </GlassCard>
       </motion.div>
@@ -537,7 +679,8 @@ export function StakingContent() {
           icon={<Vault className="h-5 w-5 text-foreground" />}
           iconClassName="bg-gradient-to-br from-brand-1 to-brand-2"
           label={t("staking.totalStaked")}
-          value={stakingSummary || "0 TON / 0 Stars"}
+          value={<AssetInlineSummary assets={assets} field="stakedPrincipal" />}
+          className={styles.summaryStatCard}
         />
         <StatCard
           icon={<Trophy className="h-5 w-5 text-foreground" />}
@@ -552,120 +695,6 @@ export function StakingContent() {
         initial={sectionInitial}
         animate={sectionAnimate}
         transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE, delay: shouldReduceMotion ? 0 : 0.06 }}
-      >
-        <div className={styles.leaderboardHeader}>
-          <h2 className={styles.leaderboardTitle}>{t("staking.activePools")}</h2>
-        </div>
-
-        {isOverviewLoading ? (
-          <div className={styles.leaderboardState}>{t("staking.loading")}</div>
-        ) : null}
-
-        {!isOverviewLoading && overviewError ? (
-          <div className={styles.leaderboardState}>{t("staking.overviewUnavailable")}</div>
-        ) : null}
-
-        {!isOverviewLoading && !overviewError ? (
-          <div className={styles.assetGrid}>
-            {assets.map((asset) => (
-              <GlassCard key={asset.assetId} variant="elevated" className={styles.assetCard}>
-                <div className={styles.assetHeader}>
-                  <div className={styles.assetTitleWrap}>
-                    <span className={styles.assetIconWrap}>
-                      <img src={asset.icon} alt={asset.symbol} className={styles.assetIcon} />
-                    </span>
-                    <div>
-                      <div className={styles.assetTitle}>{asset.symbol}</div>
-                      <div className={styles.assetSubtitle}>{t("staking.apr")}: {formatApr(asset.aprBps)}</div>
-                    </div>
-                  </div>
-                  {asset.pendingUnstake ? (
-                    <span className={styles.pendingBadge}>{t("staking.pendingUnstake")}</span>
-                  ) : null}
-                </div>
-
-                <div className={styles.assetMetrics}>
-                  <div className={styles.assetMetric}>
-                    <div className={styles.assetMetricLabel}>{t("staking.walletBalance")}</div>
-                    <div className={styles.assetMetricValue}>
-                      {formatCurrencyAmount(asset.assetId, toNumber(asset.walletBalance), { compactStars: false })} {asset.symbol}
-                    </div>
-                  </div>
-                  <div className={styles.assetMetric}>
-                    <div className={styles.assetMetricLabel}>{t("staking.stakedBalance")}</div>
-                    <div className={styles.assetMetricValue}>
-                      {formatCurrencyAmount(asset.assetId, toNumber(asset.stakedPrincipal), { compactStars: false })} {asset.symbol}
-                    </div>
-                  </div>
-                  <div className={styles.assetMetric}>
-                    <div className={styles.assetMetricLabel}>{t("staking.pendingReward")}</div>
-                    <div className={styles.assetMetricValue}>
-                      {formatCurrencyAmount(asset.assetId, toNumber(asset.pendingReward), { compactStars: false })} {asset.symbol}
-                    </div>
-                  </div>
-                  <div className={styles.assetMetric}>
-                    <div className={styles.assetMetricLabel}>
-                      {asset.pendingUnstake ? t("staking.cooldown") : t("staking.totalRewards")}
-                    </div>
-                    <div className={styles.assetMetricValue}>
-                      {asset.pendingUnstake
-                        ? t("staking.availableAt", { date: formatDateTime(asset.pendingUnstake.availableAt) })
-                        : `${formatCurrencyAmount(asset.assetId, toNumber(asset.claimableReward), { compactStars: false })} ${asset.symbol}`}
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.assetMetaRow}>
-                  <span>{t("staking.modal.minStake", {
-                    amount: formatCurrencyAmount(asset.assetId, toNumber(asset.minStake), { compactStars: false }),
-                    asset: asset.symbol,
-                  })}</span>
-                  {asset.pendingUnstake ? (
-                    <span>{t("staking.availableAt", { date: formatDateTime(asset.pendingUnstake.availableAt) })}</span>
-                  ) : (
-                    <span>{t("staking.totalStaked")}: {formatAssetLabel(asset)} {asset.symbol}</span>
-                  )}
-                </div>
-
-                <div className={styles.assetActions}>
-                  <button
-                    type="button"
-                    className={styles.assetActionButton}
-                    disabled={!asset.canClaim || claimingAssetId === asset.assetId}
-                    onClick={() => {
-                      void handleClaim(asset)
-                    }}
-                  >
-                    {claimingAssetId === asset.assetId ? t("common.processing") : t("staking.claim")}
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.assetActionButton}
-                    disabled={!asset.canStake || isActionSubmitting}
-                    onClick={() => setActionState({ mode: "stake", asset })}
-                  >
-                    {t("staking.stakeAction")}
-                  </button>
-                  <button
-                    type="button"
-                    className={cn(styles.assetActionButton, styles.assetActionButtonGhost)}
-                    disabled={!asset.canUnstake || isActionSubmitting}
-                    onClick={() => setActionState({ mode: "unstake", asset })}
-                  >
-                    {t("staking.unstakeAction")}
-                  </button>
-                </div>
-              </GlassCard>
-            ))}
-          </div>
-        ) : null}
-      </motion.div>
-
-      <motion.div
-        className="mb-[var(--section-gap)]"
-        initial={sectionInitial}
-        animate={sectionAnimate}
-        transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE, delay: shouldReduceMotion ? 0 : 0.09 }}
       >
         <div className={styles.leaderboardHeader}>
           <h2 className={styles.leaderboardTitle}>{t("staking.leaderboard")}</h2>
