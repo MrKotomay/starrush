@@ -1128,15 +1128,16 @@ export function StarRushPanel({
         <div ref={mountRef} className={styles.phaserMount} />
         <RocketOverlay getPose={getRocketPose} />
 
-        {/* coefficient overlay (centered) */}
-        <div className={styles.coeffOverlay}>
-          <CoefficientDisplay
-            phase={snapshot.phase}
-            coefficient={coefficient}
-            crashAt={snapshot.crashAt}
-            countdown={snapshot.countdown}
-          />
-        </div>
+        {snapshot.phase !== RoundPhase.RUNNING ? (
+          <div className={styles.coeffOverlay}>
+            <CoefficientDisplay
+              phase={snapshot.phase}
+              coefficient={coefficient}
+              crashAt={snapshot.crashAt}
+              countdown={snapshot.countdown}
+            />
+          </div>
+        ) : null}
 
         {isConnectionInterrupted ? (
           <div className={styles.connectionBanner} role="status" aria-live="polite">

@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 
 type TelegramWebApp = {
+  version?: string
   expand?: () => void
   ready?: () => void
   requestFullscreen?: () => Promise<unknown> | void
@@ -10,10 +11,43 @@ type TelegramWebApp = {
   setHeaderColor?: (color: string) => void
   setBackgroundColor?: (color: string) => void
   setBottomBarColor?: (color: string) => void
+  isVersionAtLeast?: (version: string) => boolean
 }
 
 const SHELL_BACKGROUND = "#070c16"
 const SHELL_CHROME = "#0d1525"
+
+function compareVersions(left: string, right: string): number {
+  const leftParts = left.split(".").map((part) => Number.parseInt(part, 10) || 0)
+  const rightParts = right.split(".").map((part) => Number.parseInt(part, 10) || 0)
+  const length = Math.max(leftParts.length, rightParts.length)
+
+  for (let index = 0; index < length; index += 1) {
+    const leftPart = leftParts[index] ?? 0
+    const rightPart = rightParts[index] ?? 0
+    if (leftPart !== rightPart) return leftPart - rightPart
+  }
+
+  return 0
+}
+
+function supportsFullscreen(webApp: TelegramWebApp): boolean {
+  if (typeof webApp.requestFullscreen !== "function") return false
+
+  try {
+    if (typeof webApp.isVersionAtLeast === "function") {
+      return webApp.isVersionAtLeast("8.0")
+    }
+  } catch {
+    // fall through to version string check
+  }
+
+  if (typeof webApp.version !== "string" || !webApp.version.trim()) {
+    return false
+  }
+
+  return compareVersions(webApp.version, "8.0") >= 0
+}
 
 function applyShellTheme(webApp: TelegramWebApp) {
   try {
@@ -46,10 +80,12 @@ function applyShellTheme(webApp: TelegramWebApp) {
     // ignore unsupported clients
   }
 
-  try {
-    void webApp.requestFullscreen?.()
-  } catch {
-    // ignore unsupported clients
+  if (supportsFullscreen(webApp)) {
+    try {
+      void webApp.requestFullscreen()
+    } catch {
+      // ignore unsupported clients
+    }
   }
 }
 
