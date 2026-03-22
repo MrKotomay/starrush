@@ -1,6 +1,7 @@
 "use client";
 
 import { StarRushPanel } from "@/components/game/StarRushPanel";
+import { StarRushSandboxPanel } from "@/components/game/StarRushSandboxPanel";
 
 interface CrashGameProps {
   wsUrl?: string;
@@ -14,12 +15,25 @@ interface CrashGameProps {
 }
 
 export function CrashGame({
+  demoMode = false,
   tonBalance = 0,
   starsBalance = 0,
   isActive = true,
   onOnlineCountChange,
   onWalletNeedsRefresh,
 }: CrashGameProps) {
+  if (demoMode) {
+    return (
+      <StarRushSandboxPanel
+        initialTonBalance={tonBalance}
+        initialStarsBalance={starsBalance}
+        isActive={isActive}
+        onOnlineCountChange={onOnlineCountChange}
+        onWalletNeedsRefresh={onWalletNeedsRefresh}
+      />
+    );
+  }
+
   return (
     <StarRushPanel
       initialTonBalance={tonBalance}

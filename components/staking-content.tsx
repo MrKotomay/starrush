@@ -12,6 +12,13 @@ import { PrimaryButton } from "@/components/ui/primary-button"
 import { StatCard } from "@/components/ui/stat-card"
 import { formatCurrencyAmount } from "@/lib/currency"
 import { useI18n } from "@/lib/i18n"
+import {
+  claimUiSandboxStake,
+  getUiSandboxLeaderboard,
+  stakeUiSandboxAsset,
+  unstakeUiSandboxAsset,
+  useUiSandboxSnapshot,
+} from "@/lib/ui-sandbox"
 import { cn } from "@/lib/utils"
 
 import styles from "@/styles/staking-safe.module.css"
@@ -227,8 +234,13 @@ function mergeAsset(
   return assets.map((asset) => (asset.assetId === nextAsset.assetId ? nextAsset : asset))
 }
 
-export function StakingContent() {
+type StakingContentProps = {
+  uiSandboxMode?: boolean
+}
+
+export function StakingContent({ uiSandboxMode = false }: StakingContentProps) {
   const { t, intlLocale, formatDateTime } = useI18n()
+  const uiSandboxSnapshot = useUiSandboxSnapshot()
   const [sortBy, setSortBy] = useState<LeaderboardSort>("ton")
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [totalPlayers, setTotalPlayers] = useState(0)
@@ -270,6 +282,13 @@ export function StakingContent() {
   )
 
   useEffect(() => {
+    if (!uiSandboxMode) return
+    setAssets(uiSandboxSnapshot.stakingAssets)
+    setOverviewError(null)
+    setOverviewLoading(false)
+  }, [uiSandboxMode, uiSandboxSnapshot.stakingAssets])
+
+  useEffect(() => {
     if (assets.length === 0) return
     if (!assets.some((asset) => asset.assetId === selectedAssetId)) {
       setSelectedAssetId(assets[0].assetId)
@@ -308,6 +327,14 @@ export function StakingContent() {
   )
 
   const refreshOverview = useCallback(async () => {
+    if (uiSandboxMode) {
+      setOverviewLoading(true)
+      setAssets(uiSandboxSnapshot.stakingAssets)
+      setOverviewError(null)
+      setOverviewLoading(false)
+      return
+    }
+
     setOverviewLoading(true)
     setOverviewError(null)
 
@@ -331,9 +358,15 @@ export function StakingContent() {
     } finally {
       setOverviewLoading(false)
     }
-  }, [])
+  }, [uiSandboxMode, uiSandboxSnapshot.stakingAssets])
 
   const refreshOverviewSilent = useCallback(async () => {
+    if (uiSandboxMode) {
+      setAssets(uiSandboxSnapshot.stakingAssets)
+      setOverviewError(null)
+      return
+    }
+
     try {
       const response = await fetch("/api/staking/overview", {
         method: "GET",
@@ -352,19 +385,21 @@ export function StakingContent() {
     } catch {
       // Keep current staking panel state during background refreshes.
     }
-  }, [])
+  }, [uiSandboxMode, uiSandboxSnapshot.stakingAssets])
 
   useEffect(() => {
     void refreshOverview()
   }, [refreshOverview])
 
   useEffect(() => {
+    if (uiSandboxMode) return undefined
+
     const interval = window.setInterval(() => {
       void refreshOverviewSilent()
     }, 15000)
 
     return () => window.clearInterval(interval)
-  }, [refreshOverviewSilent])
+  }, [refreshOverviewSilent, uiSandboxMode])
 
   useEffect(() => {
     if (!toast) return
@@ -373,6 +408,17 @@ export function StakingContent() {
   }, [toast])
 
   useEffect(() => {
+    if (uiSandboxMode) {
+      const sandboxLeaderboard = getUiSandboxLeaderboard(sortBy, LEADERBOARD_LIMIT)
+      setLeaderboard(sandboxLeaderboard.items)
+      setTotalPlayers(sandboxLeaderboard.totalPlayers)
+      setYourRank(sandboxLeaderboard.yourRank)
+      setCurrentUserId(sandboxLeaderboard.yourEntry?.userId ?? null)
+      setLeaderboardError(null)
+      setLeaderboardLoading(false)
+      return undefined
+    }
+
     let cancelled = false
     const controller = new AbortController()
 
@@ -417,12 +463,34 @@ export function StakingContent() {
       cancelled = true
       controller.abort()
     }
-  }, [sortBy])
+  }, [sortBy, uiSandboxMode, uiSandboxSnapshot])
 
   const handleClaim = useCallback(
     async (asset: StakingAssetView) => {
       setClaimingAssetId(asset.assetId)
       try {
+        if (uiSandboxMode) {
+          const result = claimUiSandboxStake(asset.assetId)
+          if (!result.ok) {
+            setToast(mapStakingError(result.error))
+            return
+          }
+
+          setAssets((current) => mergeAsset(current, result.asset))
+          const claimedAmount = Number.parseFloat(result.claimedAmount)
+          if (claimedAmount > 0) {
+            setToast(
+              t("staking.claimed", {
+                amount: formatCurrencyAmount(asset.assetId, claimedAmount, { compactStars: false }),
+                asset: getAssetDisplayName(asset.assetId, t),
+              }),
+            )
+          } else {
+            setToast(t("staking.nothingToClaim"))
+          }
+          return
+        }
+
         const response = await fetch("/api/staking/claim", {
           method: "POST",
           credentials: "include",
@@ -455,7 +523,7 @@ export function StakingContent() {
         setClaimingAssetId(null)
       }
     },
-    [mapStakingError, t],
+    [mapStakingError, t, uiSandboxMode],
   )
 
   const handleClaimAll = useCallback(async () => {
@@ -470,6 +538,39 @@ export function StakingContent() {
       if (!actionState) return
       setActionSubmitting(true)
       try {
+        if (uiSandboxMode) {
+          const result =
+            actionState.mode === "stake"
+              ? stakeUiSandboxAsset({
+                  assetId: actionState.asset.assetId,
+                  amount,
+                })
+              : unstakeUiSandboxAsset({
+                  assetId: actionState.asset.assetId,
+                  amount,
+                })
+
+          if (!result.ok) {
+            setToast(mapStakingError(result.error))
+            return
+          }
+
+          setAssets((current) => mergeAsset(current, result.asset))
+          setActionState(null)
+          setToast(
+            actionState.mode === "stake"
+              ? t("staking.stakedSuccess", {
+                  amount: formatCurrencyAmount(actionState.asset.assetId, amount, { compactStars: false }),
+                  asset: getAssetDisplayName(actionState.asset.assetId, t),
+                })
+              : t("staking.unstakeRequested", {
+                  amount: formatCurrencyAmount(actionState.asset.assetId, amount, { compactStars: false }),
+                  asset: getAssetDisplayName(actionState.asset.assetId, t),
+                }),
+          )
+          return
+        }
+
         const endpoint = actionState.mode === "stake" ? "/api/staking/stake" : "/api/staking/unstake"
         const response = await fetch(endpoint, {
           method: "POST",
@@ -507,7 +608,7 @@ export function StakingContent() {
         setActionSubmitting(false)
       }
     },
-    [actionState, mapStakingError, t],
+    [actionState, mapStakingError, t, uiSandboxMode],
   )
 
   return (

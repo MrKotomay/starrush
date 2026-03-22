@@ -9,6 +9,7 @@ import { Gift, Sparkles, Wallet, X } from "lucide-react"
 import { GlassSegmentedControl } from "@/components/ui/glass-segmented-control"
 import { PrimaryButton } from "@/components/ui/primary-button"
 import { useI18n } from "@/lib/i18n"
+import { depositUiSandboxWallet } from "@/lib/ui-sandbox"
 import { useAdaptiveOverlayMotion } from "@/lib/use-adaptive-overlay-motion"
 import styles from "@/styles/deposit-funds-modal.module.css"
 
@@ -26,6 +27,7 @@ type DepositIntentStatus =
 
 interface DepositFundsModalProps {
   open: boolean
+  uiSandboxMode?: boolean
   onClose: () => void
   onCompleted?: () => void
 }
@@ -59,7 +61,12 @@ function toPositiveTon(raw: string): string | null {
   return normalized
 }
 
-export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsModalProps) {
+export function DepositFundsModal({
+  open,
+  uiSandboxMode = false,
+  onClose,
+  onCompleted,
+}: DepositFundsModalProps) {
   const { t } = useI18n()
   const [method, setMethod] = useState<DepositMethod>("TON")
   const [starsAmountRaw, setStarsAmountRaw] = useState("100")
@@ -189,6 +196,24 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
     setInfo(null)
 
     try {
+      if (uiSandboxMode) {
+        const result = depositUiSandboxWallet({
+          amount,
+          currency: "STARS",
+          type: "SANDBOX_STARS_DEPOSIT",
+        })
+
+        if (!result.ok) {
+          setError(mapDepositError(result.error))
+          return
+        }
+
+        setActiveIntentStatus("COMPLETED")
+        setInfo(t("deposit.status.completed"))
+        onCompleted?.()
+        return
+      }
+
       const response = await fetch("/api/payments/stars/invoice", {
         method: "POST",
         credentials: "include",
@@ -247,6 +272,31 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
     const amount = toPositiveTon(tonAmountRaw)
     if (!amount) {
       setError(t("deposit.error.invalidTon"))
+      return
+    }
+
+    if (uiSandboxMode) {
+      setSubmitting(true)
+      setError(null)
+      setInfo(null)
+      try {
+        const result = depositUiSandboxWallet({
+          amount: Number.parseFloat(amount),
+          currency: "TON",
+          type: "SANDBOX_TON_DEPOSIT",
+        })
+
+        if (!result.ok) {
+          setError(mapDepositError(result.error))
+          return
+        }
+
+        setActiveIntentStatus("COMPLETED")
+        setInfo(t("deposit.status.completed"))
+        onCompleted?.()
+      } finally {
+        setSubmitting(false)
+      }
       return
     }
 
@@ -360,6 +410,12 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
   const walletShortAddress = tonWallet?.account?.address
     ? `${tonWallet.account.address.slice(0, 8)}...${tonWallet.account.address.slice(-6)}`
     : null
+  const tonWalletHint = uiSandboxMode
+    ? t("deposit.sandboxHint")
+    : walletShortAddress
+      ? t("deposit.walletConnected", { address: walletShortAddress })
+      : t("deposit.walletNotConnected")
+  const sandboxActionLabel = t("deposit.sandboxCredit")
 
   return (
     <AnimatePresence>
@@ -466,9 +522,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                       </div>
 
                       <p className={styles.walletHint}>
-                        {walletShortAddress
-                          ? t("deposit.walletConnected", { address: walletShortAddress })
-                          : t("deposit.walletNotConnected")}
+                        {tonWalletHint}
                       </p>
 
                       <PrimaryButton
@@ -479,7 +533,11 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                         data-sheen={isSubmitting ? "off" : "event"}
                         className={styles.primaryActionBtn}
                       >
-                        {!walletShortAddress
+                        {uiSandboxMode
+                          ? isSubmitting
+                            ? t("deposit.payTonSubmitting")
+                            : sandboxActionLabel
+                          : !walletShortAddress
                           ? t("deposit.connectWallet")
                           : isSubmitting
                             ? t("deposit.payTonSubmitting")
@@ -530,7 +588,11 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
                         data-sheen={isSubmitting ? "off" : "event"}
                         className={styles.primaryActionBtn}
                       >
-                        {isSubmitting ? t("deposit.payStarsSubmitting") : t("deposit.payStars")}
+                        {isSubmitting
+                          ? t("deposit.payStarsSubmitting")
+                          : uiSandboxMode
+                            ? sandboxActionLabel
+                            : t("deposit.payStars")}
                       </PrimaryButton>
                     </>
                   ) : null}

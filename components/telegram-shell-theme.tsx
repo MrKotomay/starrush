@@ -82,7 +82,10 @@ function applyShellTheme(webApp: TelegramWebApp) {
 
   if (supportsFullscreen(webApp)) {
     try {
-      void webApp.requestFullscreen()
+      const requestFullscreen = webApp.requestFullscreen
+      if (typeof requestFullscreen === "function") {
+        void requestFullscreen.call(webApp)
+      }
     } catch {
       // ignore unsupported clients
     }

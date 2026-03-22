@@ -1,5 +1,7 @@
 "use client"
 
+import { getUiSandboxWarmData, isUiSandboxEnabled } from "@/lib/ui-sandbox"
+
 type WalletCurrency = "TON" | "STARS"
 
 export type BootstrapWallet = {
@@ -129,9 +131,18 @@ async function preloadImage(url: string): Promise<void> {
 }
 
 async function preloadModules(): Promise<void> {
+  if (isUiSandboxEnabled()) {
+    await Promise.all([
+      import("@/components/crash/CrashGame"),
+      import("@/components/game/StarRushSandboxPanel"),
+    ])
+    return
+  }
+
   await Promise.all([
     import("@/components/crash/CrashGame"),
     import("@/components/game/StarRushPanel"),
+    import("@/components/game/StarRushSandboxPanel"),
     import("@/game/StarRushGame"),
     import("@/lib/game/backend-round-state-adapter"),
     import("phaser"),
@@ -166,6 +177,10 @@ async function preloadStaticAssets(): Promise<void> {
 }
 
 async function warmApiData(): Promise<MiniAppWarmData> {
+  if (isUiSandboxEnabled()) {
+    return getUiSandboxWarmData()
+  }
+
   const [walletsRaw, referralRaw] = await Promise.all([
     fetchJson<WalletsApiResponse>("/api/wallets"),
     fetchJson<ReferralSummaryApiResponse>("/api/referrals/summary"),
