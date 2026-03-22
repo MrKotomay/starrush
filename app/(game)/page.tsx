@@ -24,7 +24,6 @@ import { AppSettingsProvider } from "@/lib/app-settings"
 import { formatCurrencyAmount } from "@/lib/currency"
 import { useI18n } from "@/lib/i18n"
 import { runMiniAppBootstrap } from "@/lib/mini-app-bootstrap"
-import { useUiSandboxSnapshot, withdrawUiSandboxWallet } from "@/lib/ui-sandbox"
 import { useAdaptiveOverlayMotion } from "@/lib/use-adaptive-overlay-motion"
 import { useTelegramUser } from "@/lib/use-telegram-user"
 
@@ -162,10 +161,8 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
   const { t } = useI18n()
   const [tonConnectUI] = useTonConnectUI()
   const tonConnectWallet = useTonWallet()
-  const uiSandboxSnapshot = useUiSandboxSnapshot()
   const shouldReduceMotion = useReducedMotion()
   const adaptiveOverlayMotion = useAdaptiveOverlayMotion()
-  const isUiSandboxMode = telegram.status === "ready" && telegram.isUiSandboxMode === true
   const [activeTab, setActiveTab] = useState<TabId>("mine")
   const [selectedBalanceCurrency, setSelectedBalanceCurrency] = useState<"TON" | "STARS">("TON")
   const initialWalletsFromAuth = telegram.status === "ready" ? telegram.wallets : undefined
@@ -190,13 +187,6 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
     if (!Array.isArray(initialWalletsFromAuth)) return
     setWalletsState(initialWalletsFromAuth)
   }, [initialWalletsFromAuth])
-
-  useEffect(() => {
-    if (!isUiSandboxMode) return
-    setWalletsState(uiSandboxSnapshot.wallets)
-    setLedgerState(uiSandboxSnapshot.ledger)
-    setReferralSummary(uiSandboxSnapshot.referralSummary)
-  }, [isUiSandboxMode, uiSandboxSnapshot])
 
   useEffect(() => {
     if (!toast) return
@@ -289,13 +279,6 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
   }, [isAppBootReady, telegram.status])
 
   const refreshWallets = useCallback(async () => {
-    if (isUiSandboxMode) {
-      setWalletsLoading(true)
-      setWalletsState(uiSandboxSnapshot.wallets)
-      setWalletsLoading(false)
-      return
-    }
-
     setWalletsLoading(true)
     try {
       const response = await fetch("/api/wallets", {
@@ -310,16 +293,9 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
     } finally {
       setWalletsLoading(false)
     }
-  }, [isUiSandboxMode, uiSandboxSnapshot.wallets])
+  }, [])
 
   const refreshLedger = useCallback(async () => {
-    if (isUiSandboxMode) {
-      setLedgerLoading(true)
-      setLedgerState(uiSandboxSnapshot.ledger)
-      setLedgerLoading(false)
-      return
-    }
-
     setLedgerLoading(true)
     try {
       const response = await fetch("/api/ledger/history?limit=20", {
@@ -334,14 +310,9 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
     } finally {
       setLedgerLoading(false)
     }
-  }, [isUiSandboxMode, uiSandboxSnapshot.ledger])
+  }, [])
 
   const refreshReferralSummary = useCallback(async () => {
-    if (isUiSandboxMode) {
-      setReferralSummary(uiSandboxSnapshot.referralSummary)
-      return
-    }
-
     try {
       const response = await fetch("/api/referrals/summary", {
         method: "GET",
@@ -355,7 +326,7 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
     } catch {
       // keep profile usable if referrals refresh fails
     }
-  }, [isUiSandboxMode, uiSandboxSnapshot.referralSummary])
+  }, [])
 
   const openWalletOverview = useCallback(() => {
     setWalletOverviewOpen(true)
@@ -364,17 +335,12 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
   }, [refreshLedger, refreshWallets])
 
   const openTonConnectMenu = useCallback(async () => {
-    if (isUiSandboxMode) {
-      openWalletOverview()
-      return
-    }
-
     try {
       await tonConnectUI.openModal()
     } catch {
       setToast(t("deposit.error.openTonConnect"))
     }
-  }, [isUiSandboxMode, openWalletOverview, t, tonConnectUI])
+  }, [t, tonConnectUI])
 
   const handleStakingWalletClick = useCallback(() => {
     void openTonConnectMenu()
@@ -396,29 +362,6 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
 
       setWalletActionSubmitting(true)
       try {
-        if (isUiSandboxMode) {
-          const result = withdrawUiSandboxWallet({
-            amount: Number(input.amount.toFixed(6)),
-            currency: input.currency,
-          })
-
-          if (!result.ok) {
-            setToast(mapWalletActionError(result.error, t))
-            return
-          }
-
-          await refreshWallets()
-          await refreshLedger()
-          setWalletActionMode(null)
-          setToast(
-            t("walletAction.successWithdraw", {
-              amount: formatCurrencyAmount(input.currency, input.amount, { compactStars: false }),
-              currency: input.currency,
-            }),
-          )
-          return
-        }
-
         const response = await fetch(`/api/wallets/${mode}`, {
           method: "POST",
           credentials: "include",
@@ -451,7 +394,7 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
         setWalletActionSubmitting(false)
       }
     },
-    [isUiSandboxMode, refreshLedger, refreshWallets, t, walletActionMode],
+    [refreshLedger, refreshWallets, t, walletActionMode],
   )
 
   const hasHeavyOverlay = isDepositModalOpen || isWalletOverviewOpen || walletActionMode !== null
@@ -558,7 +501,7 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
                   exit={tabExit}
                   transition={tabTransition}
                 >
-                  <StakingContent uiSandboxMode={isUiSandboxMode} />
+                  <StakingContent />
                 </motion.section>
               ) : null}
 
@@ -572,7 +515,7 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
                 >
                   <div className="w-full">
                     <CrashGame
-                      demoMode={isUiSandboxMode}
+                      demoMode={true}
                       tonBalance={tonBalance}
                       starsBalance={starsBalance}
                       isActive={isMineSceneActive}
@@ -647,7 +590,6 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
       <WalletActionModal
         open={walletActionMode !== null}
         mode={walletActionMode}
-        uiSandboxMode={isUiSandboxMode}
         isSubmitting={isWalletActionSubmitting}
         onClose={() => {
           if (isWalletActionSubmitting) return
@@ -675,7 +617,6 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
 
       <DepositFundsModal
         open={isDepositModalOpen}
-        uiSandboxMode={isUiSandboxMode}
         onClose={() => setDepositModalOpen(false)}
         onCompleted={() => {
           void refreshWallets()

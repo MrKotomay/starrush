@@ -14,7 +14,6 @@ type WalletActionMode = "deposit" | "withdraw" | null
 interface WalletActionModalProps {
   open: boolean
   mode: WalletActionMode
-  uiSandboxMode?: boolean
   isSubmitting?: boolean
   onClose: () => void
   onSubmit: (input: { amount: number; currency: WalletCurrency }) => Promise<void>
@@ -24,7 +23,6 @@ const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
 export function WalletActionModal({
   open,
   mode,
-  uiSandboxMode = false,
   isSubmitting = false,
   onClose,
   onSubmit,
@@ -89,9 +87,7 @@ export function WalletActionModal({
             <div className="mb-3 flex items-start justify-between gap-3">
               <div>
                 <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-                {!uiSandboxMode ? (
-                  <p className="mt-1 text-xs text-muted-foreground">{t("walletAction.devHint")}</p>
-                ) : null}
+                <p className="mt-1 text-xs text-muted-foreground">{t("walletAction.devHint")}</p>
               </div>
               <button
                 type="button"

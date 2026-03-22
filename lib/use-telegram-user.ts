@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import type { TelegramWebAppUser } from "@/lib/telegram-auth"
-import { getUiSandboxAuthPayload, isUiSandboxEnabled } from "@/lib/ui-sandbox"
 
 type TelegramAuthState =
   | { status: "idle" }
@@ -14,7 +13,6 @@ type TelegramAuthState =
       dbUser?: { id: string; telegramId: string }
       wallets?: Array<{ id: string; currency: "TON" | "STARS"; balance: string; lockedBalance: string }>
       isDevMode?: boolean
-      isUiSandboxMode?: boolean
     }
   | { status: "error"; error: string }
 
@@ -89,18 +87,6 @@ export function useTelegramUser() {
   const [state, setState] = useState<TelegramAuthState>({ status: "idle" })
 
   useEffect(() => {
-    if (isUiSandboxEnabled()) {
-      const sandboxAuth = getUiSandboxAuthPayload()
-      setState({
-        status: "ready",
-        user: sandboxAuth.user,
-        dbUser: sandboxAuth.dbUser,
-        wallets: sandboxAuth.wallets,
-        isUiSandboxMode: true,
-      })
-      return undefined
-    }
-
     // AUTH RETRY LOGIC
     let cancelled = false
     let attempts = 0
