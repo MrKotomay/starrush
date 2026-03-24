@@ -1,0 +1,4220 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {
+    "community_maintainers": [
+      {
+        "id": 1,
+        "size": 29,
+        "maintainers": [
+          {
+            "person_id": "ipada310@gmail.com",
+            "name": "MrKotomay",
+            "touches": 252,
+            "touch_share": 0.996,
+            "recency_share": 0.9961,
+            "sensitive_share": 0.0,
+            "primary_tz_offset": "+04:00"
+          },
+          {
+            "person_id": "160258519+MrKotomay@users.noreply.github.com",
+            "name": "MrKotomay",
+            "touches": 1,
+            "touch_share": 0.004,
+            "recency_share": 0.0039,
+            "sensitive_share": 0.0,
+            "primary_tz_offset": "+04:00"
+          }
+        ],
+        "bus_factor": 2,
+        "owner_count": 2,
+        "totals": {
+          "touches": 253,
+          "recency_weight": 231.213275,
+          "sensitive_weight": 0
+        }
+      },
+      {
+        "id": 2,
+        "size": 26,
+        "maintainers": [
+          {
+            "person_id": "ipada310@gmail.com",
+            "name": "MrKotomay",
+            "touches": 120,
+            "touch_share": 0.9524,
+            "recency_share": 0.9529,
+            "sensitive_share": 1.0,
+            "primary_tz_offset": "+04:00"
+          },
+          {
+            "person_id": "160258519+MrKotomay@users.noreply.github.com",
+            "name": "MrKotomay",
+            "touches": 6,
+            "touch_share": 0.0476,
+            "recency_share": 0.0471,
+            "sensitive_share": 0.0,
+            "primary_tz_offset": "+04:00"
+          }
+        ],
+        "bus_factor": 2,
+        "owner_count": 2,
+        "totals": {
+          "touches": 126,
+          "recency_weight": 115.062477,
+          "sensitive_weight": 37.0
+        }
+      },
+      {
+        "id": 3,
+        "size": 14,
+        "maintainers": [
+          {
+            "person_id": "ipada310@gmail.com",
+            "name": "MrKotomay",
+            "touches": 50,
+            "touch_share": 1.0,
+            "recency_share": 1.0,
+            "sensitive_share": 1.0,
+            "primary_tz_offset": "+04:00"
+          }
+        ],
+        "bus_factor": 1,
+        "owner_count": 1,
+        "totals": {
+          "touches": 50,
+          "recency_weight": 45.784551,
+          "sensitive_weight": 27.0
+        }
+      },
+      {
+        "id": 4,
+        "size": 12,
+        "maintainers": [
+          {
+            "person_id": "ipada310@gmail.com",
+            "name": "MrKotomay",
+            "touches": 49,
+            "touch_share": 1.0,
+            "recency_share": 1.0,
+            "sensitive_share": 0.0,
+            "primary_tz_offset": "+04:00"
+          }
+        ],
+        "bus_factor": 1,
+        "owner_count": 1,
+        "totals": {
+          "touches": 49,
+          "recency_weight": 46.837487,
+          "sensitive_weight": 0
+        }
+      },
+      {
+        "id": 5,
+        "size": 3,
+        "maintainers": [
+          {
+            "person_id": "ipada310@gmail.com",
+            "name": "MrKotomay",
+            "touches": 11,
+            "touch_share": 1.0,
+            "recency_share": 1.0,
+            "sensitive_share": 0.0,
+            "primary_tz_offset": "+04:00"
+          }
+        ],
+        "bus_factor": 1,
+        "owner_count": 1,
+        "totals": {
+          "touches": 11,
+          "recency_weight": 10.024746,
+          "sensitive_weight": 0
+        }
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "community_id": 2,
+      "id": ".env.example"
+    },
+    {
+      "community_id": 4,
+      "id": "app/(game)/page.tsx"
+    },
+    {
+      "community_id": 4,
+      "id": "components/crash/CrashGame.tsx"
+    },
+    {
+      "community_id": 3,
+      "id": "components/deposit-funds-modal.tsx"
+    },
+    {
+      "community_id": 4,
+      "id": "components/game/StarRushSandboxPanel.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "components/staking-content.tsx"
+    },
+    {
+      "community_id": 4,
+      "id": "components/telegram-shell-theme.tsx"
+    },
+    {
+      "community_id": 4,
+      "id": "components/wallet-action-modal.tsx"
+    },
+    {
+      "community_id": 4,
+      "id": "docs/dev_launch.md"
+    },
+    {
+      "community_id": 4,
+      "id": "lib/i18n.tsx"
+    },
+    {
+      "community_id": 4,
+      "id": "lib/mini-app-bootstrap.ts"
+    },
+    {
+      "community_id": 4,
+      "id": "lib/ui-sandbox.ts"
+    },
+    {
+      "community_id": 4,
+      "id": "lib/use-telegram-user.ts"
+    },
+    {
+      "community_id": 1,
+      "id": "components/game/StarRushPanel.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "styles/staking-safe.module.css"
+    },
+    {
+      "community_id": 1,
+      "id": "components/top-hud.tsx"
+    },
+    {
+      "community_id": 4,
+      "id": "components/game/CoefficientDisplay.tsx"
+    },
+    {
+      "community_id": 4,
+      "id": "lib/currency.ts"
+    },
+    {
+      "community_id": 2,
+      "id": "app/api/staking/leaderboard/route.ts"
+    },
+    {
+      "community_id": 2,
+      "id": "services/game-settlement.service.ts"
+    },
+    {
+      "community_id": 1,
+      "id": "components/referral-program.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "components/stat-cards.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "components/game/PlayersBetsList.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "components/wallet-overview-modal.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "styles/starrush.module.css"
+    },
+    {
+      "community_id": 1,
+      "id": "lib/game/backend-round-state-adapter.ts"
+    },
+    {
+      "community_id": 3,
+      "id": "prisma/schema.prisma"
+    },
+    {
+      "community_id": 3,
+      "id": "game/RoundEngine.ts"
+    },
+    {
+      "community_id": 2,
+      "id": "lib/game-config.ts"
+    },
+    {
+      "community_id": 2,
+      "id": "README.md"
+    },
+    {
+      "community_id": 2,
+      "id": "docs/deploy-vds.md"
+    },
+    {
+      "community_id": 2,
+      "id": "infra/deploy/deploy-vds.sh"
+    },
+    {
+      "community_id": 1,
+      "id": "components/bottom-navigation.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "components/ui/bottom-nav-shell.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "app/globals.css"
+    },
+    {
+      "community_id": 1,
+      "id": "components/action-buttons.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "components/bets/PlaceBetModal.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "styles/deposit-funds-modal.module.css"
+    },
+    {
+      "community_id": 1,
+      "id": "styles/place-bet-modal.module.css"
+    },
+    {
+      "community_id": 5,
+      "id": "app/layout.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "components/achievements.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "components/profile-header.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "components/settings-menu.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "components/ui/primary-button.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "components/ui/secondary-button.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "components/ui/stat-card.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "components/ui/stat-icon.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "theme/colors.ts"
+    },
+    {
+      "community_id": 1,
+      "id": "app/page.tsx"
+    },
+    {
+      "community_id": 2,
+      "id": "Dockerfile"
+    },
+    {
+      "community_id": 2,
+      "id": "app/api/auth/dev/route.ts"
+    },
+    {
+      "community_id": 2,
+      "id": "app/api/auth/telegram/route.ts"
+    },
+    {
+      "community_id": 2,
+      "id": "app/api/dev/treasury/fund/route.ts"
+    },
+    {
+      "community_id": 2,
+      "id": "app/api/ledger/internal/create/route.ts"
+    },
+    {
+      "community_id": 2,
+      "id": "app/api/payments/ton/reconcile/route.ts"
+    },
+    {
+      "community_id": 3,
+      "id": "app/api/telegram/webhook/route.ts"
+    },
+    {
+      "community_id": 2,
+      "id": "gateway/server.ts"
+    },
+    {
+      "community_id": 2,
+      "id": "lib/rate-limit.ts"
+    },
+    {
+      "community_id": 2,
+      "id": "next.config.ts"
+    },
+    {
+      "community_id": 2,
+      "id": "services/game-round.service.ts"
+    },
+    {
+      "community_id": 2,
+      "id": "workers/round-worker.ts"
+    },
+    {
+      "community_id": 2,
+      "id": "app/api/wallets/deposit/route.ts"
+    },
+    {
+      "community_id": 2,
+      "id": "app/api/wallets/withdraw/route.ts"
+    },
+    {
+      "community_id": 2,
+      "id": "lib/referrals.ts"
+    },
+    {
+      "community_id": 3,
+      "id": "lib/payments/ton-reconcile.service.ts"
+    },
+    {
+      "community_id": 3,
+      "id": "lib/payments/ton.service.ts"
+    },
+    {
+      "community_id": 3,
+      "id": "scripts/ton_reconcile_comment_unit_test.ts"
+    },
+    {
+      "community_id": 3,
+      "id": "app/api/payments/ton/intent/route.ts"
+    },
+    {
+      "community_id": 3,
+      "id": "lib/payments/config.ts"
+    },
+    {
+      "community_id": 3,
+      "id": "app/api/payments/intents/[id]/route.ts"
+    },
+    {
+      "community_id": 3,
+      "id": "lib/payments/deposit-credit.service.ts"
+    },
+    {
+      "community_id": 3,
+      "id": "lib/payments/intents.service.ts"
+    },
+    {
+      "community_id": 5,
+      "id": "app/api/tonconnect/manifest/route.ts"
+    },
+    {
+      "community_id": 5,
+      "id": "components/providers/tonconnect-provider.tsx"
+    },
+    {
+      "community_id": 2,
+      "id": "scripts/referrals_unit_test.ts"
+    },
+    {
+      "community_id": 2,
+      "id": "infra/deploy/update-from-git.sh"
+    },
+    {
+      "community_id": 2,
+      "id": "docker-compose.yml"
+    },
+    {
+      "community_id": 2,
+      "id": "infra/caddy/Caddyfile"
+    },
+    {
+      "community_id": 2,
+      "id": "package.json"
+    },
+    {
+      "community_id": 1,
+      "id": "components/top-panel.tsx"
+    },
+    {
+      "community_id": 1,
+      "id": "docs/todo.md"
+    },
+    {
+      "community_id": 3,
+      "id": "lib/payments/utils.ts"
+    },
+    {
+      "community_id": 3,
+      "id": "lib/payments/stars.service.ts"
+    }
+  ],
+  "edges": [
+    {
+      "weight": 0.111111,
+      "count": 2,
+      "source": ".env.example",
+      "target": "app/(game)/page.tsx"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": ".env.example",
+      "target": "components/crash/CrashGame.tsx"
+    },
+    {
+      "weight": 0.227273,
+      "count": 5,
+      "source": ".env.example",
+      "target": "components/deposit-funds-modal.tsx"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": ".env.example",
+      "target": "components/game/StarRushSandboxPanel.tsx"
+    },
+    {
+      "weight": 0.090909,
+      "count": 3,
+      "source": ".env.example",
+      "target": "components/staking-content.tsx"
+    },
+    {
+      "weight": 0.125,
+      "count": 2,
+      "source": ".env.example",
+      "target": "components/telegram-shell-theme.tsx"
+    },
+    {
+      "weight": 0.1,
+      "count": 2,
+      "source": ".env.example",
+      "target": "components/wallet-action-modal.tsx"
+    },
+    {
+      "weight": 0.133333,
+      "count": 2,
+      "source": ".env.example",
+      "target": "docs/dev_launch.md"
+    },
+    {
+      "weight": 0.117647,
+      "count": 2,
+      "source": ".env.example",
+      "target": "lib/i18n.tsx"
+    },
+    {
+      "weight": 0.2,
+      "count": 3,
+      "source": ".env.example",
+      "target": "lib/mini-app-bootstrap.ts"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": ".env.example",
+      "target": "lib/ui-sandbox.ts"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": ".env.example",
+      "target": "lib/use-telegram-user.ts"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": ".env.example",
+      "target": "lib/game-config.ts"
+    },
+    {
+      "weight": 0.176471,
+      "count": 3,
+      "source": ".env.example",
+      "target": "README.md"
+    },
+    {
+      "weight": 0.25,
+      "count": 4,
+      "source": ".env.example",
+      "target": "docs/deploy-vds.md"
+    },
+    {
+      "weight": 0.133333,
+      "count": 2,
+      "source": ".env.example",
+      "target": "Dockerfile"
+    },
+    {
+      "weight": 0.133333,
+      "count": 2,
+      "source": ".env.example",
+      "target": "app/api/auth/dev/route.ts"
+    },
+    {
+      "weight": 0.125,
+      "count": 2,
+      "source": ".env.example",
+      "target": "app/api/auth/telegram/route.ts"
+    },
+    {
+      "weight": 0.133333,
+      "count": 2,
+      "source": ".env.example",
+      "target": "app/api/dev/treasury/fund/route.ts"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": ".env.example",
+      "target": "app/api/ledger/internal/create/route.ts"
+    },
+    {
+      "weight": 0.214286,
+      "count": 3,
+      "source": ".env.example",
+      "target": "app/api/payments/ton/reconcile/route.ts"
+    },
+    {
+      "weight": 0.133333,
+      "count": 2,
+      "source": ".env.example",
+      "target": "app/api/telegram/webhook/route.ts"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": ".env.example",
+      "target": "gateway/server.ts"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": ".env.example",
+      "target": "lib/rate-limit.ts"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": ".env.example",
+      "target": "next.config.ts"
+    },
+    {
+      "weight": 0.133333,
+      "count": 2,
+      "source": ".env.example",
+      "target": "prisma/schema.prisma"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": ".env.example",
+      "target": "services/game-round.service.ts"
+    },
+    {
+      "weight": 0.2,
+      "count": 3,
+      "source": ".env.example",
+      "target": "services/game-settlement.service.ts"
+    },
+    {
+      "weight": 0.357143,
+      "count": 5,
+      "source": ".env.example",
+      "target": "workers/round-worker.ts"
+    },
+    {
+      "weight": 0.133333,
+      "count": 2,
+      "source": ".env.example",
+      "target": "lib/payments/ton-reconcile.service.ts"
+    },
+    {
+      "weight": 0.133333,
+      "count": 2,
+      "source": ".env.example",
+      "target": "lib/payments/ton.service.ts"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": ".env.example",
+      "target": "app/api/tonconnect/manifest/route.ts"
+    },
+    {
+      "weight": 0.2,
+      "count": 3,
+      "source": ".env.example",
+      "target": "app/layout.tsx"
+    },
+    {
+      "weight": 0.214286,
+      "count": 3,
+      "source": ".env.example",
+      "target": "components/providers/tonconnect-provider.tsx"
+    },
+    {
+      "weight": 0.176471,
+      "count": 3,
+      "source": ".env.example",
+      "target": "docker-compose.yml"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": ".env.example",
+      "target": "infra/caddy/Caddyfile"
+    },
+    {
+      "weight": 0.333333,
+      "count": 5,
+      "source": ".env.example",
+      "target": "package.json"
+    },
+    {
+      "weight": 0.095238,
+      "count": 2,
+      "source": ".env.example",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.111111,
+      "count": 2,
+      "source": ".env.example",
+      "target": "infra/deploy/deploy-vds.sh"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "app/(game)/page.tsx",
+      "target": "components/crash/CrashGame.tsx"
+    },
+    {
+      "weight": 0.117647,
+      "count": 2,
+      "source": "app/(game)/page.tsx",
+      "target": "components/deposit-funds-modal.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "app/(game)/page.tsx",
+      "target": "components/game/StarRushSandboxPanel.tsx"
+    },
+    {
+      "weight": 0.272727,
+      "count": 6,
+      "source": "app/(game)/page.tsx",
+      "target": "components/staking-content.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "app/(game)/page.tsx",
+      "target": "components/telegram-shell-theme.tsx"
+    },
+    {
+      "weight": 0.166667,
+      "count": 2,
+      "source": "app/(game)/page.tsx",
+      "target": "components/wallet-action-modal.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "app/(game)/page.tsx",
+      "target": "docs/dev_launch.md"
+    },
+    {
+      "weight": 0.571429,
+      "count": 4,
+      "source": "app/(game)/page.tsx",
+      "target": "lib/i18n.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "app/(game)/page.tsx",
+      "target": "lib/mini-app-bootstrap.ts"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "app/(game)/page.tsx",
+      "target": "lib/ui-sandbox.ts"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "app/(game)/page.tsx",
+      "target": "lib/use-telegram-user.ts"
+    },
+    {
+      "weight": 0.2,
+      "count": 4,
+      "source": "app/(game)/page.tsx",
+      "target": "styles/staking-safe.module.css"
+    },
+    {
+      "weight": 0.133333,
+      "count": 2,
+      "source": "app/(game)/page.tsx",
+      "target": "components/top-hud.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "app/(game)/page.tsx",
+      "target": "components/game/CoefficientDisplay.tsx"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": "app/(game)/page.tsx",
+      "target": "components/game/StarRushPanel.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "app/(game)/page.tsx",
+      "target": "lib/currency.ts"
+    },
+    {
+      "weight": 0.153846,
+      "count": 2,
+      "source": "components/crash/CrashGame.tsx",
+      "target": "components/deposit-funds-modal.tsx"
+    },
+    {
+      "weight": 1.0,
+      "count": 2,
+      "source": "components/crash/CrashGame.tsx",
+      "target": "components/game/StarRushSandboxPanel.tsx"
+    },
+    {
+      "weight": 0.090909,
+      "count": 2,
+      "source": "components/crash/CrashGame.tsx",
+      "target": "components/staking-content.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "components/crash/CrashGame.tsx",
+      "target": "components/telegram-shell-theme.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "components/crash/CrashGame.tsx",
+      "target": "components/wallet-action-modal.tsx"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "components/crash/CrashGame.tsx",
+      "target": "docs/dev_launch.md"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "components/crash/CrashGame.tsx",
+      "target": "lib/i18n.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "components/crash/CrashGame.tsx",
+      "target": "lib/mini-app-bootstrap.ts"
+    },
+    {
+      "weight": 1.0,
+      "count": 2,
+      "source": "components/crash/CrashGame.tsx",
+      "target": "lib/ui-sandbox.ts"
+    },
+    {
+      "weight": 1.0,
+      "count": 2,
+      "source": "components/crash/CrashGame.tsx",
+      "target": "lib/use-telegram-user.ts"
+    },
+    {
+      "weight": 0.153846,
+      "count": 2,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "components/game/StarRushSandboxPanel.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 7,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "components/staking-content.tsx"
+    },
+    {
+      "weight": 0.214286,
+      "count": 3,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "components/telegram-shell-theme.tsx"
+    },
+    {
+      "weight": 0.3125,
+      "count": 5,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "components/wallet-action-modal.tsx"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "docs/dev_launch.md"
+    },
+    {
+      "weight": 0.2,
+      "count": 3,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "lib/i18n.tsx"
+    },
+    {
+      "weight": 0.214286,
+      "count": 3,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "lib/mini-app-bootstrap.ts"
+    },
+    {
+      "weight": 0.153846,
+      "count": 2,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "lib/ui-sandbox.ts"
+    },
+    {
+      "weight": 0.153846,
+      "count": 2,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "lib/use-telegram-user.ts"
+    },
+    {
+      "weight": 0.315789,
+      "count": 6,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "app/globals.css"
+    },
+    {
+      "weight": 0.357143,
+      "count": 5,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "components/action-buttons.tsx"
+    },
+    {
+      "weight": 0.357143,
+      "count": 5,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "components/bets/PlaceBetModal.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 6,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "components/top-hud.tsx"
+    },
+    {
+      "weight": 0.4375,
+      "count": 7,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "styles/deposit-funds-modal.module.css"
+    },
+    {
+      "weight": 0.428571,
+      "count": 6,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "styles/place-bet-modal.module.css"
+    },
+    {
+      "weight": 0.24,
+      "count": 6,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "styles/staking-safe.module.css"
+    },
+    {
+      "weight": 0.214286,
+      "count": 3,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "app/layout.tsx"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "components/achievements.tsx"
+    },
+    {
+      "weight": 0.157895,
+      "count": 3,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "components/bottom-navigation.tsx"
+    },
+    {
+      "weight": 0.15,
+      "count": 3,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "components/game/StarRushPanel.tsx"
+    },
+    {
+      "weight": 0.214286,
+      "count": 3,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "components/profile-header.tsx"
+    },
+    {
+      "weight": 0.1875,
+      "count": 3,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "components/referral-program.tsx"
+    },
+    {
+      "weight": 0.2,
+      "count": 3,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "components/settings-menu.tsx"
+    },
+    {
+      "weight": 0.294118,
+      "count": 5,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.176471,
+      "count": 3,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "components/wallet-overview-modal.tsx"
+    },
+    {
+      "weight": 0.24,
+      "count": 6,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "styles/starrush.module.css"
+    },
+    {
+      "weight": 0.294118,
+      "count": 5,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "components/game/PlayersBetsList.tsx"
+    },
+    {
+      "weight": 0.117647,
+      "count": 2,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "components/stat-cards.tsx"
+    },
+    {
+      "weight": 0.230769,
+      "count": 3,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "lib/payments/ton-reconcile.service.ts"
+    },
+    {
+      "weight": 0.230769,
+      "count": 3,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "lib/payments/ton.service.ts"
+    },
+    {
+      "weight": 0.153846,
+      "count": 2,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "scripts/ton_reconcile_comment_unit_test.ts"
+    },
+    {
+      "weight": 0.153846,
+      "count": 2,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "app/api/payments/intents/[id]/route.ts"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "app/api/payments/ton/intent/route.ts"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "lib/payments/config.ts"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "lib/payments/deposit-credit.service.ts"
+    },
+    {
+      "weight": 0.153846,
+      "count": 2,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "lib/payments/intents.service.ts"
+    },
+    {
+      "weight": 0.125,
+      "count": 2,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "components/top-panel.tsx"
+    },
+    {
+      "weight": 0.153846,
+      "count": 2,
+      "source": "components/deposit-funds-modal.tsx",
+      "target": "lib/payments/stars.service.ts"
+    },
+    {
+      "weight": 0.090909,
+      "count": 2,
+      "source": "components/game/StarRushSandboxPanel.tsx",
+      "target": "components/staking-content.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "components/game/StarRushSandboxPanel.tsx",
+      "target": "components/telegram-shell-theme.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "components/game/StarRushSandboxPanel.tsx",
+      "target": "components/wallet-action-modal.tsx"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "components/game/StarRushSandboxPanel.tsx",
+      "target": "docs/dev_launch.md"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "components/game/StarRushSandboxPanel.tsx",
+      "target": "lib/i18n.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "components/game/StarRushSandboxPanel.tsx",
+      "target": "lib/mini-app-bootstrap.ts"
+    },
+    {
+      "weight": 1.0,
+      "count": 2,
+      "source": "components/game/StarRushSandboxPanel.tsx",
+      "target": "lib/ui-sandbox.ts"
+    },
+    {
+      "weight": 1.0,
+      "count": 2,
+      "source": "components/game/StarRushSandboxPanel.tsx",
+      "target": "lib/use-telegram-user.ts"
+    },
+    {
+      "weight": 0.130435,
+      "count": 3,
+      "source": "components/staking-content.tsx",
+      "target": "components/telegram-shell-theme.tsx"
+    },
+    {
+      "weight": 0.304348,
+      "count": 7,
+      "source": "components/staking-content.tsx",
+      "target": "components/wallet-action-modal.tsx"
+    },
+    {
+      "weight": 0.086957,
+      "count": 2,
+      "source": "components/staking-content.tsx",
+      "target": "docs/dev_launch.md"
+    },
+    {
+      "weight": 0.227273,
+      "count": 5,
+      "source": "components/staking-content.tsx",
+      "target": "lib/i18n.tsx"
+    },
+    {
+      "weight": 0.181818,
+      "count": 4,
+      "source": "components/staking-content.tsx",
+      "target": "lib/mini-app-bootstrap.ts"
+    },
+    {
+      "weight": 0.090909,
+      "count": 2,
+      "source": "components/staking-content.tsx",
+      "target": "lib/ui-sandbox.ts"
+    },
+    {
+      "weight": 0.090909,
+      "count": 2,
+      "source": "components/staking-content.tsx",
+      "target": "lib/use-telegram-user.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 16,
+      "source": "components/staking-content.tsx",
+      "target": "styles/staking-safe.module.css"
+    },
+    {
+      "weight": 0.32,
+      "count": 8,
+      "source": "components/staking-content.tsx",
+      "target": "components/top-hud.tsx"
+    },
+    {
+      "weight": 0.086957,
+      "count": 2,
+      "source": "components/staking-content.tsx",
+      "target": "app/api/staking/leaderboard/route.ts"
+    },
+    {
+      "weight": 0.136364,
+      "count": 3,
+      "source": "components/staking-content.tsx",
+      "target": "components/game/CoefficientDisplay.tsx"
+    },
+    {
+      "weight": 0.142857,
+      "count": 4,
+      "source": "components/staking-content.tsx",
+      "target": "components/game/StarRushPanel.tsx"
+    },
+    {
+      "weight": 0.217391,
+      "count": 5,
+      "source": "components/staking-content.tsx",
+      "target": "components/referral-program.tsx"
+    },
+    {
+      "weight": 0.272727,
+      "count": 6,
+      "source": "components/staking-content.tsx",
+      "target": "components/stat-cards.tsx"
+    },
+    {
+      "weight": 0.090909,
+      "count": 2,
+      "source": "components/staking-content.tsx",
+      "target": "lib/currency.ts"
+    },
+    {
+      "weight": 0.136364,
+      "count": 3,
+      "source": "components/staking-content.tsx",
+      "target": "components/game/PlayersBetsList.tsx"
+    },
+    {
+      "weight": 0.26087,
+      "count": 6,
+      "source": "components/staking-content.tsx",
+      "target": "components/wallet-overview-modal.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 10,
+      "source": "components/staking-content.tsx",
+      "target": "styles/starrush.module.css"
+    },
+    {
+      "weight": 0.416667,
+      "count": 10,
+      "source": "components/staking-content.tsx",
+      "target": "app/globals.css"
+    },
+    {
+      "weight": 0.217391,
+      "count": 5,
+      "source": "components/staking-content.tsx",
+      "target": "components/action-buttons.tsx"
+    },
+    {
+      "weight": 0.166667,
+      "count": 4,
+      "source": "components/staking-content.tsx",
+      "target": "components/bets/PlaceBetModal.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 8,
+      "source": "components/staking-content.tsx",
+      "target": "styles/deposit-funds-modal.module.css"
+    },
+    {
+      "weight": 0.208333,
+      "count": 5,
+      "source": "components/staking-content.tsx",
+      "target": "styles/place-bet-modal.module.css"
+    },
+    {
+      "weight": 0.136364,
+      "count": 3,
+      "source": "components/staking-content.tsx",
+      "target": "components/achievements.tsx"
+    },
+    {
+      "weight": 0.24,
+      "count": 6,
+      "source": "components/staking-content.tsx",
+      "target": "components/bottom-navigation.tsx"
+    },
+    {
+      "weight": 0.130435,
+      "count": 3,
+      "source": "components/staking-content.tsx",
+      "target": "components/profile-header.tsx"
+    },
+    {
+      "weight": 0.173913,
+      "count": 4,
+      "source": "components/staking-content.tsx",
+      "target": "components/settings-menu.tsx"
+    },
+    {
+      "weight": 0.16,
+      "count": 4,
+      "source": "components/staking-content.tsx",
+      "target": "components/ui/bottom-nav-shell.tsx"
+    },
+    {
+      "weight": 0.24,
+      "count": 6,
+      "source": "components/staking-content.tsx",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.136364,
+      "count": 3,
+      "source": "components/staking-content.tsx",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.090909,
+      "count": 2,
+      "source": "components/staking-content.tsx",
+      "target": "components/ui/secondary-button.tsx"
+    },
+    {
+      "weight": 0.181818,
+      "count": 4,
+      "source": "components/staking-content.tsx",
+      "target": "components/ui/stat-card.tsx"
+    },
+    {
+      "weight": 0.181818,
+      "count": 4,
+      "source": "components/staking-content.tsx",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 0.090909,
+      "count": 2,
+      "source": "components/staking-content.tsx",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 0.24,
+      "count": 6,
+      "source": "components/staking-content.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.08,
+      "count": 2,
+      "source": "components/staking-content.tsx",
+      "target": "components/top-panel.tsx"
+    },
+    {
+      "weight": 0.173913,
+      "count": 4,
+      "source": "components/staking-content.tsx",
+      "target": "docs/todo.md"
+    },
+    {
+      "weight": 0.333333,
+      "count": 3,
+      "source": "components/telegram-shell-theme.tsx",
+      "target": "components/wallet-action-modal.tsx"
+    },
+    {
+      "weight": 0.75,
+      "count": 3,
+      "source": "components/telegram-shell-theme.tsx",
+      "target": "docs/dev_launch.md"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "components/telegram-shell-theme.tsx",
+      "target": "lib/i18n.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "components/telegram-shell-theme.tsx",
+      "target": "lib/mini-app-bootstrap.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "components/telegram-shell-theme.tsx",
+      "target": "lib/ui-sandbox.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "components/telegram-shell-theme.tsx",
+      "target": "lib/use-telegram-user.ts"
+    },
+    {
+      "weight": 0.166667,
+      "count": 2,
+      "source": "components/telegram-shell-theme.tsx",
+      "target": "components/game/StarRushPanel.tsx"
+    },
+    {
+      "weight": 0.222222,
+      "count": 2,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "docs/dev_launch.md"
+    },
+    {
+      "weight": 0.3,
+      "count": 3,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "lib/i18n.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 3,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "lib/mini-app-bootstrap.ts"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "lib/ui-sandbox.ts"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "lib/use-telegram-user.ts"
+    },
+    {
+      "weight": 0.428571,
+      "count": 6,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "app/globals.css"
+    },
+    {
+      "weight": 0.375,
+      "count": 3,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "components/achievements.tsx"
+    },
+    {
+      "weight": 0.272727,
+      "count": 3,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "components/action-buttons.tsx"
+    },
+    {
+      "weight": 0.272727,
+      "count": 3,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "components/bets/PlaceBetModal.tsx"
+    },
+    {
+      "weight": 0.416667,
+      "count": 5,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "components/bottom-navigation.tsx"
+    },
+    {
+      "weight": 0.2,
+      "count": 3,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "components/game/StarRushPanel.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 4,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "components/profile-header.tsx"
+    },
+    {
+      "weight": 0.272727,
+      "count": 3,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "components/referral-program.tsx"
+    },
+    {
+      "weight": 0.444444,
+      "count": 4,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "components/settings-menu.tsx"
+    },
+    {
+      "weight": 0.1875,
+      "count": 3,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "components/top-hud.tsx"
+    },
+    {
+      "weight": 0.363636,
+      "count": 4,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "components/ui/bottom-nav-shell.tsx"
+    },
+    {
+      "weight": 0.214286,
+      "count": 3,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.222222,
+      "count": 2,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "components/ui/secondary-button.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 4,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "components/ui/stat-card.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 4,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 0.666667,
+      "count": 6,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "components/wallet-overview-modal.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 6,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "styles/deposit-funds-modal.module.css"
+    },
+    {
+      "weight": 0.363636,
+      "count": 4,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "styles/place-bet-modal.module.css"
+    },
+    {
+      "weight": 0.238095,
+      "count": 5,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "styles/staking-safe.module.css"
+    },
+    {
+      "weight": 0.3,
+      "count": 6,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "styles/starrush.module.css"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 0.416667,
+      "count": 5,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.4,
+      "count": 4,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "components/stat-cards.tsx"
+    },
+    {
+      "weight": 0.3,
+      "count": 3,
+      "source": "components/wallet-action-modal.tsx",
+      "target": "docs/todo.md"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "docs/dev_launch.md",
+      "target": "lib/i18n.tsx"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "docs/dev_launch.md",
+      "target": "lib/mini-app-bootstrap.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "docs/dev_launch.md",
+      "target": "lib/ui-sandbox.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "docs/dev_launch.md",
+      "target": "lib/use-telegram-user.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 3,
+      "source": "lib/i18n.tsx",
+      "target": "lib/mini-app-bootstrap.ts"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "lib/i18n.tsx",
+      "target": "lib/ui-sandbox.ts"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "lib/i18n.tsx",
+      "target": "lib/use-telegram-user.ts"
+    },
+    {
+      "weight": 0.095238,
+      "count": 2,
+      "source": "lib/i18n.tsx",
+      "target": "styles/staking-safe.module.css"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "lib/i18n.tsx",
+      "target": "components/game/CoefficientDisplay.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "lib/i18n.tsx",
+      "target": "components/game/PlayersBetsList.tsx"
+    },
+    {
+      "weight": 0.153846,
+      "count": 2,
+      "source": "lib/i18n.tsx",
+      "target": "components/game/StarRushPanel.tsx"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": "lib/i18n.tsx",
+      "target": "components/top-hud.tsx"
+    },
+    {
+      "weight": 0.2,
+      "count": 2,
+      "source": "lib/i18n.tsx",
+      "target": "components/wallet-overview-modal.tsx"
+    },
+    {
+      "weight": 0.095238,
+      "count": 2,
+      "source": "lib/i18n.tsx",
+      "target": "styles/starrush.module.css"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "lib/mini-app-bootstrap.ts",
+      "target": "lib/ui-sandbox.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "lib/mini-app-bootstrap.ts",
+      "target": "lib/use-telegram-user.ts"
+    },
+    {
+      "weight": 1.0,
+      "count": 2,
+      "source": "lib/ui-sandbox.ts",
+      "target": "lib/use-telegram-user.ts"
+    },
+    {
+      "weight": 0.3,
+      "count": 3,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "components/game/CoefficientDisplay.tsx"
+    },
+    {
+      "weight": 0.230769,
+      "count": 3,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "components/referral-program.tsx"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "components/stat-cards.tsx"
+    },
+    {
+      "weight": 0.2,
+      "count": 2,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "lib/currency.ts"
+    },
+    {
+      "weight": 0.166667,
+      "count": 4,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "styles/staking-safe.module.css"
+    },
+    {
+      "weight": 0.181818,
+      "count": 2,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "components/game/PlayersBetsList.tsx"
+    },
+    {
+      "weight": 0.166667,
+      "count": 3,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "components/top-hud.tsx"
+    },
+    {
+      "weight": 0.307692,
+      "count": 4,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "components/wallet-overview-modal.tsx"
+    },
+    {
+      "weight": 0.181818,
+      "count": 2,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "lib/game/backend-round-state-adapter.ts"
+    },
+    {
+      "weight": 0.4,
+      "count": 8,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "styles/starrush.module.css"
+    },
+    {
+      "weight": 0.157895,
+      "count": 3,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "app/globals.css"
+    },
+    {
+      "weight": 0.181818,
+      "count": 2,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "components/achievements.tsx"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "components/action-buttons.tsx"
+    },
+    {
+      "weight": 0.230769,
+      "count": 3,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "components/bets/PlaceBetModal.tsx"
+    },
+    {
+      "weight": 0.117647,
+      "count": 2,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "components/bottom-navigation.tsx"
+    },
+    {
+      "weight": 0.272727,
+      "count": 3,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "components/profile-header.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 3,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "components/settings-menu.tsx"
+    },
+    {
+      "weight": 0.1875,
+      "count": 3,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.176471,
+      "count": 3,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "styles/deposit-funds-modal.module.css"
+    },
+    {
+      "weight": 0.214286,
+      "count": 3,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "styles/place-bet-modal.module.css"
+    },
+    {
+      "weight": 0.117647,
+      "count": 2,
+      "source": "components/game/StarRushPanel.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.318182,
+      "count": 7,
+      "source": "styles/staking-safe.module.css",
+      "target": "components/top-hud.tsx"
+    },
+    {
+      "weight": 0.105263,
+      "count": 2,
+      "source": "styles/staking-safe.module.css",
+      "target": "app/api/staking/leaderboard/route.ts"
+    },
+    {
+      "weight": 0.105263,
+      "count": 2,
+      "source": "styles/staking-safe.module.css",
+      "target": "components/game/CoefficientDisplay.tsx"
+    },
+    {
+      "weight": 0.2,
+      "count": 4,
+      "source": "styles/staking-safe.module.css",
+      "target": "components/referral-program.tsx"
+    },
+    {
+      "weight": 0.263158,
+      "count": 5,
+      "source": "styles/staking-safe.module.css",
+      "target": "components/stat-cards.tsx"
+    },
+    {
+      "weight": 0.111111,
+      "count": 2,
+      "source": "styles/staking-safe.module.css",
+      "target": "lib/currency.ts"
+    },
+    {
+      "weight": 0.105263,
+      "count": 2,
+      "source": "styles/staking-safe.module.css",
+      "target": "components/game/PlayersBetsList.tsx"
+    },
+    {
+      "weight": 0.315789,
+      "count": 6,
+      "source": "styles/staking-safe.module.css",
+      "target": "components/wallet-overview-modal.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 9,
+      "source": "styles/staking-safe.module.css",
+      "target": "styles/starrush.module.css"
+    },
+    {
+      "weight": 0.428571,
+      "count": 9,
+      "source": "styles/staking-safe.module.css",
+      "target": "app/globals.css"
+    },
+    {
+      "weight": 0.263158,
+      "count": 5,
+      "source": "styles/staking-safe.module.css",
+      "target": "components/action-buttons.tsx"
+    },
+    {
+      "weight": 0.2,
+      "count": 4,
+      "source": "styles/staking-safe.module.css",
+      "target": "components/bets/PlaceBetModal.tsx"
+    },
+    {
+      "weight": 0.473684,
+      "count": 9,
+      "source": "styles/staking-safe.module.css",
+      "target": "styles/deposit-funds-modal.module.css"
+    },
+    {
+      "weight": 0.315789,
+      "count": 6,
+      "source": "styles/staking-safe.module.css",
+      "target": "styles/place-bet-modal.module.css"
+    },
+    {
+      "weight": 0.1,
+      "count": 2,
+      "source": "styles/staking-safe.module.css",
+      "target": "app/layout.tsx"
+    },
+    {
+      "weight": 0.105263,
+      "count": 2,
+      "source": "styles/staking-safe.module.css",
+      "target": "components/achievements.tsx"
+    },
+    {
+      "weight": 0.227273,
+      "count": 5,
+      "source": "styles/staking-safe.module.css",
+      "target": "components/bottom-navigation.tsx"
+    },
+    {
+      "weight": 0.157895,
+      "count": 3,
+      "source": "styles/staking-safe.module.css",
+      "target": "components/profile-header.tsx"
+    },
+    {
+      "weight": 0.15,
+      "count": 3,
+      "source": "styles/staking-safe.module.css",
+      "target": "components/settings-menu.tsx"
+    },
+    {
+      "weight": 0.190476,
+      "count": 4,
+      "source": "styles/staking-safe.module.css",
+      "target": "components/ui/bottom-nav-shell.tsx"
+    },
+    {
+      "weight": 0.227273,
+      "count": 5,
+      "source": "styles/staking-safe.module.css",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.166667,
+      "count": 3,
+      "source": "styles/staking-safe.module.css",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.111111,
+      "count": 2,
+      "source": "styles/staking-safe.module.css",
+      "target": "components/ui/secondary-button.tsx"
+    },
+    {
+      "weight": 0.222222,
+      "count": 4,
+      "source": "styles/staking-safe.module.css",
+      "target": "components/ui/stat-card.tsx"
+    },
+    {
+      "weight": 0.222222,
+      "count": 4,
+      "source": "styles/staking-safe.module.css",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 0.111111,
+      "count": 2,
+      "source": "styles/staking-safe.module.css",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 0.285714,
+      "count": 6,
+      "source": "styles/staking-safe.module.css",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.095238,
+      "count": 2,
+      "source": "styles/staking-safe.module.css",
+      "target": "components/top-panel.tsx"
+    },
+    {
+      "weight": 0.15,
+      "count": 3,
+      "source": "styles/staking-safe.module.css",
+      "target": "docs/todo.md"
+    },
+    {
+      "weight": 0.166667,
+      "count": 2,
+      "source": "components/top-hud.tsx",
+      "target": "components/game/CoefficientDisplay.tsx"
+    },
+    {
+      "weight": 0.272727,
+      "count": 3,
+      "source": "components/top-hud.tsx",
+      "target": "components/game/PlayersBetsList.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 4,
+      "source": "components/top-hud.tsx",
+      "target": "components/wallet-overview-modal.tsx"
+    },
+    {
+      "weight": 0.166667,
+      "count": 2,
+      "source": "components/top-hud.tsx",
+      "target": "prisma/schema.prisma"
+    },
+    {
+      "weight": 0.45,
+      "count": 9,
+      "source": "components/top-hud.tsx",
+      "target": "styles/starrush.module.css"
+    },
+    {
+      "weight": 0.277778,
+      "count": 5,
+      "source": "components/top-hud.tsx",
+      "target": "app/globals.css"
+    },
+    {
+      "weight": 0.416667,
+      "count": 5,
+      "source": "components/top-hud.tsx",
+      "target": "components/action-buttons.tsx"
+    },
+    {
+      "weight": 0.307692,
+      "count": 4,
+      "source": "components/top-hud.tsx",
+      "target": "components/bets/PlaceBetModal.tsx"
+    },
+    {
+      "weight": 0.4,
+      "count": 6,
+      "source": "components/top-hud.tsx",
+      "target": "styles/deposit-funds-modal.module.css"
+    },
+    {
+      "weight": 0.384615,
+      "count": 5,
+      "source": "components/top-hud.tsx",
+      "target": "styles/place-bet-modal.module.css"
+    },
+    {
+      "weight": 0.153846,
+      "count": 2,
+      "source": "components/top-hud.tsx",
+      "target": "app/layout.tsx"
+    },
+    {
+      "weight": 0.272727,
+      "count": 3,
+      "source": "components/top-hud.tsx",
+      "target": "components/achievements.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 4,
+      "source": "components/top-hud.tsx",
+      "target": "components/bottom-navigation.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 3,
+      "source": "components/top-hud.tsx",
+      "target": "components/profile-header.tsx"
+    },
+    {
+      "weight": 0.307692,
+      "count": 4,
+      "source": "components/top-hud.tsx",
+      "target": "components/referral-program.tsx"
+    },
+    {
+      "weight": 0.230769,
+      "count": 3,
+      "source": "components/top-hud.tsx",
+      "target": "components/settings-menu.tsx"
+    },
+    {
+      "weight": 0.125,
+      "count": 2,
+      "source": "components/top-hud.tsx",
+      "target": "components/ui/bottom-nav-shell.tsx"
+    },
+    {
+      "weight": 0.176471,
+      "count": 3,
+      "source": "components/top-hud.tsx",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.272727,
+      "count": 3,
+      "source": "components/top-hud.tsx",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.181818,
+      "count": 2,
+      "source": "components/top-hud.tsx",
+      "target": "components/ui/secondary-button.tsx"
+    },
+    {
+      "weight": 0.153846,
+      "count": 2,
+      "source": "components/top-hud.tsx",
+      "target": "components/ui/stat-card.tsx"
+    },
+    {
+      "weight": 0.153846,
+      "count": 2,
+      "source": "components/top-hud.tsx",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 0.181818,
+      "count": 2,
+      "source": "components/top-hud.tsx",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 0.333333,
+      "count": 5,
+      "source": "components/top-hud.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.214286,
+      "count": 3,
+      "source": "components/top-hud.tsx",
+      "target": "components/stat-cards.tsx"
+    },
+    {
+      "weight": 0.454545,
+      "count": 5,
+      "source": "components/top-hud.tsx",
+      "target": "components/top-panel.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "components/game/CoefficientDisplay.tsx",
+      "target": "components/referral-program.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "components/game/CoefficientDisplay.tsx",
+      "target": "components/stat-cards.tsx"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "components/game/CoefficientDisplay.tsx",
+      "target": "lib/currency.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "components/game/CoefficientDisplay.tsx",
+      "target": "components/game/PlayersBetsList.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "components/game/CoefficientDisplay.tsx",
+      "target": "components/wallet-overview-modal.tsx"
+    },
+    {
+      "weight": 0.105263,
+      "count": 2,
+      "source": "components/game/CoefficientDisplay.tsx",
+      "target": "styles/starrush.module.css"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "app/api/staking/leaderboard/route.ts",
+      "target": "services/game-settlement.service.ts"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "services/game-settlement.service.ts",
+      "target": "app/api/auth/telegram/route.ts"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "services/game-settlement.service.ts",
+      "target": "app/api/dev/treasury/fund/route.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "services/game-settlement.service.ts",
+      "target": "app/api/ledger/internal/create/route.ts"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "services/game-settlement.service.ts",
+      "target": "app/api/payments/ton/reconcile/route.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "services/game-settlement.service.ts",
+      "target": "gateway/server.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "services/game-settlement.service.ts",
+      "target": "lib/rate-limit.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 3,
+      "source": "services/game-settlement.service.ts",
+      "target": "workers/round-worker.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 4,
+      "source": "components/referral-program.tsx",
+      "target": "components/stat-cards.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 4,
+      "source": "components/referral-program.tsx",
+      "target": "app/globals.css"
+    },
+    {
+      "weight": 0.5,
+      "count": 3,
+      "source": "components/referral-program.tsx",
+      "target": "components/achievements.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 4,
+      "source": "components/referral-program.tsx",
+      "target": "components/action-buttons.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 3,
+      "source": "components/referral-program.tsx",
+      "target": "components/bets/PlaceBetModal.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 3,
+      "source": "components/referral-program.tsx",
+      "target": "components/bottom-navigation.tsx"
+    },
+    {
+      "weight": 0.428571,
+      "count": 3,
+      "source": "components/referral-program.tsx",
+      "target": "components/profile-header.tsx"
+    },
+    {
+      "weight": 0.375,
+      "count": 3,
+      "source": "components/referral-program.tsx",
+      "target": "components/settings-menu.tsx"
+    },
+    {
+      "weight": 0.181818,
+      "count": 2,
+      "source": "components/referral-program.tsx",
+      "target": "components/ui/bottom-nav-shell.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 3,
+      "source": "components/referral-program.tsx",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 3,
+      "source": "components/referral-program.tsx",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "components/referral-program.tsx",
+      "target": "components/ui/secondary-button.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "components/referral-program.tsx",
+      "target": "components/ui/stat-card.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "components/referral-program.tsx",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 0.3,
+      "count": 3,
+      "source": "components/referral-program.tsx",
+      "target": "components/wallet-overview-modal.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 4,
+      "source": "components/referral-program.tsx",
+      "target": "styles/deposit-funds-modal.module.css"
+    },
+    {
+      "weight": 0.444444,
+      "count": 4,
+      "source": "components/referral-program.tsx",
+      "target": "styles/place-bet-modal.module.css"
+    },
+    {
+      "weight": 0.2,
+      "count": 4,
+      "source": "components/referral-program.tsx",
+      "target": "styles/starrush.module.css"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "components/referral-program.tsx",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 0.25,
+      "count": 3,
+      "source": "components/referral-program.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "components/referral-program.tsx",
+      "target": "components/game/PlayersBetsList.tsx"
+    },
+    {
+      "weight": 0.222222,
+      "count": 2,
+      "source": "components/referral-program.tsx",
+      "target": "components/top-panel.tsx"
+    },
+    {
+      "weight": 0.384615,
+      "count": 5,
+      "source": "components/stat-cards.tsx",
+      "target": "app/globals.css"
+    },
+    {
+      "weight": 0.5,
+      "count": 5,
+      "source": "components/stat-cards.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "components/stat-cards.tsx",
+      "target": "components/achievements.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 3,
+      "source": "components/stat-cards.tsx",
+      "target": "components/action-buttons.tsx"
+    },
+    {
+      "weight": 0.2,
+      "count": 2,
+      "source": "components/stat-cards.tsx",
+      "target": "components/bets/PlaceBetModal.tsx"
+    },
+    {
+      "weight": 0.363636,
+      "count": 4,
+      "source": "components/stat-cards.tsx",
+      "target": "components/bottom-navigation.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "components/stat-cards.tsx",
+      "target": "components/game/PlayersBetsList.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "components/stat-cards.tsx",
+      "target": "components/profile-header.tsx"
+    },
+    {
+      "weight": 0.222222,
+      "count": 2,
+      "source": "components/stat-cards.tsx",
+      "target": "components/settings-menu.tsx"
+    },
+    {
+      "weight": 0.153846,
+      "count": 2,
+      "source": "components/stat-cards.tsx",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.444444,
+      "count": 4,
+      "source": "components/stat-cards.tsx",
+      "target": "components/wallet-overview-modal.tsx"
+    },
+    {
+      "weight": 0.454545,
+      "count": 5,
+      "source": "components/stat-cards.tsx",
+      "target": "styles/deposit-funds-modal.module.css"
+    },
+    {
+      "weight": 0.3,
+      "count": 3,
+      "source": "components/stat-cards.tsx",
+      "target": "styles/place-bet-modal.module.css"
+    },
+    {
+      "weight": 0.263158,
+      "count": 5,
+      "source": "components/stat-cards.tsx",
+      "target": "styles/starrush.module.css"
+    },
+    {
+      "weight": 0.222222,
+      "count": 2,
+      "source": "components/stat-cards.tsx",
+      "target": "components/top-panel.tsx"
+    },
+    {
+      "weight": 0.3,
+      "count": 3,
+      "source": "components/stat-cards.tsx",
+      "target": "components/ui/bottom-nav-shell.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "components/stat-cards.tsx",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.428571,
+      "count": 3,
+      "source": "components/stat-cards.tsx",
+      "target": "components/ui/stat-card.tsx"
+    },
+    {
+      "weight": 0.428571,
+      "count": 3,
+      "source": "components/stat-cards.tsx",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 0.375,
+      "count": 3,
+      "source": "components/stat-cards.tsx",
+      "target": "docs/todo.md"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "components/game/PlayersBetsList.tsx",
+      "target": "components/wallet-overview-modal.tsx"
+    },
+    {
+      "weight": 0.166667,
+      "count": 3,
+      "source": "components/game/PlayersBetsList.tsx",
+      "target": "styles/starrush.module.css"
+    },
+    {
+      "weight": 0.153846,
+      "count": 2,
+      "source": "components/game/PlayersBetsList.tsx",
+      "target": "app/globals.css"
+    },
+    {
+      "weight": 0.2,
+      "count": 2,
+      "source": "components/game/PlayersBetsList.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "components/game/PlayersBetsList.tsx",
+      "target": "components/action-buttons.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "components/game/PlayersBetsList.tsx",
+      "target": "components/bets/PlaceBetModal.tsx"
+    },
+    {
+      "weight": 0.2,
+      "count": 2,
+      "source": "components/game/PlayersBetsList.tsx",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.181818,
+      "count": 2,
+      "source": "components/game/PlayersBetsList.tsx",
+      "target": "styles/deposit-funds-modal.module.css"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "components/game/PlayersBetsList.tsx",
+      "target": "styles/place-bet-modal.module.css"
+    },
+    {
+      "weight": 0.388889,
+      "count": 7,
+      "source": "components/wallet-overview-modal.tsx",
+      "target": "styles/starrush.module.css"
+    },
+    {
+      "weight": 0.461538,
+      "count": 6,
+      "source": "components/wallet-overview-modal.tsx",
+      "target": "app/globals.css"
+    },
+    {
+      "weight": 0.428571,
+      "count": 3,
+      "source": "components/wallet-overview-modal.tsx",
+      "target": "components/achievements.tsx"
+    },
+    {
+      "weight": 0.3,
+      "count": 3,
+      "source": "components/wallet-overview-modal.tsx",
+      "target": "components/action-buttons.tsx"
+    },
+    {
+      "weight": 0.3,
+      "count": 3,
+      "source": "components/wallet-overview-modal.tsx",
+      "target": "components/bets/PlaceBetModal.tsx"
+    },
+    {
+      "weight": 0.454545,
+      "count": 5,
+      "source": "components/wallet-overview-modal.tsx",
+      "target": "components/bottom-navigation.tsx"
+    },
+    {
+      "weight": 0.571429,
+      "count": 4,
+      "source": "components/wallet-overview-modal.tsx",
+      "target": "components/profile-header.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 4,
+      "source": "components/wallet-overview-modal.tsx",
+      "target": "components/settings-menu.tsx"
+    },
+    {
+      "weight": 0.4,
+      "count": 4,
+      "source": "components/wallet-overview-modal.tsx",
+      "target": "components/ui/bottom-nav-shell.tsx"
+    },
+    {
+      "weight": 0.230769,
+      "count": 3,
+      "source": "components/wallet-overview-modal.tsx",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "components/wallet-overview-modal.tsx",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "components/wallet-overview-modal.tsx",
+      "target": "components/ui/secondary-button.tsx"
+    },
+    {
+      "weight": 0.571429,
+      "count": 4,
+      "source": "components/wallet-overview-modal.tsx",
+      "target": "components/ui/stat-card.tsx"
+    },
+    {
+      "weight": 0.571429,
+      "count": 4,
+      "source": "components/wallet-overview-modal.tsx",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 0.545455,
+      "count": 6,
+      "source": "components/wallet-overview-modal.tsx",
+      "target": "styles/deposit-funds-modal.module.css"
+    },
+    {
+      "weight": 0.4,
+      "count": 4,
+      "source": "components/wallet-overview-modal.tsx",
+      "target": "styles/place-bet-modal.module.css"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "components/wallet-overview-modal.tsx",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 0.454545,
+      "count": 5,
+      "source": "components/wallet-overview-modal.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 3,
+      "source": "components/wallet-overview-modal.tsx",
+      "target": "docs/todo.md"
+    },
+    {
+      "weight": 0.105263,
+      "count": 2,
+      "source": "styles/starrush.module.css",
+      "target": "lib/game/backend-round-state-adapter.ts"
+    },
+    {
+      "weight": 0.105263,
+      "count": 2,
+      "source": "styles/starrush.module.css",
+      "target": "prisma/schema.prisma"
+    },
+    {
+      "weight": 0.363636,
+      "count": 8,
+      "source": "styles/starrush.module.css",
+      "target": "app/globals.css"
+    },
+    {
+      "weight": 0.1,
+      "count": 2,
+      "source": "styles/starrush.module.css",
+      "target": "app/layout.tsx"
+    },
+    {
+      "weight": 0.166667,
+      "count": 3,
+      "source": "styles/starrush.module.css",
+      "target": "components/achievements.tsx"
+    },
+    {
+      "weight": 0.2,
+      "count": 4,
+      "source": "styles/starrush.module.css",
+      "target": "components/action-buttons.tsx"
+    },
+    {
+      "weight": 0.2,
+      "count": 4,
+      "source": "styles/starrush.module.css",
+      "target": "components/bets/PlaceBetModal.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 6,
+      "source": "styles/starrush.module.css",
+      "target": "components/bottom-navigation.tsx"
+    },
+    {
+      "weight": 0.222222,
+      "count": 4,
+      "source": "styles/starrush.module.css",
+      "target": "components/profile-header.tsx"
+    },
+    {
+      "weight": 0.277778,
+      "count": 5,
+      "source": "styles/starrush.module.css",
+      "target": "components/settings-menu.tsx"
+    },
+    {
+      "weight": 0.190476,
+      "count": 4,
+      "source": "styles/starrush.module.css",
+      "target": "components/ui/bottom-nav-shell.tsx"
+    },
+    {
+      "weight": 0.227273,
+      "count": 5,
+      "source": "styles/starrush.module.css",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.166667,
+      "count": 3,
+      "source": "styles/starrush.module.css",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.111111,
+      "count": 2,
+      "source": "styles/starrush.module.css",
+      "target": "components/ui/secondary-button.tsx"
+    },
+    {
+      "weight": 0.222222,
+      "count": 4,
+      "source": "styles/starrush.module.css",
+      "target": "components/ui/stat-card.tsx"
+    },
+    {
+      "weight": 0.222222,
+      "count": 4,
+      "source": "styles/starrush.module.css",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 0.4,
+      "count": 8,
+      "source": "styles/starrush.module.css",
+      "target": "styles/deposit-funds-modal.module.css"
+    },
+    {
+      "weight": 0.25,
+      "count": 5,
+      "source": "styles/starrush.module.css",
+      "target": "styles/place-bet-modal.module.css"
+    },
+    {
+      "weight": 0.111111,
+      "count": 2,
+      "source": "styles/starrush.module.css",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 0.421053,
+      "count": 8,
+      "source": "styles/starrush.module.css",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.277778,
+      "count": 5,
+      "source": "styles/starrush.module.css",
+      "target": "components/top-panel.tsx"
+    },
+    {
+      "weight": 0.15,
+      "count": 3,
+      "source": "styles/starrush.module.css",
+      "target": "docs/todo.md"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "prisma/schema.prisma",
+      "target": "game/RoundEngine.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "prisma/schema.prisma",
+      "target": "app/api/payments/ton/reconcile/route.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "prisma/schema.prisma",
+      "target": "app/api/telegram/webhook/route.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 4,
+      "source": "README.md",
+      "target": "docs/deploy-vds.md"
+    },
+    {
+      "weight": 0.714286,
+      "count": 5,
+      "source": "README.md",
+      "target": "infra/deploy/deploy-vds.sh"
+    },
+    {
+      "weight": 0.5,
+      "count": 4,
+      "source": "README.md",
+      "target": "docker-compose.yml"
+    },
+    {
+      "weight": 0.2,
+      "count": 2,
+      "source": "README.md",
+      "target": "package.json"
+    },
+    {
+      "weight": 0.333333,
+      "count": 3,
+      "source": "docs/deploy-vds.md",
+      "target": "infra/deploy/deploy-vds.sh"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "docs/deploy-vds.md",
+      "target": "Dockerfile"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "docs/deploy-vds.md",
+      "target": "app/api/auth/dev/route.ts"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "docs/deploy-vds.md",
+      "target": "next.config.ts"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "docs/deploy-vds.md",
+      "target": "services/game-round.service.ts"
+    },
+    {
+      "weight": 0.222222,
+      "count": 2,
+      "source": "docs/deploy-vds.md",
+      "target": "workers/round-worker.ts"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "docs/deploy-vds.md",
+      "target": "infra/deploy/update-from-git.sh"
+    },
+    {
+      "weight": 0.2,
+      "count": 2,
+      "source": "docs/deploy-vds.md",
+      "target": "docker-compose.yml"
+    },
+    {
+      "weight": 0.2,
+      "count": 2,
+      "source": "docs/deploy-vds.md",
+      "target": "package.json"
+    },
+    {
+      "weight": 0.714286,
+      "count": 5,
+      "source": "infra/deploy/deploy-vds.sh",
+      "target": "docker-compose.yml"
+    },
+    {
+      "weight": 0.2,
+      "count": 2,
+      "source": "infra/deploy/deploy-vds.sh",
+      "target": "package.json"
+    },
+    {
+      "weight": 0.222222,
+      "count": 2,
+      "source": "infra/deploy/deploy-vds.sh",
+      "target": "docs/todo.md"
+    },
+    {
+      "weight": 0.777778,
+      "count": 7,
+      "source": "components/bottom-navigation.tsx",
+      "target": "components/ui/bottom-nav-shell.tsx"
+    },
+    {
+      "weight": 0.3125,
+      "count": 5,
+      "source": "components/bottom-navigation.tsx",
+      "target": "app/globals.css"
+    },
+    {
+      "weight": 0.333333,
+      "count": 3,
+      "source": "components/bottom-navigation.tsx",
+      "target": "components/achievements.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 3,
+      "source": "components/bottom-navigation.tsx",
+      "target": "components/action-buttons.tsx"
+    },
+    {
+      "weight": 0.153846,
+      "count": 2,
+      "source": "components/bottom-navigation.tsx",
+      "target": "components/bets/PlaceBetModal.tsx"
+    },
+    {
+      "weight": 0.3,
+      "count": 3,
+      "source": "components/bottom-navigation.tsx",
+      "target": "components/profile-header.tsx"
+    },
+    {
+      "weight": 0.272727,
+      "count": 3,
+      "source": "components/bottom-navigation.tsx",
+      "target": "components/settings-menu.tsx"
+    },
+    {
+      "weight": 0.125,
+      "count": 2,
+      "source": "components/bottom-navigation.tsx",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.2,
+      "count": 2,
+      "source": "components/bottom-navigation.tsx",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.222222,
+      "count": 2,
+      "source": "components/bottom-navigation.tsx",
+      "target": "components/ui/secondary-button.tsx"
+    },
+    {
+      "weight": 0.444444,
+      "count": 4,
+      "source": "components/bottom-navigation.tsx",
+      "target": "components/ui/stat-card.tsx"
+    },
+    {
+      "weight": 0.444444,
+      "count": 4,
+      "source": "components/bottom-navigation.tsx",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 0.461538,
+      "count": 6,
+      "source": "components/bottom-navigation.tsx",
+      "target": "styles/deposit-funds-modal.module.css"
+    },
+    {
+      "weight": 0.230769,
+      "count": 3,
+      "source": "components/bottom-navigation.tsx",
+      "target": "styles/place-bet-modal.module.css"
+    },
+    {
+      "weight": 0.222222,
+      "count": 2,
+      "source": "components/bottom-navigation.tsx",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 0.384615,
+      "count": 5,
+      "source": "components/bottom-navigation.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.272727,
+      "count": 3,
+      "source": "components/bottom-navigation.tsx",
+      "target": "docs/todo.md"
+    },
+    {
+      "weight": 0.266667,
+      "count": 4,
+      "source": "components/ui/bottom-nav-shell.tsx",
+      "target": "app/globals.css"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "components/ui/bottom-nav-shell.tsx",
+      "target": "components/achievements.tsx"
+    },
+    {
+      "weight": 0.181818,
+      "count": 2,
+      "source": "components/ui/bottom-nav-shell.tsx",
+      "target": "components/action-buttons.tsx"
+    },
+    {
+      "weight": 0.222222,
+      "count": 2,
+      "source": "components/ui/bottom-nav-shell.tsx",
+      "target": "components/profile-header.tsx"
+    },
+    {
+      "weight": 0.2,
+      "count": 2,
+      "source": "components/ui/bottom-nav-shell.tsx",
+      "target": "components/settings-menu.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "components/ui/bottom-nav-shell.tsx",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "components/ui/bottom-nav-shell.tsx",
+      "target": "components/ui/secondary-button.tsx"
+    },
+    {
+      "weight": 0.571429,
+      "count": 4,
+      "source": "components/ui/bottom-nav-shell.tsx",
+      "target": "components/ui/stat-card.tsx"
+    },
+    {
+      "weight": 0.571429,
+      "count": 4,
+      "source": "components/ui/bottom-nav-shell.tsx",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 0.307692,
+      "count": 4,
+      "source": "components/ui/bottom-nav-shell.tsx",
+      "target": "styles/deposit-funds-modal.module.css"
+    },
+    {
+      "weight": 0.166667,
+      "count": 2,
+      "source": "components/ui/bottom-nav-shell.tsx",
+      "target": "styles/place-bet-modal.module.css"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "components/ui/bottom-nav-shell.tsx",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 0.230769,
+      "count": 3,
+      "source": "components/ui/bottom-nav-shell.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 3,
+      "source": "components/ui/bottom-nav-shell.tsx",
+      "target": "docs/todo.md"
+    },
+    {
+      "weight": 0.5,
+      "count": 6,
+      "source": "app/globals.css",
+      "target": "components/action-buttons.tsx"
+    },
+    {
+      "weight": 0.384615,
+      "count": 5,
+      "source": "app/globals.css",
+      "target": "components/bets/PlaceBetModal.tsx"
+    },
+    {
+      "weight": 0.692308,
+      "count": 9,
+      "source": "app/globals.css",
+      "target": "styles/deposit-funds-modal.module.css"
+    },
+    {
+      "weight": 0.583333,
+      "count": 7,
+      "source": "app/globals.css",
+      "target": "styles/place-bet-modal.module.css"
+    },
+    {
+      "weight": 0.142857,
+      "count": 2,
+      "source": "app/globals.css",
+      "target": "app/layout.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 3,
+      "source": "app/globals.css",
+      "target": "components/achievements.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 4,
+      "source": "app/globals.css",
+      "target": "components/profile-header.tsx"
+    },
+    {
+      "weight": 0.416667,
+      "count": 5,
+      "source": "app/globals.css",
+      "target": "components/settings-menu.tsx"
+    },
+    {
+      "weight": 0.615385,
+      "count": 8,
+      "source": "app/globals.css",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 3,
+      "source": "app/globals.css",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.166667,
+      "count": 2,
+      "source": "app/globals.css",
+      "target": "components/ui/secondary-button.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 4,
+      "source": "app/globals.css",
+      "target": "components/ui/stat-card.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 4,
+      "source": "app/globals.css",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 0.166667,
+      "count": 2,
+      "source": "app/globals.css",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 0.4,
+      "count": 6,
+      "source": "app/globals.css",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.133333,
+      "count": 2,
+      "source": "app/globals.css",
+      "target": "components/top-panel.tsx"
+    },
+    {
+      "weight": 0.214286,
+      "count": 3,
+      "source": "app/globals.css",
+      "target": "docs/todo.md"
+    },
+    {
+      "weight": 0.5,
+      "count": 4,
+      "source": "components/action-buttons.tsx",
+      "target": "components/bets/PlaceBetModal.tsx"
+    },
+    {
+      "weight": 0.6,
+      "count": 6,
+      "source": "components/action-buttons.tsx",
+      "target": "styles/deposit-funds-modal.module.css"
+    },
+    {
+      "weight": 0.857143,
+      "count": 6,
+      "source": "components/action-buttons.tsx",
+      "target": "styles/place-bet-modal.module.css"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "components/action-buttons.tsx",
+      "target": "app/layout.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 3,
+      "source": "components/action-buttons.tsx",
+      "target": "components/achievements.tsx"
+    },
+    {
+      "weight": 0.428571,
+      "count": 3,
+      "source": "components/action-buttons.tsx",
+      "target": "components/profile-header.tsx"
+    },
+    {
+      "weight": 0.375,
+      "count": 3,
+      "source": "components/action-buttons.tsx",
+      "target": "components/settings-menu.tsx"
+    },
+    {
+      "weight": 0.363636,
+      "count": 4,
+      "source": "components/action-buttons.tsx",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 3,
+      "source": "components/action-buttons.tsx",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "components/action-buttons.tsx",
+      "target": "components/ui/secondary-button.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "components/action-buttons.tsx",
+      "target": "components/ui/stat-card.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 2,
+      "source": "components/action-buttons.tsx",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "components/action-buttons.tsx",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 0.25,
+      "count": 3,
+      "source": "components/action-buttons.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.222222,
+      "count": 2,
+      "source": "components/action-buttons.tsx",
+      "target": "components/top-panel.tsx"
+    },
+    {
+      "weight": 0.454545,
+      "count": 5,
+      "source": "components/bets/PlaceBetModal.tsx",
+      "target": "styles/deposit-funds-modal.module.css"
+    },
+    {
+      "weight": 0.625,
+      "count": 5,
+      "source": "components/bets/PlaceBetModal.tsx",
+      "target": "styles/place-bet-modal.module.css"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "components/bets/PlaceBetModal.tsx",
+      "target": "components/achievements.tsx"
+    },
+    {
+      "weight": 0.428571,
+      "count": 3,
+      "source": "components/bets/PlaceBetModal.tsx",
+      "target": "components/profile-header.tsx"
+    },
+    {
+      "weight": 0.375,
+      "count": 3,
+      "source": "components/bets/PlaceBetModal.tsx",
+      "target": "components/settings-menu.tsx"
+    },
+    {
+      "weight": 0.363636,
+      "count": 4,
+      "source": "components/bets/PlaceBetModal.tsx",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "components/bets/PlaceBetModal.tsx",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 3,
+      "source": "components/bets/PlaceBetModal.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.7,
+      "count": 7,
+      "source": "styles/deposit-funds-modal.module.css",
+      "target": "styles/place-bet-modal.module.css"
+    },
+    {
+      "weight": 0.166667,
+      "count": 2,
+      "source": "styles/deposit-funds-modal.module.css",
+      "target": "app/layout.tsx"
+    },
+    {
+      "weight": 0.3,
+      "count": 3,
+      "source": "styles/deposit-funds-modal.module.css",
+      "target": "components/achievements.tsx"
+    },
+    {
+      "weight": 0.4,
+      "count": 4,
+      "source": "styles/deposit-funds-modal.module.css",
+      "target": "components/profile-header.tsx"
+    },
+    {
+      "weight": 0.363636,
+      "count": 4,
+      "source": "styles/deposit-funds-modal.module.css",
+      "target": "components/settings-menu.tsx"
+    },
+    {
+      "weight": 0.357143,
+      "count": 5,
+      "source": "styles/deposit-funds-modal.module.css",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.3,
+      "count": 3,
+      "source": "styles/deposit-funds-modal.module.css",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.2,
+      "count": 2,
+      "source": "styles/deposit-funds-modal.module.css",
+      "target": "components/ui/secondary-button.tsx"
+    },
+    {
+      "weight": 0.4,
+      "count": 4,
+      "source": "styles/deposit-funds-modal.module.css",
+      "target": "components/ui/stat-card.tsx"
+    },
+    {
+      "weight": 0.4,
+      "count": 4,
+      "source": "styles/deposit-funds-modal.module.css",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 0.2,
+      "count": 2,
+      "source": "styles/deposit-funds-modal.module.css",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 0.583333,
+      "count": 7,
+      "source": "styles/deposit-funds-modal.module.css",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.153846,
+      "count": 2,
+      "source": "styles/deposit-funds-modal.module.css",
+      "target": "components/top-panel.tsx"
+    },
+    {
+      "weight": 0.25,
+      "count": 3,
+      "source": "styles/deposit-funds-modal.module.css",
+      "target": "docs/todo.md"
+    },
+    {
+      "weight": 0.222222,
+      "count": 2,
+      "source": "styles/place-bet-modal.module.css",
+      "target": "app/layout.tsx"
+    },
+    {
+      "weight": 0.428571,
+      "count": 3,
+      "source": "styles/place-bet-modal.module.css",
+      "target": "components/achievements.tsx"
+    },
+    {
+      "weight": 0.571429,
+      "count": 4,
+      "source": "styles/place-bet-modal.module.css",
+      "target": "components/profile-header.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 4,
+      "source": "styles/place-bet-modal.module.css",
+      "target": "components/settings-menu.tsx"
+    },
+    {
+      "weight": 0.454545,
+      "count": 5,
+      "source": "styles/place-bet-modal.module.css",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.428571,
+      "count": 3,
+      "source": "styles/place-bet-modal.module.css",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "styles/place-bet-modal.module.css",
+      "target": "components/ui/secondary-button.tsx"
+    },
+    {
+      "weight": 0.222222,
+      "count": 2,
+      "source": "styles/place-bet-modal.module.css",
+      "target": "components/ui/stat-card.tsx"
+    },
+    {
+      "weight": 0.222222,
+      "count": 2,
+      "source": "styles/place-bet-modal.module.css",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "styles/place-bet-modal.module.css",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 0.333333,
+      "count": 4,
+      "source": "styles/place-bet-modal.module.css",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.2,
+      "count": 2,
+      "source": "styles/place-bet-modal.module.css",
+      "target": "components/top-panel.tsx"
+    },
+    {
+      "weight": 0.181818,
+      "count": 2,
+      "source": "app/layout.tsx",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "app/layout.tsx",
+      "target": "app/api/tonconnect/manifest/route.ts"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "app/layout.tsx",
+      "target": "components/providers/tonconnect-provider.tsx"
+    },
+    {
+      "weight": 0.75,
+      "count": 3,
+      "source": "components/achievements.tsx",
+      "target": "components/profile-header.tsx"
+    },
+    {
+      "weight": 0.6,
+      "count": 3,
+      "source": "components/achievements.tsx",
+      "target": "components/settings-menu.tsx"
+    },
+    {
+      "weight": 0.2,
+      "count": 2,
+      "source": "components/achievements.tsx",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "components/achievements.tsx",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "components/achievements.tsx",
+      "target": "components/ui/secondary-button.tsx"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "components/achievements.tsx",
+      "target": "components/ui/stat-card.tsx"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "components/achievements.tsx",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "components/achievements.tsx",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 0.2,
+      "count": 2,
+      "source": "components/achievements.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.8,
+      "count": 4,
+      "source": "components/profile-header.tsx",
+      "target": "components/settings-menu.tsx"
+    },
+    {
+      "weight": 0.3,
+      "count": 3,
+      "source": "components/profile-header.tsx",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "components/profile-header.tsx",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "components/profile-header.tsx",
+      "target": "components/ui/secondary-button.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "components/profile-header.tsx",
+      "target": "components/ui/stat-card.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "components/profile-header.tsx",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "components/profile-header.tsx",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 0.3,
+      "count": 3,
+      "source": "components/profile-header.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.4,
+      "count": 4,
+      "source": "components/settings-menu.tsx",
+      "target": "components/ui/glass-segmented-control.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "components/settings-menu.tsx",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "components/settings-menu.tsx",
+      "target": "components/ui/secondary-button.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "components/settings-menu.tsx",
+      "target": "components/ui/stat-card.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "components/settings-menu.tsx",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "components/settings-menu.tsx",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 0.272727,
+      "count": 3,
+      "source": "components/settings-menu.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.2,
+      "count": 2,
+      "source": "components/ui/glass-segmented-control.tsx",
+      "target": "components/ui/primary-button.tsx"
+    },
+    {
+      "weight": 0.2,
+      "count": 3,
+      "source": "components/ui/glass-segmented-control.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "components/ui/primary-button.tsx",
+      "target": "components/ui/secondary-button.tsx"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "components/ui/primary-button.tsx",
+      "target": "components/ui/stat-card.tsx"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "components/ui/primary-button.tsx",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "components/ui/primary-button.tsx",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 0.2,
+      "count": 2,
+      "source": "components/ui/primary-button.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "components/ui/primary-button.tsx",
+      "target": "components/top-panel.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "components/ui/secondary-button.tsx",
+      "target": "components/ui/stat-card.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "components/ui/secondary-button.tsx",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 1.0,
+      "count": 2,
+      "source": "components/ui/secondary-button.tsx",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 1.0,
+      "count": 4,
+      "source": "components/ui/stat-card.tsx",
+      "target": "components/ui/stat-icon.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "components/ui/stat-card.tsx",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 0.3,
+      "count": 3,
+      "source": "components/ui/stat-card.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 3,
+      "source": "components/ui/stat-card.tsx",
+      "target": "docs/todo.md"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "components/ui/stat-icon.tsx",
+      "target": "theme/colors.ts"
+    },
+    {
+      "weight": 0.3,
+      "count": 3,
+      "source": "components/ui/stat-icon.tsx",
+      "target": "app/page.tsx"
+    },
+    {
+      "weight": 0.5,
+      "count": 3,
+      "source": "components/ui/stat-icon.tsx",
+      "target": "docs/todo.md"
+    },
+    {
+      "weight": 0.272727,
+      "count": 3,
+      "source": "app/page.tsx",
+      "target": "components/top-panel.tsx"
+    },
+    {
+      "weight": 0.272727,
+      "count": 3,
+      "source": "app/page.tsx",
+      "target": "docs/todo.md"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "Dockerfile",
+      "target": "app/api/auth/dev/route.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "Dockerfile",
+      "target": "next.config.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "Dockerfile",
+      "target": "services/game-round.service.ts"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "Dockerfile",
+      "target": "workers/round-worker.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "app/api/auth/dev/route.ts",
+      "target": "app/api/dev/treasury/fund/route.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "app/api/auth/dev/route.ts",
+      "target": "app/api/wallets/deposit/route.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "app/api/auth/dev/route.ts",
+      "target": "app/api/wallets/withdraw/route.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "app/api/auth/dev/route.ts",
+      "target": "next.config.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "app/api/auth/dev/route.ts",
+      "target": "services/game-round.service.ts"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "app/api/auth/dev/route.ts",
+      "target": "workers/round-worker.ts"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "app/api/auth/telegram/route.ts",
+      "target": "app/api/dev/treasury/fund/route.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "app/api/auth/telegram/route.ts",
+      "target": "app/api/ledger/internal/create/route.ts"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "app/api/auth/telegram/route.ts",
+      "target": "app/api/payments/ton/reconcile/route.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "app/api/auth/telegram/route.ts",
+      "target": "gateway/server.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "app/api/auth/telegram/route.ts",
+      "target": "lib/rate-limit.ts"
+    },
+    {
+      "weight": 0.75,
+      "count": 3,
+      "source": "app/api/auth/telegram/route.ts",
+      "target": "lib/referrals.ts"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "app/api/auth/telegram/route.ts",
+      "target": "workers/round-worker.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "app/api/auth/telegram/route.ts",
+      "target": "scripts/referrals_unit_test.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "app/api/dev/treasury/fund/route.ts",
+      "target": "app/api/ledger/internal/create/route.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "app/api/dev/treasury/fund/route.ts",
+      "target": "app/api/payments/ton/reconcile/route.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "app/api/dev/treasury/fund/route.ts",
+      "target": "app/api/wallets/deposit/route.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "app/api/dev/treasury/fund/route.ts",
+      "target": "app/api/wallets/withdraw/route.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "app/api/dev/treasury/fund/route.ts",
+      "target": "gateway/server.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "app/api/dev/treasury/fund/route.ts",
+      "target": "lib/rate-limit.ts"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "app/api/dev/treasury/fund/route.ts",
+      "target": "workers/round-worker.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "app/api/ledger/internal/create/route.ts",
+      "target": "app/api/payments/ton/reconcile/route.ts"
+    },
+    {
+      "weight": 1.0,
+      "count": 2,
+      "source": "app/api/ledger/internal/create/route.ts",
+      "target": "gateway/server.ts"
+    },
+    {
+      "weight": 1.0,
+      "count": 2,
+      "source": "app/api/ledger/internal/create/route.ts",
+      "target": "lib/rate-limit.ts"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "app/api/ledger/internal/create/route.ts",
+      "target": "workers/round-worker.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "app/api/payments/ton/reconcile/route.ts",
+      "target": "app/api/telegram/webhook/route.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "app/api/payments/ton/reconcile/route.ts",
+      "target": "gateway/server.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "app/api/payments/ton/reconcile/route.ts",
+      "target": "lib/rate-limit.ts"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "app/api/payments/ton/reconcile/route.ts",
+      "target": "workers/round-worker.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "app/api/telegram/webhook/route.ts",
+      "target": "lib/payments/deposit-credit.service.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "app/api/telegram/webhook/route.ts",
+      "target": "lib/payments/utils.ts"
+    },
+    {
+      "weight": 1.0,
+      "count": 2,
+      "source": "gateway/server.ts",
+      "target": "lib/rate-limit.ts"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "gateway/server.ts",
+      "target": "workers/round-worker.ts"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "lib/rate-limit.ts",
+      "target": "workers/round-worker.ts"
+    },
+    {
+      "weight": 1.0,
+      "count": 2,
+      "source": "next.config.ts",
+      "target": "services/game-round.service.ts"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "next.config.ts",
+      "target": "workers/round-worker.ts"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "services/game-round.service.ts",
+      "target": "workers/round-worker.ts"
+    },
+    {
+      "weight": 0.222222,
+      "count": 2,
+      "source": "workers/round-worker.ts",
+      "target": "docker-compose.yml"
+    },
+    {
+      "weight": 0.4,
+      "count": 2,
+      "source": "workers/round-worker.ts",
+      "target": "infra/caddy/Caddyfile"
+    },
+    {
+      "weight": 0.222222,
+      "count": 2,
+      "source": "workers/round-worker.ts",
+      "target": "package.json"
+    },
+    {
+      "weight": 1.0,
+      "count": 2,
+      "source": "app/api/wallets/deposit/route.ts",
+      "target": "app/api/wallets/withdraw/route.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "lib/referrals.ts",
+      "target": "scripts/referrals_unit_test.ts"
+    },
+    {
+      "weight": 1.0,
+      "count": 3,
+      "source": "lib/payments/ton-reconcile.service.ts",
+      "target": "lib/payments/ton.service.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "lib/payments/ton-reconcile.service.ts",
+      "target": "scripts/ton_reconcile_comment_unit_test.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "lib/payments/ton-reconcile.service.ts",
+      "target": "app/api/payments/intents/[id]/route.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "lib/payments/ton-reconcile.service.ts",
+      "target": "app/api/payments/ton/intent/route.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "lib/payments/ton-reconcile.service.ts",
+      "target": "lib/payments/config.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "lib/payments/ton-reconcile.service.ts",
+      "target": "lib/payments/deposit-credit.service.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "lib/payments/ton-reconcile.service.ts",
+      "target": "lib/payments/intents.service.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "lib/payments/ton.service.ts",
+      "target": "scripts/ton_reconcile_comment_unit_test.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "lib/payments/ton.service.ts",
+      "target": "app/api/payments/intents/[id]/route.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "lib/payments/ton.service.ts",
+      "target": "app/api/payments/ton/intent/route.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "lib/payments/ton.service.ts",
+      "target": "lib/payments/config.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "lib/payments/ton.service.ts",
+      "target": "lib/payments/deposit-credit.service.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "lib/payments/ton.service.ts",
+      "target": "lib/payments/intents.service.ts"
+    },
+    {
+      "weight": 1.0,
+      "count": 3,
+      "source": "app/api/payments/ton/intent/route.ts",
+      "target": "lib/payments/config.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "app/api/payments/ton/intent/route.ts",
+      "target": "app/api/payments/intents/[id]/route.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "app/api/payments/ton/intent/route.ts",
+      "target": "lib/payments/deposit-credit.service.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "app/api/payments/ton/intent/route.ts",
+      "target": "lib/payments/intents.service.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "lib/payments/config.ts",
+      "target": "app/api/payments/intents/[id]/route.ts"
+    },
+    {
+      "weight": 0.5,
+      "count": 2,
+      "source": "lib/payments/config.ts",
+      "target": "lib/payments/deposit-credit.service.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "lib/payments/config.ts",
+      "target": "lib/payments/intents.service.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "app/api/payments/intents/[id]/route.ts",
+      "target": "lib/payments/deposit-credit.service.ts"
+    },
+    {
+      "weight": 1.0,
+      "count": 2,
+      "source": "app/api/payments/intents/[id]/route.ts",
+      "target": "lib/payments/intents.service.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "lib/payments/deposit-credit.service.ts",
+      "target": "lib/payments/intents.service.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "lib/payments/deposit-credit.service.ts",
+      "target": "lib/payments/utils.ts"
+    },
+    {
+      "weight": 0.666667,
+      "count": 2,
+      "source": "app/api/tonconnect/manifest/route.ts",
+      "target": "components/providers/tonconnect-provider.tsx"
+    },
+    {
+      "weight": 0.285714,
+      "count": 2,
+      "source": "components/providers/tonconnect-provider.tsx",
+      "target": "package.json"
+    },
+    {
+      "weight": 0.333333,
+      "count": 2,
+      "source": "docker-compose.yml",
+      "target": "infra/caddy/Caddyfile"
+    },
+    {
+      "weight": 0.2,
+      "count": 2,
+      "source": "docker-compose.yml",
+      "target": "package.json"
+    },
+    {
+      "weight": 0.222222,
+      "count": 2,
+      "source": "docker-compose.yml",
+      "target": "docs/todo.md"
+    }
+  ]
+}

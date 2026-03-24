@@ -1,4 +1,22 @@
+const path = require("path");
 const { spawn, spawnSync } = require("child_process");
+
+function loadLocalEnv() {
+  if (typeof process.loadEnvFile !== "function") return;
+
+  try {
+    process.loadEnvFile(path.resolve(process.cwd(), ".env"));
+  } catch (error) {
+    if (error && error.code === "ENOENT") return;
+    throw error;
+  }
+}
+
+loadLocalEnv();
+
+const isWin = process.platform === "win32";
+const npmExecutable = isWin ? "npm.cmd" : "npm";
+const npxExecutable = isWin ? "npx.cmd" : "npx";
 
 const targets = [
   { name: "app", script: "dev" },
@@ -11,20 +29,24 @@ let stopping = false;
 let hadFailure = false;
 
 function runPrismaGeneratePreflight() {
-  const command = "npx prisma generate";
-  const result = process.platform === "win32"
-    ? spawnSync(process.env.ComSpec || "cmd.exe", ["/d", "/s", "/c", command], {
+  const result = isWin
+    ? spawnSync(process.env.ComSpec || "cmd.exe", ["/d", "/s", "/c", "npx prisma generate"], {
       stdio: "inherit",
       windowsHide: false,
       env: process.env,
     })
-    : spawnSync("npx", ["prisma", "generate"], {
+    : spawnSync(npxExecutable, ["prisma", "generate"], {
       stdio: "inherit",
+      windowsHide: false,
       env: process.env,
     });
 
   if (result.status !== 0) {
-    console.error(`[dev:all] Preflight failed: ${command}`);
+    if (result.error) {
+      console.error(`[dev:all] Preflight failed: ${result.error.message}`);
+    } else {
+      console.error("[dev:all] Preflight failed: npx prisma generate");
+    }
     process.exit(result.status || 1);
   }
 }
@@ -100,21 +122,26 @@ function preflightReleasePorts() {
 }
 
 function spawnTarget(target) {
-  const child = process.platform === "win32"
+  const child = isWin
     ? spawn(process.env.ComSpec || "cmd.exe", ["/d", "/s", "/c", `npm run ${target.script}`], {
       stdio: "inherit",
       windowsHide: false,
       env: process.env,
     })
-    : spawn("npm", ["run", target.script], {
+    : spawn(npmExecutable, ["run", target.script], {
       stdio: "inherit",
+      windowsHide: false,
       env: process.env,
     });
   children.push(child);
 
-  child.on("exit", (code, signal) => {
-    const normalStop = stopping && (code === 0 || signal !== null);
-    if (!normalStop && code !== 0) {
+  child.on("exit", (code) => {
+    if (stopping) {
+      maybeExit();
+      return;
+    }
+
+    if (code !== 0) {
       hadFailure = true;
       console.error(`[dev:all] ${target.name} exited with code ${code}`);
       stopAll();

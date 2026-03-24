@@ -1,0 +1,16 @@
+**/app/api/payments/**,payments,1.0
+**/app/api/wallets/**,wallet,1.0
+**/app/api/staking/**,staking,1.0
+**/app/api/admin/**,admin,1.0
+**/app/api/ledger/**,ledger,1.0
+**/lib/payments/**,payments,1.0
+**/lib/admin*.ts,admin,1.0
+**/lib/ledger.service.ts,ledger,1.0
+**/lib/house-ledger.service.ts,ledger,1.0
+**/lib/referrals.ts,referrals,1.0
+**/services/staking.service.ts,staking,1.0
+**/services/reconciliation.service.ts,ledger,1.0
+**/services/game-*.ts,game-economy,1.0
+**/gateway/**,game-gateway,1.0
+**/workers/**,game-economy,1.0
+**/prisma/schema.prisma,schema,0.8

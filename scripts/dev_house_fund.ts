@@ -1,3 +1,5 @@
+import "@/lib/load-env"
+
 type FundCurrency = "TON" | "STARS"
 
 type CliArgs = {

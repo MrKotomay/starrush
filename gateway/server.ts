@@ -5,7 +5,7 @@ import { getRedisStatus, isRedisConfigured, pingRedis, redis } from "@/lib/redis
 import { authenticateWs } from "@/gateway/auth/ws-auth"
 import { createRedisSubscriber } from "@/gateway/redis/redis-subscriber"
 import { RoundRoomManager, RoomClient } from "@/gateway/rooms/round-room"
-import { wsIncomingSchema, WsOutgoingMessage } from "@/gateway/types/ws-events"
+import { wsIncomingSchema, WsOutgoingMessage, type WsRoundStatePayload } from "@/gateway/types/ws-events"
 import { WsRateLimiter } from "@/gateway/rate-limit/ws-rate-limit"
 import { handleBet } from "@/gateway/handlers/bet.handler"
 import { handleCashout } from "@/gateway/handlers/cashout.handler"
@@ -126,12 +126,20 @@ async function boot() {
     .split(",")
     .map((o) => o.trim())
     .filter(Boolean)
+  const isProduction = process.env.NODE_ENV === "production"
+  const enforceOriginCheck = isProduction || allowedOrigins.length > 0
+
+  if (isProduction && allowedOrigins.length === 0) {
+    logger.error("ws_origin_allowlist_missing", {
+      message: "ALLOWED_WS_ORIGINS is empty in production; rejecting all websocket connections",
+    })
+  }
 
   wss.on("connection", async (socket: WebSocket, req) => {
     // Origin validation to prevent Cross-Site WebSocket Hijacking
-    if (allowedOrigins.length > 0) {
+    if (enforceOriginCheck) {
       const origin = req.headers.origin ?? req.headers["sec-websocket-origin"]
-      if (!origin || !allowedOrigins.includes(origin as string)) {
+      if (!origin || allowedOrigins.length === 0 || !allowedOrigins.includes(origin as string)) {
         logger.warn("ws_origin_rejected", { origin, remoteAddress: req.socket.remoteAddress })
         socket.close(4003, "ORIGIN_NOT_ALLOWED")
         return
@@ -172,7 +180,7 @@ async function boot() {
         room.statePayload.onlineCount = room.onlineCount()
         const stateMessage: WsOutgoingMessage = {
           type: "round_state",
-          payload: room.statePayload as any,
+          payload: room.statePayload as WsRoundStatePayload,
         }
         socket.send(JSON.stringify(stateMessage))
       } else if (room.state) {

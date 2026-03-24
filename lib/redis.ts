@@ -1,3 +1,4 @@
+import "@/lib/load-env"
 import Redis from "ioredis"
 import { createLogger } from "@/lib/logger"
 

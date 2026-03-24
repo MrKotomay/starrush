@@ -101,6 +101,31 @@ export async function cashoutPlayer(roundId: string, userId: string): Promise<Ca
     // Read multiplier INSIDE the transaction after acquiring the round lock,
     // to avoid TOCTOU race where multiplier changes between read and lock
     const multiplierRaw = (await redis!.get(REDIS_KEYS.multiplier(roundId))) || null
+    const liveMultiplier = multiplierRaw
+      ? Number.parseFloat(multiplierRaw)
+      : computeRoundMultiplier((Date.now() - round.startedAt.getTime()) / 1000)
+    const crashMultiplier = round.crashMultiplier ? Number.parseFloat(round.crashMultiplier.toString()) : Number.NaN
+
+    if (!Number.isFinite(liveMultiplier) || liveMultiplier < 1) {
+      logger.warn("cashout_rejected", { roundId, userId, errorCode: "INVALID_MULTIPLIER" })
+      throw new RoundNotRunningError()
+    }
+
+    if (!Number.isFinite(crashMultiplier) || crashMultiplier < 1.01) {
+      logger.warn("cashout_rejected", { roundId, userId, errorCode: "INVALID_CRASH_MULTIPLIER" })
+      throw new RoundNotRunningError()
+    }
+
+    if (liveMultiplier >= crashMultiplier) {
+      logger.warn("cashout_rejected", {
+        roundId,
+        userId,
+        errorCode: "CASHOUT_CLOSED",
+        liveMultiplier,
+        crashMultiplier,
+      })
+      throw new CashoutClosedError()
+    }
 
     const playerSnapshot = await tx.roundPlayer.findUnique({
       where: { roundId_userId: { roundId, userId } },
@@ -126,9 +151,7 @@ export async function cashoutPlayer(roundId: string, userId: string): Promise<Ca
     if (player.status === RoundPlayerStatus.CASHED_OUT) throw new PlayerAlreadyCashedOutError()
     if (player.status === RoundPlayerStatus.LOST) throw new PlayerNotFoundError()
 
-    const multiplier = multiplierRaw
-      ? Number.parseFloat(multiplierRaw)
-      : computeRoundMultiplier((Date.now() - round.startedAt.getTime()) / 1000)
+    const multiplier = liveMultiplier
 
     const settlement = computeCashoutAmounts(player.betAmount, multiplier, player.currency)
 

@@ -313,7 +313,7 @@ export function StakingContent() {
 
     try {
       const response = await fetch("/api/staking/overview", {
-        method: "GET",
+        method: "POST",
         credentials: "include",
         cache: "no-store",
         headers: { Accept: "application/json" },
@@ -336,7 +336,7 @@ export function StakingContent() {
   const refreshOverviewSilent = useCallback(async () => {
     try {
       const response = await fetch("/api/staking/overview", {
-        method: "GET",
+        method: "POST",
         credentials: "include",
         cache: "no-store",
         headers: { Accept: "application/json" },

@@ -32,17 +32,6 @@ function getTelegramWebApp(): TelegramWebApp | undefined {
   return w.Telegram?.WebApp
 }
 
-function getStartParamFromLocation(): string | undefined {
-  if (typeof window === "undefined") return undefined
-  const params = new URLSearchParams(window.location.search)
-  return (
-    params.get("tgWebAppStartParam") ??
-    params.get("startapp") ??
-    params.get("start") ??
-    undefined
-  )
-}
-
 type TelegramAuthResponse =
   | {
       ok: true
@@ -168,7 +157,6 @@ export function useTelegramUser() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               initData,
-              startParam: getStartParamFromLocation(),
             }),
             signal: controller?.signal,
           })

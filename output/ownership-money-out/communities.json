@@ -1,0 +1,224 @@
+[
+  {
+    "id": 1,
+    "size": 29,
+    "files": [
+      "app/globals.css",
+      "app/page.tsx",
+      "components/achievements.tsx",
+      "components/action-buttons.tsx",
+      "components/bets/PlaceBetModal.tsx",
+      "components/bottom-navigation.tsx",
+      "components/game/PlayersBetsList.tsx",
+      "components/game/StarRushPanel.tsx",
+      "components/profile-header.tsx",
+      "components/referral-program.tsx",
+      "components/settings-menu.tsx",
+      "components/staking-content.tsx",
+      "components/stat-cards.tsx",
+      "components/top-hud.tsx",
+      "components/top-panel.tsx",
+      "components/ui/bottom-nav-shell.tsx",
+      "components/ui/glass-segmented-control.tsx",
+      "components/ui/primary-button.tsx",
+      "components/ui/secondary-button.tsx",
+      "components/ui/stat-card.tsx",
+      "components/ui/stat-icon.tsx",
+      "components/wallet-overview-modal.tsx",
+      "docs/todo.md",
+      "lib/game/backend-round-state-adapter.ts",
+      "styles/deposit-funds-modal.module.css",
+      "styles/place-bet-modal.module.css",
+      "styles/staking-safe.module.css",
+      "styles/starrush.module.css",
+      "theme/colors.ts"
+    ],
+    "maintainers": [
+      {
+        "person_id": "ipada310@gmail.com",
+        "name": "MrKotomay",
+        "touches": 252,
+        "touch_share": 0.996,
+        "recency_share": 0.9961,
+        "sensitive_share": 0.0,
+        "primary_tz_offset": "+04:00"
+      },
+      {
+        "person_id": "160258519+MrKotomay@users.noreply.github.com",
+        "name": "MrKotomay",
+        "touches": 1,
+        "touch_share": 0.004,
+        "recency_share": 0.0039,
+        "sensitive_share": 0.0,
+        "primary_tz_offset": "+04:00"
+      }
+    ],
+    "bus_factor": 2,
+    "owner_count": 2,
+    "totals": {
+      "touches": 253,
+      "recency_weight": 231.213275,
+      "sensitive_weight": 0
+    }
+  },
+  {
+    "id": 2,
+    "size": 26,
+    "files": [
+      ".env.example",
+      "Dockerfile",
+      "README.md",
+      "app/api/auth/dev/route.ts",
+      "app/api/auth/telegram/route.ts",
+      "app/api/dev/treasury/fund/route.ts",
+      "app/api/ledger/internal/create/route.ts",
+      "app/api/payments/ton/reconcile/route.ts",
+      "app/api/staking/leaderboard/route.ts",
+      "app/api/wallets/deposit/route.ts",
+      "app/api/wallets/withdraw/route.ts",
+      "docker-compose.yml",
+      "docs/deploy-vds.md",
+      "gateway/server.ts",
+      "infra/caddy/Caddyfile",
+      "infra/deploy/deploy-vds.sh",
+      "infra/deploy/update-from-git.sh",
+      "lib/game-config.ts",
+      "lib/rate-limit.ts",
+      "lib/referrals.ts",
+      "next.config.ts",
+      "package.json",
+      "scripts/referrals_unit_test.ts",
+      "services/game-round.service.ts",
+      "services/game-settlement.service.ts",
+      "workers/round-worker.ts"
+    ],
+    "maintainers": [
+      {
+        "person_id": "ipada310@gmail.com",
+        "name": "MrKotomay",
+        "touches": 120,
+        "touch_share": 0.9524,
+        "recency_share": 0.9529,
+        "sensitive_share": 1.0,
+        "primary_tz_offset": "+04:00"
+      },
+      {
+        "person_id": "160258519+MrKotomay@users.noreply.github.com",
+        "name": "MrKotomay",
+        "touches": 6,
+        "touch_share": 0.0476,
+        "recency_share": 0.0471,
+        "sensitive_share": 0.0,
+        "primary_tz_offset": "+04:00"
+      }
+    ],
+    "bus_factor": 2,
+    "owner_count": 2,
+    "totals": {
+      "touches": 126,
+      "recency_weight": 115.062477,
+      "sensitive_weight": 37.0
+    }
+  },
+  {
+    "id": 3,
+    "size": 14,
+    "files": [
+      "app/api/payments/intents/[id]/route.ts",
+      "app/api/payments/ton/intent/route.ts",
+      "app/api/telegram/webhook/route.ts",
+      "components/deposit-funds-modal.tsx",
+      "game/RoundEngine.ts",
+      "lib/payments/config.ts",
+      "lib/payments/deposit-credit.service.ts",
+      "lib/payments/intents.service.ts",
+      "lib/payments/stars.service.ts",
+      "lib/payments/ton-reconcile.service.ts",
+      "lib/payments/ton.service.ts",
+      "lib/payments/utils.ts",
+      "prisma/schema.prisma",
+      "scripts/ton_reconcile_comment_unit_test.ts"
+    ],
+    "maintainers": [
+      {
+        "person_id": "ipada310@gmail.com",
+        "name": "MrKotomay",
+        "touches": 50,
+        "touch_share": 1.0,
+        "recency_share": 1.0,
+        "sensitive_share": 1.0,
+        "primary_tz_offset": "+04:00"
+      }
+    ],
+    "bus_factor": 1,
+    "owner_count": 1,
+    "totals": {
+      "touches": 50,
+      "recency_weight": 45.784551,
+      "sensitive_weight": 27.0
+    }
+  },
+  {
+    "id": 4,
+    "size": 12,
+    "files": [
+      "app/(game)/page.tsx",
+      "components/crash/CrashGame.tsx",
+      "components/game/CoefficientDisplay.tsx",
+      "components/game/StarRushSandboxPanel.tsx",
+      "components/telegram-shell-theme.tsx",
+      "components/wallet-action-modal.tsx",
+      "docs/dev_launch.md",
+      "lib/currency.ts",
+      "lib/i18n.tsx",
+      "lib/mini-app-bootstrap.ts",
+      "lib/ui-sandbox.ts",
+      "lib/use-telegram-user.ts"
+    ],
+    "maintainers": [
+      {
+        "person_id": "ipada310@gmail.com",
+        "name": "MrKotomay",
+        "touches": 49,
+        "touch_share": 1.0,
+        "recency_share": 1.0,
+        "sensitive_share": 0.0,
+        "primary_tz_offset": "+04:00"
+      }
+    ],
+    "bus_factor": 1,
+    "owner_count": 1,
+    "totals": {
+      "touches": 49,
+      "recency_weight": 46.837487,
+      "sensitive_weight": 0
+    }
+  },
+  {
+    "id": 5,
+    "size": 3,
+    "files": [
+      "app/api/tonconnect/manifest/route.ts",
+      "app/layout.tsx",
+      "components/providers/tonconnect-provider.tsx"
+    ],
+    "maintainers": [
+      {
+        "person_id": "ipada310@gmail.com",
+        "name": "MrKotomay",
+        "touches": 11,
+        "touch_share": 1.0,
+        "recency_share": 1.0,
+        "sensitive_share": 0.0,
+        "primary_tz_offset": "+04:00"
+      }
+    ],
+    "bus_factor": 1,
+    "owner_count": 1,
+    "totals": {
+      "touches": 11,
+      "recency_weight": 10.024746,
+      "sensitive_weight": 0
+    }
+  }
+]

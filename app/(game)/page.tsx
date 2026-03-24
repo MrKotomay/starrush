@@ -618,6 +618,8 @@ function ProfilePageContent({ telegram }: { telegram: TelegramState }) {
       <DepositFundsModal
         open={isDepositModalOpen}
         onClose={() => setDepositModalOpen(false)}
+        tonBalance={tonBalance}
+        starsBalance={starsBalance}
         onCompleted={() => {
           void refreshWallets()
           void refreshLedger()

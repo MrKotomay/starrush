@@ -1,0 +1,127 @@
+{
+  "generated_at": "2026-03-23T16:16:17.094859+00:00",
+  "repo": "C:\\Users\\ipada\\OneDrive\\Desktop\\starrush",
+  "parameters": {
+    "since": null,
+    "until": null,
+    "half_life_days": 180.0,
+    "bus_factor_threshold": 1,
+    "stale_days": 365,
+    "owner_threshold": 0.5,
+    "sensitive_config": null,
+    "identity": "author",
+    "date_field": "author",
+    "include_merges": false,
+    "cochange_enabled": true,
+    "cochange_max_files": 50,
+    "cochange_min_count": 2,
+    "cochange_min_jaccard": 0.05,
+    "cochange_default_excludes": true,
+    "cochange_excludes": [
+      "**/Cargo.lock",
+      "**/Cargo.toml",
+      "**/package-lock.json",
+      "**/yarn.lock",
+      "**/pnpm-lock.yaml",
+      "**/go.sum",
+      "**/go.mod",
+      "**/Gemfile.lock",
+      "**/Pipfile.lock",
+      "**/poetry.lock",
+      "**/composer.lock",
+      "**/.github/**",
+      "**/.gitignore",
+      "**/.gitattributes",
+      "**/.gitmodules",
+      "**/.editorconfig",
+      "**/.vscode/**",
+      "**/.idea/**"
+    ],
+    "author_default_excludes": true,
+    "author_exclude_regexes": [
+      "dependabot"
+    ],
+    "community_top_owners": 5
+  },
+  "orphaned_sensitive_code": [],
+  "hidden_owners": [
+    {
+      "person": "ipada310@gmail.com",
+      "name": "MrKotomay",
+      "controls": "100% of auth code",
+      "category": "auth",
+      "share": 1.0
+    }
+  ],
+  "bus_factor_hotspots": [
+    {
+      "path": "app/api/admin/auth/telegram/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T18:49:17+04:00",
+      "sensitivity_tags": [
+        "auth"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/admin/auth/nonce/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T17:30:32+04:00",
+      "sensitivity_tags": [
+        "auth"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/auth/dev/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-03T18:32:42+04:00",
+      "sensitivity_tags": [
+        "auth"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/auth/telegram/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-03T18:32:42+04:00",
+      "sensitivity_tags": [
+        "auth"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/telegram/auth/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-02-21T19:21:44+04:00",
+      "sensitivity_tags": [
+        "auth"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "gateway/auth/ws-auth.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-02-21T19:21:44+04:00",
+      "sensitivity_tags": [
+        "auth"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    }
+  ],
+  "stats": {
+    "commits": 86,
+    "commits_seen": 86,
+    "commits_excluded_identities": 0,
+    "commits_excluded_merges": 0,
+    "edges": 754,
+    "people": 2,
+    "files": 286,
+    "cochange_pairs_total": 2583,
+    "cochange_edges": 624,
+    "cochange_commits_used": 62,
+    "cochange_commits_skipped": 2,
+    "cochange_commits_filtered": 0,
+    "cochange_files_excluded": 8
+  }
+}

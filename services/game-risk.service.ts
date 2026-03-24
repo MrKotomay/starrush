@@ -2,7 +2,6 @@ import { Currency, FairnessVersion, Prisma, RoundPlayerStatus, RoundStatus } fro
 import { gameConfig } from "@/lib/game-config"
 import { db } from "@/lib/db"
 import { getOrCreateHouseWallet } from "@/lib/house-ledger.service"
-import { calculateCrashPoint } from "@/services/game-fairness.service"
 
 export class RiskLimitExceededError extends Error {
   readonly code = "RISK_LIMIT_EXCEEDED"
@@ -43,25 +42,12 @@ function getFallbackRiskMultiplier(maxCrashInput: Prisma.Decimal | number | stri
 }
 
 function resolveEffectiveRiskMultiplier(params: RoundRiskParams) {
-  if (params.crashMultiplier && params.crashMultiplier.gte(1.01)) {
-    return params.crashMultiplier
+  if (params.status === RoundStatus.WAITING) {
+    return getFallbackRiskMultiplier(params.maxCrash)
   }
 
-  if (params.status === RoundStatus.WAITING && params.serverSeed) {
-    const exactCrashPoint = calculateCrashPoint({
-      fairnessVersion: params.fairnessVersion,
-      serverSeed: params.serverSeed,
-      serverSeedHash: params.serverSeedHash,
-      roundId: params.roundId,
-      fairnessNonce: params.fairnessNonce,
-      clientSeed: params.clientSeed,
-      houseEdge: Number(params.houseEdge.toString()),
-      maxCrash: Number(params.maxCrash.toString()),
-    })
-
-    if (Number.isFinite(exactCrashPoint) && exactCrashPoint >= 1.01) {
-      return new Prisma.Decimal(exactCrashPoint.toString())
-    }
+  if (params.crashMultiplier && params.crashMultiplier.gte(1.01)) {
+    return params.crashMultiplier
   }
 
   return getFallbackRiskMultiplier(params.maxCrash)

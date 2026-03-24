@@ -12,7 +12,6 @@ const logger = createLogger("auth-telegram")
 
 const schema = z.object({
   initData: z.string().min(1),
-  startParam: z.string().min(1).max(128).optional(),
 })
 
 export async function POST(req: Request) {
@@ -42,7 +41,7 @@ export async function POST(req: Request) {
   }
 
   const { user, authDate, queryId, startParam: startParamFromInitData } = extractTelegramUserFromInitData(initData)
-  const startParam = startParamFromInitData ?? parsed.data.startParam
+  const startParam = startParamFromInitData
 
   if (authDate && Math.floor(Date.now() / 1000) - authDate > MAX_AUTH_AGE_SECONDS) {
     logger.warn("auth_rejected", { route: "/api/auth/telegram", reason: "INIT_DATA_EXPIRED", ip, authDate })
@@ -71,7 +70,7 @@ export async function POST(req: Request) {
   if (startParam) {
     logger.info("auth_start_param_processed", {
       route: "/api/auth/telegram",
-      startParamSource: startParamFromInitData ? "init_data" : "body_fallback",
+      startParamSource: "init_data",
       hasReferralCandidate: Boolean(referralCandidateId),
       referralApplied: Boolean(referredById),
     })

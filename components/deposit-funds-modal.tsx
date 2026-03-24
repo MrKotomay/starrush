@@ -1,13 +1,12 @@
 "use client"
 
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { UserRejectsError } from "@tonconnect/sdk"
 import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react"
 import { Gift, Sparkles, Wallet, X } from "lucide-react"
 
-import { GlassSegmentedControl } from "@/components/ui/glass-segmented-control"
-import { PrimaryButton } from "@/components/ui/primary-button"
+import { formatCurrencyAmount } from "@/lib/currency"
 import { useI18n } from "@/lib/i18n"
 import { useAdaptiveOverlayMotion } from "@/lib/use-adaptive-overlay-motion"
 import styles from "@/styles/deposit-funds-modal.module.css"
@@ -28,6 +27,8 @@ interface DepositFundsModalProps {
   open: boolean
   onClose: () => void
   onCompleted?: () => void
+  tonBalance?: number
+  starsBalance?: number
 }
 
 type IntentResponse = {
@@ -40,8 +41,18 @@ type IntentResponse = {
   }
 }
 
+type SliderStyle = CSSProperties & {
+  "--slider-fill"?: string
+}
+
 const STARS_PRESETS = [50, 100, 250, 500]
 const TON_PRESETS = ["0.25", "0.5", "1", "2"]
+const TON_MIN = 0.25
+const TON_MAX = 5
+const TON_STEP = 0.25
+const STARS_MIN = 50
+const STARS_MAX = 500
+const STARS_STEP = 10
 const PENDING_STATUSES: DepositIntentStatus[] = ["CREATED", "WAITING_PAYMENT", "SUBMITTED", "CONFIRMING"]
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
 
@@ -59,7 +70,31 @@ function toPositiveTon(raw: string): string | null {
   return normalized
 }
 
-export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsModalProps) {
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function sanitizeTonInput(raw: string) {
+  const normalized = raw.replace(",", ".").replace(/[^\d.]/g, "")
+  const [head, ...tail] = normalized.split(".")
+  return tail.length > 0 ? `${head}.${tail.join("")}` : head
+}
+
+function sanitizeStarsInput(raw: string) {
+  return raw.replace(/[^\d]/g, "")
+}
+
+function formatTonInput(value: number) {
+  return value.toFixed(2).replace(/\.0+$/, "").replace(/(\.\d*[1-9])0+$/, "$1")
+}
+
+export function DepositFundsModal({
+  open,
+  onClose,
+  onCompleted,
+  tonBalance = 0,
+  starsBalance = 0,
+}: DepositFundsModalProps) {
   const { t } = useI18n()
   const [method, setMethod] = useState<DepositMethod>("TON")
   const [starsAmountRaw, setStarsAmountRaw] = useState("100")
@@ -140,6 +175,11 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
     setActiveIntentStatus(null)
     completionFiredRef.current = false
   }, [open])
+
+  useEffect(() => {
+    setError(null)
+    setInfo(null)
+  }, [method])
 
   useEffect(() => {
     if (!open || !activeIntentId || !activeIntentStatus || !PENDING_STATUSES.includes(activeIntentStatus)) return
@@ -325,8 +365,8 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
       setActiveIntentId(intentPayload.intent.id)
       setActiveIntentStatus(submitPayload.intent.status)
       setInfo(t("deposit.infoTonSubmitted"))
-    } catch (error) {
-      if (error instanceof UserRejectsError && createdIntentId) {
+    } catch (submitError) {
+      if (submitError instanceof UserRejectsError && createdIntentId) {
         try {
           const cancelResponse = await fetch("/api/payments/ton/cancel", {
             method: "POST",
@@ -351,6 +391,7 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
           // fall through to generic error state
         }
       }
+
       setError(t("deposit.error.sendTon"))
     } finally {
       setSubmitting(false)
@@ -360,6 +401,87 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
   const walletShortAddress = tonWallet?.account?.address
     ? `${tonWallet.account.address.slice(0, 8)}...${tonWallet.account.address.slice(-6)}`
     : null
+
+  const tonNumericAmount = useMemo(() => {
+    const value = toPositiveTon(tonAmountRaw)
+    return value ? Number.parseFloat(value) : TON_MIN
+  }, [tonAmountRaw])
+
+  const starsNumericAmount = useMemo(() => {
+    const value = toPositiveInt(starsAmountRaw)
+    return value ?? STARS_MIN
+  }, [starsAmountRaw])
+
+  const activeCurrency = method === "TON" || method === "STARS" ? method : null
+  const activeAmountValue = activeCurrency === "TON" ? tonNumericAmount : activeCurrency === "STARS" ? starsNumericAmount : 0
+
+  const activeSlider = useMemo(() => {
+    if (method === "TON") {
+      return {
+        min: TON_MIN,
+        max: TON_MAX,
+        step: TON_STEP,
+        value: clamp(tonNumericAmount, TON_MIN, TON_MAX),
+      }
+    }
+
+    return {
+      min: STARS_MIN,
+      max: STARS_MAX,
+      step: STARS_STEP,
+      value: clamp(starsNumericAmount, STARS_MIN, STARS_MAX),
+    }
+  }, [method, starsNumericAmount, tonNumericAmount])
+
+  const sliderProgress =
+    activeCurrency === null
+      ? "0%"
+      : `${((activeSlider.value - activeSlider.min) / (activeSlider.max - activeSlider.min || 1)) * 100}%`
+
+  const currentBalanceLabel = useMemo(() => {
+    if (method === "TON") {
+      return `${formatCurrencyAmount("TON", tonBalance, { compactStars: false })} TON`
+    }
+    if (method === "STARS") {
+      return `${formatCurrencyAmount("STARS", starsBalance, { compactStars: false })} ${t("common.stars")}`
+    }
+    return t("deposit.giftsSoon")
+  }, [method, starsBalance, t, tonBalance])
+
+  const summaryHeading = method === "TON" ? "TON Connect" : method === "STARS" ? "Telegram Invoice" : t("deposit.giftsSoon")
+  const summaryBody =
+    method === "TON"
+      ? walletShortAddress
+        ? t("deposit.walletConnected", { address: walletShortAddress })
+        : t("deposit.walletNotConnected")
+      : method === "STARS"
+        ? t("deposit.openInvoiceHint")
+        : t("deposit.giftsDesc")
+
+  const actionLabel =
+    method === "GIFTS"
+      ? t("deposit.giftsDisabled")
+      : method === "TON"
+        ? !walletShortAddress
+          ? t("deposit.connectWallet")
+          : isSubmitting
+            ? t("deposit.payTonSubmitting")
+            : t("deposit.payTon")
+        : isSubmitting
+          ? t("deposit.payStarsSubmitting")
+          : t("deposit.payStars")
+
+  const amountLabel = activeCurrency ? formatCurrencyAmount(activeCurrency, activeAmountValue, { compactStars: false }) : null
+  const amountUnit = method === "TON" ? "TON" : method === "STARS" ? t("common.stars") : null
+
+  const feedbackTone = error ? "error" : activeIntentStatus === "COMPLETED" ? "success" : "info"
+  const feedbackMessage = error ?? info
+  const sliderStyle: SliderStyle | undefined =
+    activeCurrency === null
+      ? undefined
+      : {
+          "--slider-fill": sliderProgress,
+        }
 
   return (
     <AnimatePresence>
@@ -375,171 +497,217 @@ export function DepositFundsModal({ open, onClose, onCompleted }: DepositFundsMo
             onClose()
           }}
         >
+          <div className={styles.glowOne} />
+          <div className={styles.glowTwo} />
+
           <motion.section
             role="dialog"
             aria-modal="true"
             aria-label={t("deposit.aria")}
             className={styles.sheet}
-            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 30, scale: 0.985 }}
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 34, scale: 0.985 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 22, scale: 0.985 }}
+            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.985 }}
             transition={{ duration: adaptiveOverlayMotion ? 0.16 : shouldReduceMotion ? 0.1 : 0.24, ease: EASE }}
             onClick={(event) => event.stopPropagation()}
           >
+            <div className={styles.edgeGlow} />
+            <div className={styles.innerStroke} />
+
             <div className={styles.handle} />
 
             <div className={styles.header}>
-              <div>
+              <div className={styles.headerCopy}>
                 <h3 className={styles.title}>{t("deposit.title")}</h3>
                 <p className={styles.subtitle}>{t("deposit.subtitle")}</p>
               </div>
-              <button type="button" className={styles.closeBtn} onClick={onClose} disabled={!canClose} aria-label={t("common.close")}>
-                <X size={16} />
-              </button>
-            </div>
 
-            <GlassSegmentedControl
-              items={methodItems}
-              value={method}
-              onChange={(next) => setMethod(next)}
-              ariaLabel={t("deposit.title")}
-              layoutId="deposit-method-indicator"
-              motionMode={adaptiveOverlayMotion ? "static" : "default"}
-              activeButtonChrome="off"
-              disabled={isSubmitting}
-              className={styles.tabs}
-            />
+              <div className={styles.headerAside}>
+                <div className={styles.balanceMeta}>
+                  <span className={styles.balanceMetaLabel}>{t("deposit.currentBalance")}</span>
+                  <span className={styles.balanceMetaValue}>{currentBalanceLabel}</span>
+                </div>
 
-            <div className={styles.content}>
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={method}
-                  className={styles.contentStack}
-                  initial={adaptiveOverlayMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={adaptiveOverlayMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
-                  transition={{ duration: adaptiveOverlayMotion ? 0.12 : shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
+                <button
+                  type="button"
+                  className={styles.closeBtn}
+                  onClick={onClose}
+                  disabled={!canClose}
+                  aria-label={t("common.close")}
                 >
-                  {method === "GIFTS" ? (
-                    <div className={styles.giftStub}>
-                      <span className={styles.giftIconWrap}>
-                        <Gift size={28} />
-                      </span>
-                      <p className={styles.giftTitle}>{t("deposit.giftsTitle")}</p>
-                      <p className={styles.giftDesc}>{t("deposit.giftsDesc")}</p>
-                      <span className={styles.badgeSoon}>{t("deposit.giftsSoon")}</span>
-                      <button type="button" className={styles.ghostBtn} disabled>
-                        {t("deposit.giftsDisabled")}
-                      </button>
-                    </div>
-                  ) : null}
-
-                  {method === "TON" ? (
-                    <>
-                      <label className={styles.inputLabel}>{t("deposit.tonAmount")}</label>
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={tonAmountRaw}
-                        onChange={(event) => setTonAmountRaw(event.target.value)}
-                        className={styles.input}
-                        disabled={isSubmitting}
-                        placeholder="0.50"
-                      />
-
-                      <div className={styles.quickRow}>
-                        {TON_PRESETS.map((value) => {
-                          const active = toPositiveTon(tonAmountRaw) === value
-                          return (
-                            <button
-                              key={value}
-                              type="button"
-                              className={styles.quickBtn}
-                              data-active={active ? "true" : "false"}
-                              disabled={isSubmitting}
-                              onClick={() => setTonAmountRaw(value)}
-                            >
-                              {value} TON
-                            </button>
-                          )
-                        })}
-                      </div>
-
-                      <p className={styles.walletHint}>
-                        {walletShortAddress
-                          ? t("deposit.walletConnected", { address: walletShortAddress })
-                          : t("deposit.walletNotConnected")}
-                      </p>
-
-                      <PrimaryButton
-                        type="button"
-                        onClick={() => void onPayTon()}
-                        disabled={isSubmitting}
-                        motion={adaptiveOverlayMotion ? "none" : "subtle"}
-                        data-sheen={isSubmitting ? "off" : "event"}
-                        className={styles.primaryActionBtn}
-                      >
-                        {!walletShortAddress
-                          ? t("deposit.connectWallet")
-                          : isSubmitting
-                            ? t("deposit.payTonSubmitting")
-                            : t("deposit.payTon")}
-                      </PrimaryButton>
-                    </>
-                  ) : null}
-
-                  {method === "STARS" ? (
-                    <>
-                      <label className={styles.inputLabel}>{t("deposit.starsAmount")}</label>
-                      <input
-                        type="number"
-                        min={1}
-                        step={1}
-                        value={starsAmountRaw}
-                        onChange={(event) => setStarsAmountRaw(event.target.value)}
-                        className={styles.input}
-                        disabled={isSubmitting}
-                        placeholder="100"
-                      />
-
-                      <div className={styles.quickRow}>
-                        {STARS_PRESETS.map((value) => {
-                          const active = starsAmountRaw.trim() === String(value)
-                          return (
-                            <button
-                              key={value}
-                              type="button"
-                              className={styles.quickBtn}
-                              data-active={active ? "true" : "false"}
-                              disabled={isSubmitting}
-                              onClick={() => setStarsAmountRaw(String(value))}
-                            >
-                              {value}
-                            </button>
-                          )
-                        })}
-                      </div>
-
-                      <p className={styles.walletHint}>{t("deposit.openInvoiceHint")}</p>
-
-                      <PrimaryButton
-                        type="button"
-                        onClick={() => void onPayStars()}
-                        disabled={isSubmitting}
-                        motion={adaptiveOverlayMotion ? "none" : "subtle"}
-                        data-sheen={isSubmitting ? "off" : "event"}
-                        className={styles.primaryActionBtn}
-                      >
-                        {isSubmitting ? t("deposit.payStarsSubmitting") : t("deposit.payStars")}
-                      </PrimaryButton>
-                    </>
-                  ) : null}
-                </motion.div>
-              </AnimatePresence>
+                  <X size={16} />
+                </button>
+              </div>
             </div>
 
-            {info ? <p className={styles.statusInfo}>{info}</p> : null}
-            {error ? <p className={styles.statusError}>{error}</p> : null}
+            <div className={styles.tabs} role="tablist" aria-label={t("deposit.title")}>
+              {methodItems.map((item) => {
+                const active = item.id === method
+
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    className={styles.tab}
+                    data-active={active ? "true" : "false"}
+                    onClick={() => setMethod(item.id)}
+                    disabled={isSubmitting}
+                  >
+                    {active ? <motion.span layoutId="deposit-method-pill" className={styles.tabActiveFill} /> : null}
+                    <item.icon size={15} className={styles.tabIcon} />
+                    <span className={styles.tabLabel}>{item.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {method === "GIFTS" ? (
+              <div className={styles.giftStage}>
+                <div className={styles.giftOrb}>
+                  <Gift size={20} />
+                </div>
+                <div className={styles.giftCopy}>
+                  <p className={styles.giftTitle}>{t("deposit.giftsTitle")}</p>
+                  <p className={styles.giftDescription}>{t("deposit.giftsDesc")}</p>
+                </div>
+                <button type="button" className={styles.disabledAction} disabled>
+                  {t("deposit.giftsDisabled")}
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className={styles.amountStage} style={sliderStyle}>
+                  <div className={styles.amountHeader}>
+                    <span className={styles.amountCaption}>{t("common.amount")}</span>
+                    <span className={styles.amountBalance}>{t("common.currency")}</span>
+                  </div>
+
+                  <div className={styles.amountValueRow}>
+                    <input
+                      type="text"
+                      inputMode={method === "TON" ? "decimal" : "numeric"}
+                      value={method === "TON" ? tonAmountRaw : starsAmountRaw}
+                      onChange={(event) => {
+                        if (method === "TON") {
+                          setTonAmountRaw(sanitizeTonInput(event.target.value))
+                        } else {
+                          setStarsAmountRaw(sanitizeStarsInput(event.target.value))
+                        }
+                      }}
+                      className={styles.amountInput}
+                      disabled={isSubmitting}
+                      aria-label={method === "TON" ? t("deposit.tonAmount") : t("deposit.starsAmount")}
+                      placeholder={method === "TON" ? "0.5" : "100"}
+                    />
+                    <span className={styles.amountUnit}>{amountUnit}</span>
+                  </div>
+
+                  <input
+                    type="range"
+                    min={activeSlider.min}
+                    max={activeSlider.max}
+                    step={activeSlider.step}
+                    value={activeSlider.value}
+                    className={styles.slider}
+                    disabled={isSubmitting}
+                    onChange={(event) => {
+                      const nextValue = Number.parseFloat(event.target.value)
+                      if (method === "TON") {
+                        setTonAmountRaw(formatTonInput(nextValue))
+                      } else {
+                        setStarsAmountRaw(String(Math.round(nextValue)))
+                      }
+                    }}
+                  />
+
+                  <div className={styles.sliderMeta}>
+                    <span>
+                      {t("deposit.minShort")}{" "}
+                      {formatCurrencyAmount(method === "TON" ? "TON" : "STARS", activeSlider.min, {
+                        compactStars: false,
+                      })}
+                    </span>
+                    <span>
+                      {t("deposit.maxShort")}{" "}
+                      {formatCurrencyAmount(method === "TON" ? "TON" : "STARS", activeSlider.max, {
+                        compactStars: false,
+                      })}
+                    </span>
+                  </div>
+                </div>
+
+                <div className={styles.quickPicks}>
+                  {(method === "TON" ? TON_PRESETS : STARS_PRESETS.map(String)).map((value) => {
+                    const active =
+                      method === "TON" ? toPositiveTon(tonAmountRaw) === value : String(toPositiveInt(starsAmountRaw) ?? "") === value
+
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        className={styles.presetBtn}
+                        data-active={active ? "true" : "false"}
+                        disabled={isSubmitting}
+                        onClick={() => {
+                          if (method === "TON") {
+                            setTonAmountRaw(value)
+                          } else {
+                            setStarsAmountRaw(value)
+                          }
+                        }}
+                      >
+                        {active ? <motion.span layoutId="deposit-preset-pill" className={styles.presetActiveFill} /> : null}
+                        <span className={styles.presetLabel}>{value}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <div className={styles.summaryPanel}>
+                  <div className={styles.summaryTop}>
+                    <div>
+                      <span className={styles.summaryLabel}>{t("deposit.paymentChannel")}</span>
+                      <span className={styles.summaryValue}>{summaryHeading}</span>
+                    </div>
+                    <div className={styles.summaryAmount}>
+                      <span className={styles.summaryAmountValue}>{amountLabel}</span>
+                      <span className={styles.summaryAmountUnit}>{amountUnit}</span>
+                    </div>
+                  </div>
+
+                  <p className={styles.summaryHint}>{summaryBody}</p>
+
+                  <motion.button
+                    type="button"
+                    className={styles.cta}
+                    disabled={isSubmitting}
+                    whileHover={shouldReduceMotion || isSubmitting ? undefined : { scale: 1.01, y: -1 }}
+                    whileTap={shouldReduceMotion || isSubmitting ? undefined : { scale: 0.99 }}
+                    onClick={() => {
+                      if (method === "TON") {
+                        void onPayTon()
+                        return
+                      }
+                      if (method === "STARS") {
+                        void onPayStars()
+                      }
+                    }}
+                    data-method={method}
+                  >
+                    <span className={styles.ctaGlow} />
+                    <span className={styles.ctaText}>{actionLabel}</span>
+                  </motion.button>
+                </div>
+              </>
+            )}
+
+            {feedbackMessage ? (
+              <p className={styles.feedback} data-tone={feedbackTone}>
+                {feedbackMessage}
+              </p>
+            ) : null}
           </motion.section>
         </motion.div>
       ) : null}

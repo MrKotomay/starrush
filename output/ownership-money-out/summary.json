@@ -1,0 +1,759 @@
+{
+  "generated_at": "2026-03-23T16:16:49.727432+00:00",
+  "repo": "C:\\Users\\ipada\\OneDrive\\Desktop\\starrush",
+  "parameters": {
+    "since": null,
+    "until": null,
+    "half_life_days": 180.0,
+    "bus_factor_threshold": 1,
+    "stale_days": 365,
+    "owner_threshold": 0.5,
+    "sensitive_config": "output\\sensitive-money.csv",
+    "identity": "author",
+    "date_field": "author",
+    "include_merges": false,
+    "cochange_enabled": true,
+    "cochange_max_files": 50,
+    "cochange_min_count": 2,
+    "cochange_min_jaccard": 0.05,
+    "cochange_default_excludes": true,
+    "cochange_excludes": [
+      "**/Cargo.lock",
+      "**/Cargo.toml",
+      "**/package-lock.json",
+      "**/yarn.lock",
+      "**/pnpm-lock.yaml",
+      "**/go.sum",
+      "**/go.mod",
+      "**/Gemfile.lock",
+      "**/Pipfile.lock",
+      "**/poetry.lock",
+      "**/composer.lock",
+      "**/.github/**",
+      "**/.gitignore",
+      "**/.gitattributes",
+      "**/.gitmodules",
+      "**/.editorconfig",
+      "**/.vscode/**",
+      "**/.idea/**"
+    ],
+    "author_default_excludes": true,
+    "author_exclude_regexes": [
+      "dependabot"
+    ],
+    "community_top_owners": 5
+  },
+  "orphaned_sensitive_code": [],
+  "hidden_owners": [
+    {
+      "person": "ipada310@gmail.com",
+      "name": "MrKotomay",
+      "controls": "100% of staking code",
+      "category": "staking",
+      "share": 1.0
+    },
+    {
+      "person": "ipada310@gmail.com",
+      "name": "MrKotomay",
+      "controls": "100% of game-economy code",
+      "category": "game-economy",
+      "share": 1.0
+    },
+    {
+      "person": "ipada310@gmail.com",
+      "name": "MrKotomay",
+      "controls": "100% of admin code",
+      "category": "admin",
+      "share": 1.0
+    },
+    {
+      "person": "ipada310@gmail.com",
+      "name": "MrKotomay",
+      "controls": "100% of schema code",
+      "category": "schema",
+      "share": 1.0
+    },
+    {
+      "person": "ipada310@gmail.com",
+      "name": "MrKotomay",
+      "controls": "100% of game-gateway code",
+      "category": "game-gateway",
+      "share": 1.0
+    },
+    {
+      "person": "ipada310@gmail.com",
+      "name": "MrKotomay",
+      "controls": "100% of ledger code",
+      "category": "ledger",
+      "share": 1.0
+    },
+    {
+      "person": "ipada310@gmail.com",
+      "name": "MrKotomay",
+      "controls": "100% of payments code",
+      "category": "payments",
+      "share": 1.0
+    },
+    {
+      "person": "ipada310@gmail.com",
+      "name": "MrKotomay",
+      "controls": "100% of wallet code",
+      "category": "wallet",
+      "share": 1.0
+    },
+    {
+      "person": "ipada310@gmail.com",
+      "name": "MrKotomay",
+      "controls": "100% of referrals code",
+      "category": "referrals",
+      "share": 1.0
+    }
+  ],
+  "bus_factor_hotspots": [
+    {
+      "path": "app/api/staking/leaderboard/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-09T20:36:02+04:00",
+      "sensitivity_tags": [
+        "staking"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "services/game-settlement.service.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-09T20:36:02+04:00",
+      "sensitivity_tags": [
+        "game-economy"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/admin/staking/pools/[assetId]/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-09T19:54:33+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/staking/claim/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-09T19:54:33+04:00",
+      "sensitivity_tags": [
+        "staking"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/staking/overview/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-09T19:54:33+04:00",
+      "sensitivity_tags": [
+        "staking"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/staking/stake/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-09T19:54:33+04:00",
+      "sensitivity_tags": [
+        "staking"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/staking/unstake/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-09T19:54:33+04:00",
+      "sensitivity_tags": [
+        "staking"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "lib/admin-data.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-09T19:54:33+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "prisma/schema.prisma",
+      "bus_factor": 1,
+      "last_touch": "2026-03-09T19:54:33+04:00",
+      "sensitivity_tags": [
+        "schema"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "services/game-betting.service.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-09T19:54:33+04:00",
+      "sensitivity_tags": [
+        "game-economy"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "services/staking.service.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-09T19:54:33+04:00",
+      "sensitivity_tags": [
+        "staking"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "lib/admin-data-explorer.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T22:00:34+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/admin/studio/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T21:11:27+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "lib/admin.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T20:39:38+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "services/game-risk.service.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T20:07:34+04:00",
+      "sensitivity_tags": [
+        "game-economy"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/admin/auth/telegram/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T18:49:17+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "lib/admin-request.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T18:49:17+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/admin/audit/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T17:30:32+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/admin/auth/nonce/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T17:30:32+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/admin/dashboard/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T17:30:32+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/admin/events/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T17:30:32+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/admin/logout/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T17:30:32+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/admin/payments/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T17:30:32+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/admin/rounds/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T17:30:32+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/admin/treasury-adjustments/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T17:30:32+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/admin/users/[id]/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T17:30:32+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/admin/users/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T17:30:32+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/admin/wallet-adjustments/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T17:30:32+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "gateway/rooms/round-room.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T17:30:32+04:00",
+      "sensitivity_tags": [
+        "game-gateway"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "gateway/server.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T17:30:32+04:00",
+      "sensitivity_tags": [
+        "game-gateway"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "lib/admin-actions.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T17:30:32+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "lib/admin-audit.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-07T17:30:32+04:00",
+      "sensitivity_tags": [
+        "admin"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/ledger/internal/create/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-03T18:32:42+04:00",
+      "sensitivity_tags": [
+        "ledger"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/payments/ton/reconcile/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-03T18:32:42+04:00",
+      "sensitivity_tags": [
+        "payments"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/wallets/deposit/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-03T18:32:42+04:00",
+      "sensitivity_tags": [
+        "wallet"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/wallets/withdraw/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-03T18:32:42+04:00",
+      "sensitivity_tags": [
+        "wallet"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "lib/house-ledger.service.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-03T18:32:42+04:00",
+      "sensitivity_tags": [
+        "ledger"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "lib/ledger.service.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-03T18:32:42+04:00",
+      "sensitivity_tags": [
+        "ledger"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "lib/referrals.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-03T18:32:42+04:00",
+      "sensitivity_tags": [
+        "referrals"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "services/game-round.service.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-03T18:32:42+04:00",
+      "sensitivity_tags": [
+        "game-economy"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "services/reconciliation.service.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-03T18:32:42+04:00",
+      "sensitivity_tags": [
+        "ledger"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "workers/round-worker.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-03T18:32:42+04:00",
+      "sensitivity_tags": [
+        "game-economy"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/payments/ton/cancel/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-03T17:25:41+04:00",
+      "sensitivity_tags": [
+        "payments"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "lib/payments/ton-reconcile.service.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-03T17:25:41+04:00",
+      "sensitivity_tags": [
+        "payments"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "lib/payments/ton.service.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-03T17:25:41+04:00",
+      "sensitivity_tags": [
+        "payments"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/payments/ton/intent/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-03T16:41:44+04:00",
+      "sensitivity_tags": [
+        "payments"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "lib/payments/config.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-03T16:41:44+04:00",
+      "sensitivity_tags": [
+        "payments"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/payments/intents/[id]/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-02T20:00:37+04:00",
+      "sensitivity_tags": [
+        "payments"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "lib/payments/deposit-credit.service.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-02T20:00:37+04:00",
+      "sensitivity_tags": [
+        "payments"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "lib/payments/intents.service.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-02T20:00:37+04:00",
+      "sensitivity_tags": [
+        "payments"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "gateway/handlers/bet.handler.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-01T21:04:47+04:00",
+      "sensitivity_tags": [
+        "game-gateway"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "gateway/handlers/cashout.handler.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-01T21:04:47+04:00",
+      "sensitivity_tags": [
+        "game-gateway"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "gateway/redis/redis-subscriber.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-01T21:04:47+04:00",
+      "sensitivity_tags": [
+        "game-gateway"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "services/game-round-snapshot.service.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-03-01T18:04:46+04:00",
+      "sensitivity_tags": [
+        "game-economy"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "lib/payments/utils.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-02-23T20:16:08+04:00",
+      "sensitivity_tags": [
+        "payments"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "lib/payments/stars.service.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-02-23T13:25:24+04:00",
+      "sensitivity_tags": [
+        "payments"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/payments/stars/invoice/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-02-23T13:04:38+04:00",
+      "sensitivity_tags": [
+        "payments"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/payments/ton/submit/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-02-23T13:04:38+04:00",
+      "sensitivity_tags": [
+        "payments"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "lib/payments/signature.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-02-23T13:04:38+04:00",
+      "sensitivity_tags": [
+        "payments"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "lib/payments/telegram-webhook.utils.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-02-23T13:04:38+04:00",
+      "sensitivity_tags": [
+        "payments"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "services/game-events.service.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-02-22T17:27:06+04:00",
+      "sensitivity_tags": [
+        "game-economy"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/ledger/history/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-02-21T19:21:44+04:00",
+      "sensitivity_tags": [
+        "ledger"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/wallets/balance/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-02-21T19:21:44+04:00",
+      "sensitivity_tags": [
+        "wallet"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "app/api/wallets/route.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-02-21T19:21:44+04:00",
+      "sensitivity_tags": [
+        "wallet"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "gateway/auth/ws-auth.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-02-21T19:21:44+04:00",
+      "sensitivity_tags": [
+        "game-gateway"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "gateway/handlers/ping.handler.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-02-21T19:21:44+04:00",
+      "sensitivity_tags": [
+        "game-gateway"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "gateway/rate-limit/ws-rate-limit.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-02-21T19:21:44+04:00",
+      "sensitivity_tags": [
+        "game-gateway"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "gateway/types/ws-events.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-02-21T19:21:44+04:00",
+      "sensitivity_tags": [
+        "game-gateway"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "services/game-fairness.service.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-02-21T19:21:44+04:00",
+      "sensitivity_tags": [
+        "game-economy"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    },
+    {
+      "path": "services/game-player-events.service.ts",
+      "bus_factor": 1,
+      "last_touch": "2026-02-21T19:21:44+04:00",
+      "sensitivity_tags": [
+        "game-economy"
+      ],
+      "top_owner": "ipada310@gmail.com"
+    }
+  ],
+  "stats": {
+    "commits": 86,
+    "commits_seen": 86,
+    "commits_excluded_identities": 0,
+    "commits_excluded_merges": 0,
+    "edges": 754,
+    "people": 2,
+    "files": 286,
+    "cochange_pairs_total": 2583,
+    "cochange_edges": 624,
+    "cochange_commits_used": 62,
+    "cochange_commits_skipped": 2,
+    "cochange_commits_filtered": 0,
+    "cochange_files_excluded": 8
+  }
+}

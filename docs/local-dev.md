@@ -24,6 +24,8 @@ docker compose -f docker-compose.dev.yml up -d
 npx prisma migrate deploy
 ```
 
+Команда читает `DATABASE_URL` из корневого `.env`. Если `.env` отсутствует, локальный запуск не поднимется.
+
 ### 3. Запустить всё
 
 ```bash
@@ -108,6 +110,8 @@ Browser (localhost:3000)
 **Порты заняты**: `npm run dev:all` автоматически очищает порты 3000 и 8081 на Windows.
 
 **Prisma migrate ошибка**: Убедись что PostgreSQL контейнер запущен: `docker compose -f docker-compose.dev.yml ps`
+
+**DATABASE_URL is not set**: Проверь, что запускаешь команды из корня репозитория и рядом лежит `.env`.
 
 **401 на API**: Перезагрузи страницу — dev auth пересоздаст сессию.
 

@@ -1,14 +1,17 @@
-# 1. Базы данных (один раз)
+# 1. Поднять локальные PostgreSQL и Redis
 docker compose -f docker-compose.dev.yml up -d
 
-# 2. Миграции (один раз)
+# 2. Проверить, что контейнеры healthy
+docker compose -f docker-compose.dev.yml ps
+
+# 3. Применить миграции
 npx prisma migrate deploy
 
-# 3. Запуск всего
+# 4. Запустить app + gateway + worker
 npm run dev:all
 
-# 4. Пополнить казну (один раз)
+# 5. Один раз после новой БД пополнить казну
 npm run house:fund -- --currency STARS --amount 10000
 npm run house:fund -- --currency TON --amount 1000
 
-# 5. Открыть http://localhost:3000
+# 6. Открыть http://localhost:3000

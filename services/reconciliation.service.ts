@@ -50,10 +50,21 @@ export async function repairLockedBalances() {
             round: { status: { in: [RoundStatus.CRASHED, RoundStatus.FINISHED] } },
           },
         })
+        const queued = await tx.roundQueuedBet.findMany({
+          where: {
+            userId: wallet.userId,
+            currency: wallet.currency,
+          },
+          select: {
+            betAmount: true,
+          },
+        })
 
         const expected = active.reduce(
           (sum, player) => sum.plus(player.betAmount),
           new Prisma.Decimal(0)
+        ).plus(
+          queued.reduce((sum, bet) => sum.plus(bet.betAmount), new Prisma.Decimal(0))
         )
 
         if (stale.length > 0) {

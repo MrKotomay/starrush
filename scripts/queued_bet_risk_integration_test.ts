@@ -8,10 +8,12 @@ import {
   RoundStatus,
 } from "@prisma/client"
 import { db } from "../lib/db"
+import { gameConfig } from "../lib/game-config"
 import { redis } from "../lib/redis"
 import { creditHouse, getOrCreateHouseWallet } from "../lib/house-ledger.service"
 import { applyTransaction, createTransaction } from "../lib/ledger.service"
 import { placeBet, RiskLimitExceededError, activateQueuedBetsForRound } from "../services/game-betting.service"
+import { assertCanAcceptBet } from "../services/game-risk.service"
 import { REDIS_KEYS } from "../services/game-round.service"
 
 let sequence = 0
@@ -82,7 +84,7 @@ async function createRunningRound(maxCrash: Prisma.Decimal) {
   })
 }
 
-async function createWaitingRound(maxCrash: Prisma.Decimal) {
+async function createWaitingRound(maxCrash: Prisma.Decimal, crashMultiplier?: Prisma.Decimal) {
   return db.round.create({
     data: {
       status: RoundStatus.WAITING,
@@ -90,8 +92,52 @@ async function createWaitingRound(maxCrash: Prisma.Decimal) {
       serverSeed: `queued-risk:${Date.now()}:next-seed`,
       houseEdge: new Prisma.Decimal("0.01"),
       maxCrash,
+      crashMultiplier,
     },
   })
+}
+
+async function testWaitingRiskIgnoresHiddenCrashPoint() {
+  const currency = Currency.TON
+  const bankroll = new Prisma.Decimal("100")
+  const stake = new Prisma.Decimal("0.5")
+  const maxCrash = new Prisma.Decimal("1000")
+  const expectedRiskMultiplier = new Prisma.Decimal(
+    Math.min(Number(maxCrash.toString()), gameConfig.riskAcceptanceMaxMultiplier).toString()
+  )
+
+  await ensureHouseBalance(currency, bankroll)
+
+  const conservativeRound = await createWaitingRound(maxCrash, new Prisma.Decimal("2"))
+  const riskyRound = await createWaitingRound(maxCrash, new Prisma.Decimal("100"))
+
+  const conservative = await db.$transaction((tx) =>
+    assertCanAcceptBet({
+      currency,
+      stake,
+      roundId: conservativeRound.id,
+      tx,
+    })
+  )
+  const risky = await db.$transaction((tx) =>
+    assertCanAcceptBet({
+      currency,
+      stake,
+      roundId: riskyRound.id,
+      tx,
+    })
+  )
+
+  expect(
+    conservative.riskMultiplier.equals(expectedRiskMultiplier),
+    `expected waiting-round fallback multiplier ${expectedRiskMultiplier.toString()}, got ${conservative.riskMultiplier.toString()}`
+  )
+  expect(
+    risky.riskMultiplier.equals(expectedRiskMultiplier),
+    `expected waiting-round fallback multiplier ${expectedRiskMultiplier.toString()}, got ${risky.riskMultiplier.toString()}`
+  )
+
+  console.log("[PASS] waiting-round risk ignores hidden crash point")
 }
 
 async function testQueuedAcceptanceCap() {
@@ -197,6 +243,7 @@ async function testQueuedActivationDuplicateReleasesLock() {
 
 async function main() {
   if (!redis) throw new Error("REDIS_NOT_CONFIGURED")
+  await testWaitingRiskIgnoresHiddenCrashPoint()
   await testQueuedAcceptanceCap()
   await testQueuedActivationDuplicateReleasesLock()
   console.log("[PASS] queued risk integration test")

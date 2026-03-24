@@ -11,6 +11,8 @@ import { settleLosses } from "@/services/game-settlement.service"
 import { createLogger } from "@/lib/logger"
 
 const LOCK_KEY = "round-worker-lock"
+const LOCK_TTL_MS = 15000
+const LOCK_REFRESH_INTERVAL_MS = Math.max(1000, Math.floor(LOCK_TTL_MS / 3))
 
 const WAITING_PHASE_MS = Number(process.env.ROUND_WAITING_MS ?? 5000)
 const COOLDOWN_PHASE_MS = Number(process.env.ROUND_COOLDOWN_MS ?? 3000)
@@ -198,27 +200,8 @@ async function tickRound() {
 
     const elapsedSeconds = (Date.now() - startedAt.getTime()) / 1000
     const multiplier = computeRoundMultiplier(elapsedSeconds)
-    const serverTs = Date.now()
-
-    await redis.set(REDIS_KEYS.multiplier(round.id), multiplier.toFixed(4))
-    const shouldBroadcastMultiplier =
-      lastMultiplierBroadcastRoundId !== round.id ||
-      serverTs - lastMultiplierBroadcastAt >= MULTIPLIER_BROADCAST_MS
-
-    if (shouldBroadcastMultiplier) {
-      await emitGameEvent(round.id, RoundEventType.MULTIPLIER_UPDATE, {
-        roundId: round.id,
-        multiplier: Number(multiplier.toFixed(4)),
-        serverTs,
-      })
-      lastMultiplierBroadcastAt = serverTs
-      lastMultiplierBroadcastRoundId = round.id
-    }
-
-    const crashPointRaw =
-      (await redis.get(REDIS_KEYS.crashPoint(round.id))) || round.crashMultiplier?.toString()
-    const crashPoint = crashPointRaw
-      ? Number.parseFloat(crashPointRaw)
+    const crashPoint = round.crashMultiplier
+      ? Number.parseFloat(round.crashMultiplier.toString())
       : calculateCrashPoint({
           roundId: round.id,
           serverSeedHash: round.serverSeedHash,
@@ -229,6 +212,11 @@ async function tickRound() {
           houseEdge: (round as any).houseEdge,
           maxCrash: (round as any).maxCrash,
         })
+
+    if (!Number.isFinite(crashPoint) || crashPoint < 1.01) {
+      throw new Error("INVALID_CRASH_POINT")
+    }
+
     debugRoundLog("RUNNING: tick", {
       roundId: round.id,
       multiplier: Number(multiplier.toFixed(4)),
@@ -245,6 +233,24 @@ async function tickRound() {
       await redis.set(CRASHED_AT_KEY(round.id), Date.now().toString())
       console.log("[RoundWorker] Crash triggered", round.id)
       debugRoundLog("transition: RUNNING -> CRASHED", { roundId: round.id })
+      return
+    }
+
+    const serverTs = Date.now()
+
+    await redis.set(REDIS_KEYS.multiplier(round.id), multiplier.toFixed(4))
+    const shouldBroadcastMultiplier =
+      lastMultiplierBroadcastRoundId !== round.id ||
+      serverTs - lastMultiplierBroadcastAt >= MULTIPLIER_BROADCAST_MS
+
+    if (shouldBroadcastMultiplier) {
+      await emitGameEvent(round.id, RoundEventType.MULTIPLIER_UPDATE, {
+        roundId: round.id,
+        multiplier: Number(multiplier.toFixed(4)),
+        serverTs,
+      })
+      lastMultiplierBroadcastAt = serverTs
+      lastMultiplierBroadcastRoundId = round.id
     }
 
     return
@@ -309,7 +315,7 @@ async function runWorker() {
 
   while (true) {
     workerState.lastLoopAt = Date.now()
-    const lock = await acquireLock(LOCK_KEY, 15000)
+    const lock = await acquireLock(LOCK_KEY, LOCK_TTL_MS)
     if (!lock.acquired) {
       workerState.lastLockContentionAt = Date.now()
       logger.warn("worker_lock_contention", { lockKey: LOCK_KEY })
@@ -318,8 +324,33 @@ async function runWorker() {
       continue
     }
 
+    let lockValid = true
+    let lockRefreshInFlight = false
+    const lockHeartbeat = setInterval(() => {
+      if (!lockValid || lockRefreshInFlight) return
+      lockRefreshInFlight = true
+      void refreshLock(lock.token, LOCK_TTL_MS)
+        .then((refreshed) => {
+          if (!refreshed) {
+            lockValid = false
+            workerState.lastLockContentionAt = Date.now()
+            logger.warn("worker_lock_refresh_failed", { lockKey: LOCK_KEY })
+          }
+        })
+        .catch((error) => {
+          lockValid = false
+          logger.error("worker_lock_refresh_error", { lockKey: LOCK_KEY, error })
+        })
+        .finally(() => {
+          lockRefreshInFlight = false
+        })
+    }, LOCK_REFRESH_INTERVAL_MS)
+    if (typeof lockHeartbeat.unref === "function") {
+      lockHeartbeat.unref()
+    }
+
     try {
-      const refreshed = await refreshLock(lock.token, 15000)
+      const refreshed = await refreshLock(lock.token, LOCK_TTL_MS)
       if (!refreshed) {
         debugRoundLog("lock: refresh failed")
         await sleep(1000)
@@ -327,10 +358,14 @@ async function runWorker() {
       }
 
       await tickRound()
+      if (!lockValid) {
+        logger.warn("worker_lock_lost_during_tick", { lockKey: LOCK_KEY })
+      }
       workerState.lastSuccessfulTickAt = Date.now()
     } catch (error) {
       logger.error("worker_tick_error", { error })
     } finally {
+      clearInterval(lockHeartbeat)
       await releaseLock(LOCK_KEY, lock.token)
       await sleep(TICK_RATE_MS)
     }

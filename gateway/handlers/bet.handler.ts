@@ -26,7 +26,9 @@ export async function handleBet(userId: string, amount: number, currency: Curren
       publicPlayer: result.publicPlayer,
     })
 
-    await emitGameEvent(result.roundId, RoundEventType.PLAYER_BET, eventPayload)
+    if (result.mode === "active") {
+      await emitGameEvent(result.roundId, RoundEventType.PLAYER_BET, eventPayload)
+    }
 
     return {
       type: "player_bet",

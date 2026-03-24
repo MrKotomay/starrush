@@ -234,7 +234,55 @@ async function ensureDefaultStakingPools(client: DbClient = db) {
   }
 }
 
-async function accruePosition(
+async function acquireStakingUserLock(tx: Prisma.TransactionClient, userId: string) {
+  await tx.$executeRaw`SET LOCAL lock_timeout = '2s'`
+  await tx.$executeRaw`
+    SELECT pg_advisory_xact_lock(
+      hashtext(${`starrush:staking:user`}),
+      hashtext(${userId})
+    )
+  `
+}
+
+async function lockStakingPoolById(tx: Prisma.TransactionClient, poolId: string) {
+  await tx.$queryRaw`SELECT id FROM "StakingPool" WHERE id = ${poolId} FOR UPDATE`
+}
+
+async function lockStakingPoolByAssetId(tx: Prisma.TransactionClient, assetId: string) {
+  await tx.$queryRaw`SELECT id FROM "StakingPool" WHERE "assetId" = ${assetId} FOR UPDATE`
+}
+
+async function lockStakingPositionById(tx: Prisma.TransactionClient, positionId: string) {
+  await tx.$queryRaw`SELECT id FROM "StakingPosition" WHERE id = ${positionId} FOR UPDATE`
+}
+
+async function lockStakingPositionByUserPool(tx: Prisma.TransactionClient, userId: string, poolId: string) {
+  await tx.$queryRaw`
+    SELECT id
+    FROM "StakingPosition"
+    WHERE "userId" = ${userId} AND "poolId" = ${poolId}
+    FOR UPDATE
+  `
+}
+
+function previewAccruedPosition(
+  pool: StakingPoolWithCurrency,
+  position: StakingPosition,
+  now: Date,
+) {
+  const accruedReward = calculateAccruedReward(position.stakedPrincipal, pool.aprBps, position.lastAccruedAt, now)
+  if (accruedReward.eq(0) && position.lastAccruedAt.getTime() === now.getTime()) {
+    return position
+  }
+
+  return {
+    ...position,
+    pendingReward: position.pendingReward.plus(accruedReward),
+    lastAccruedAt: now,
+  } satisfies StakingPosition
+}
+
+async function settleAccruedPosition(
   tx: Prisma.TransactionClient,
   pool: StakingPoolWithCurrency,
   position: StakingPosition,
@@ -260,7 +308,8 @@ async function getOrCreatePosition(
   poolId: string,
   now: Date,
 ) {
-  return tx.stakingPosition.upsert({
+  await lockStakingPositionByUserPool(tx, userId, poolId)
+  const position = await tx.stakingPosition.upsert({
     where: { userId_poolId: { userId, poolId } },
     update: {},
     create: {
@@ -269,6 +318,8 @@ async function getOrCreatePosition(
       lastAccruedAt: now,
     },
   })
+  await lockStakingPositionById(tx, position.id)
+  return position
 }
 
 async function processMatureUnstakes(
@@ -282,14 +333,41 @@ async function processMatureUnstakes(
       status: StakingUnstakeStatus.PENDING,
       availableAt: { lte: now },
     },
-    include: {
-      pool: true,
-      position: true,
-    },
     orderBy: { createdAt: "asc" },
   })
 
-  for (const request of requests) {
+  for (const pendingRequest of requests) {
+    await tx.$queryRaw`
+      SELECT id
+      FROM "StakingUnstakeRequest"
+      WHERE id = ${pendingRequest.id}
+      FOR UPDATE
+    `
+
+    const request = await tx.stakingUnstakeRequest.findUnique({
+      where: { id: pendingRequest.id },
+      include: {
+        pool: true,
+        position: true,
+      },
+    })
+    if (!request) {
+      continue
+    }
+    if (request.status !== StakingUnstakeStatus.PENDING || request.availableAt > now) {
+      continue
+    }
+
+    await lockStakingPoolById(tx, request.poolId)
+    await lockStakingPositionById(tx, request.positionId)
+
+    const position = await tx.stakingPosition.findUnique({
+      where: { id: request.positionId },
+    })
+    if (!position) {
+      continue
+    }
+
     const currency = getPoolCurrency(request.pool)
     const entry = await createTransaction(
       {
@@ -313,7 +391,7 @@ async function processMatureUnstakes(
     await tx.stakingPosition.update({
       where: { id: request.positionId },
       data: {
-        totalUnstaked: request.position.totalUnstaked.plus(request.amount),
+        totalUnstaked: position.totalUnstaked.plus(request.amount),
       },
     })
 
@@ -391,7 +469,6 @@ async function buildOverviewWithinTransaction(tx: Prisma.TransactionClient, user
   const now = new Date()
 
   await ensureDefaultStakingPools(tx)
-  await processMatureUnstakes(tx, userId, now)
 
   const pools = await tx.stakingPool.findMany({
     where: {
@@ -428,8 +505,7 @@ async function buildOverviewWithinTransaction(tx: Prisma.TransactionClient, user
   for (const position of positions) {
     const pool = poolsById.get(position.poolId)
     if (!pool) continue
-    const accruedPosition = await accruePosition(tx, pool, position, now)
-    positionsByPoolId.set(position.poolId, accruedPosition)
+    positionsByPoolId.set(position.poolId, previewAccruedPosition(pool, position, now))
   }
 
   const pendingUnstakesByPoolId = new Map(pendingUnstakes.map((entry) => [entry.poolId, entry]))
@@ -463,6 +539,7 @@ async function getPoolOrThrow(
   assetIdInput: string,
 ) {
   const assetId = parseAssetId(assetIdInput)
+  await lockStakingPoolByAssetId(tx, assetId)
   const pool = await tx.stakingPool.findUnique({
     where: { assetId },
   })
@@ -490,11 +567,30 @@ async function getAccruedPositionOrNull(
   })
 
   if (!position) return null
-  return accruePosition(tx, pool, position, now)
+  await lockStakingPositionById(tx, position.id)
+
+  const lockedPosition = await tx.stakingPosition.findUnique({
+    where: { id: position.id },
+  })
+  if (!lockedPosition) return null
+
+  return settleAccruedPosition(tx, pool, lockedPosition, now)
 }
 
 export async function getStakingOverview(userId: string): Promise<StakingOverview> {
   return db.$transaction((tx) => buildOverviewWithinTransaction(tx, userId))
+}
+
+export async function syncStakingOverview(userId: string): Promise<StakingOverview> {
+  return db.$transaction(async (tx) => {
+    const now = new Date()
+
+    await ensureDefaultStakingPools(tx)
+    await acquireStakingUserLock(tx, userId)
+    await processMatureUnstakes(tx, userId, now)
+
+    return buildOverviewWithinTransaction(tx, userId)
+  })
 }
 
 export async function getStakingAssetOverview(userId: string, assetId: string) {
@@ -518,6 +614,7 @@ export async function stakeAsset(input: {
     const now = new Date()
 
     await ensureDefaultStakingPools(tx)
+    await acquireStakingUserLock(tx, input.userId)
     await processMatureUnstakes(tx, input.userId, now)
 
     const pool = await getPoolOrThrow(tx, assetId)
@@ -527,7 +624,7 @@ export async function stakeAsset(input: {
 
     const amount = normalizeInputAmount(pool, input.amount)
     const position = await getOrCreatePosition(tx, input.userId, pool.id, now)
-    const accruedPosition = await accruePosition(tx, pool, position, now)
+    const accruedPosition = await settleAccruedPosition(tx, pool, position, now)
 
     const entry = await createTransaction(
       {
@@ -598,6 +695,7 @@ export async function claimAssetRewards(input: {
     const now = new Date()
 
     await ensureDefaultStakingPools(tx)
+    await acquireStakingUserLock(tx, input.userId)
     await processMatureUnstakes(tx, input.userId, now)
 
     const pool = await getPoolOrThrow(tx, assetId)
@@ -682,6 +780,7 @@ export async function requestAssetUnstake(input: {
     const now = new Date()
 
     await ensureDefaultStakingPools(tx)
+    await acquireStakingUserLock(tx, input.userId)
     await processMatureUnstakes(tx, input.userId, now)
 
     const pool = await getPoolOrThrow(tx, assetId)
