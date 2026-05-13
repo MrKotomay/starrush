@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import type { StarRushGame } from "@/game/StarRushGame";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Copy, Settings2, Vibrate, VibrateOff } from "lucide-react";
 
@@ -15,67 +14,37 @@ import {
 import { CoefficientDisplay } from "@/components/game/CoefficientDisplay";
 import { PlayersBetsList } from "@/components/game/PlayersBetsList";
 import { RocketOverlay } from "@/components/game/RocketOverlay";
-import { Currency, PlayerBetView, RoundHistoryItem, RoundPhase, RoundSnapshot } from "@/game/types";
-import {
-  BackendRoundStateAdapter,
-  type BackendRoundConnectionState,
-} from "@/lib/game/backend-round-state-adapter";
+import { Currency, RoundHistoryItem, RoundPhase } from "@/game/types";
 import { useAppSettings } from "@/lib/app-settings";
 import { formatCurrencyAmount, isIntegerCurrency } from "@/lib/currency";
 import { useHaptics } from "@/lib/haptics";
 import { useI18n } from "@/lib/i18n";
 
-const MIN_BET_BY_CURRENCY: Record<Currency, number> = {
-  TON: 0.1,
-  STARS: 1,
-};
-const MAX_BET_BY_CURRENCY: Record<Currency, number> = {
-  TON: 1000,
-  STARS: 1000,
-};
-const TOAST_VISIBLE_MS = 4800;
-const TOAST_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
-const ROUND_SWITCH_RETRY_WINDOW_MS = 3200;
-const ROUND_SWITCH_RETRY_STEP_MS = 180;
-const MIN_RENDER_SURFACE_PX = 24;
-const HISTORY_POPOVER_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
-const HISTORY_POPOVER_SIDE_GAP_PX = 22;
-const HISTORY_POPOVER_MAX_WIDTH_PX = 250;
-
-function formatConnectionHint(
-  attempt: number,
-  t: (key: string, vars?: Record<string, string | number>) => string,
-): string {
-  if (attempt > 0) {
-    return t("rush.connectionRetry", { attempt });
-  }
-  return t("rush.connectionLost");
-}
-
-const INITIAL_SNAPSHOT: RoundSnapshot = {
-  phase: RoundPhase.PREPARING,
-  roundId: "round-0",
-  roundIndex: 0,
-  onlineCount: 0,
-  coefficient: 1,
-  crashAt: 1.5,
-  countdown: 5,
-  runningElapsedMs: 0,
-  phaseElapsedMs: 0,
-  history: [],
-  fairness: null,
-  players: [],
-  queuedBet: null,
-  userActiveBet: null,
-  canPlaceBet: true,
-  canCashOut: false,
-};
-
-const INITIAL_CONNECTION_STATE: BackendRoundConnectionState = {
-  status: "connected",
-  reconnectAttempt: 0,
-  nextRetryAt: null,
-};
+import {
+  HISTORY_POPOVER_EASE,
+  HISTORY_POPOVER_MAX_WIDTH_PX,
+  HISTORY_POPOVER_SIDE_GAP_PX,
+  MAX_BET_BY_CURRENCY,
+  MIN_BET_BY_CURRENCY,
+  ROUND_SWITCH_RETRY_STEP_MS,
+  ROUND_SWITCH_RETRY_WINDOW_MS,
+  TOAST_EASE,
+  TOAST_VISIBLE_MS,
+  formatConnectionHint,
+  formatRoundDate,
+  formatRoundTime,
+  historyPillClass,
+  isRoundSwitchErrorMessage,
+  localizeAdapterMessage,
+  toFiniteNumber,
+  type HistoryDetailsState,
+  type HistoryPopoverPosition,
+  type MainCtaState,
+  type ToastState,
+  type WalletsApiResponse,
+} from "@/components/game/star-rush/helpers";
+import { useRoundAdapter } from "@/components/game/star-rush/hooks/use-round-adapter";
+import { useWalletBalances } from "@/components/game/star-rush/hooks/use-wallet-balances";
 
 interface StarRushPanelProps {
   initialTonBalance?: number;
@@ -83,261 +52,6 @@ interface StarRushPanelProps {
   isActive?: boolean;
   onOnlineCountChange?: (count: number) => void;
   onWalletNeedsRefresh?: () => void;
-}
-
-type ToastState = {
-  id: number;
-  message: string;
-};
-
-type HistoryDetailsState = {
-  key: string;
-  isCurrentRound: boolean;
-  roundId: string;
-  crashAt: number;
-  timestamp: number | null;
-  serverSeedHash: string | null;
-  serverSeed: string | null;
-};
-
-type HistoryPopoverPosition = {
-  left: number;
-  top: number;
-};
-
-type MainCtaState = "bet-ready" | "cashout-ready" | "submitting" | "connection-lost";
-
-type WalletsApiResponse = {
-  ok?: boolean;
-  wallets?: Array<{
-    currency?: string;
-    balance?: string;
-    lockedBalance?: string;
-  }>;
-};
-
-function toFiniteNumber(value: unknown, fallback = 0): number {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string") {
-    const parsed = Number.parseFloat(value);
-    if (Number.isFinite(parsed)) return parsed;
-  }
-  return fallback;
-}
-
-function formatRoundDate(
-  timestamp: number | null,
-  formatter: (value: number | string | Date, options?: Intl.DateTimeFormatOptions) => string,
-): string {
-  if (!timestamp || !Number.isFinite(timestamp)) return "--.--.----";
-  return formatter(timestamp);
-}
-
-function formatRoundTime(
-  timestamp: number | null,
-  formatter: (value: number | string | Date, options?: Intl.DateTimeFormatOptions) => string,
-): string {
-  if (!timestamp || !Number.isFinite(timestamp)) return "--:--:--";
-  return formatter(timestamp);
-}
-
-function isRoundSwitchErrorMessage(message: string): boolean {
-  const normalized = message.toLowerCase();
-  return (
-    normalized.includes("round is not accepting bets") ||
-    normalized.includes("betting closed") ||
-    normalized.includes("раунд сейчас не принимает ставки")
-  );
-}
-
-function localizeAdapterMessage(
-  message: string,
-  t: (key: string, vars?: Record<string, string | number>) => string,
-): string {
-  const normalized = message.trim().toLowerCase();
-
-  if (
-    normalized.includes("per-bet risk cap exceeded") ||
-    normalized.includes("queued per-bet risk cap exceeded") ||
-    normalized.includes("ставка слишком большая для текущих лимитов")
-  ) {
-    return t("rush.error.betTooLarge");
-  }
-
-  if (
-    normalized.includes("round exposure cap exceeded") ||
-    normalized.includes("queued round exposure cap exceeded") ||
-    normalized.includes("лимит нагрузки на раунд достигнут")
-  ) {
-    return t("rush.error.roundExposureCap");
-  }
-
-  if (normalized.includes("queue risk buffer depleted") || normalized.includes("ставка на следующий раунд временно недоступна")) {
-    return t("rush.error.queueUnavailable");
-  }
-
-  if (
-    normalized.includes("risk-active state") ||
-    normalized.includes("not running for queue acceptance") ||
-    normalized.includes("раунд сейчас не принимает эту ставку")
-  ) {
-    return t("rush.error.roundNotAcceptingThisBet");
-  }
-
-  if (normalized.includes("ставка отклонена по лимиту риска")) {
-    return t("rush.error.riskRejected");
-  }
-
-  if (
-    normalized.includes("round is not accepting bets") ||
-    normalized.includes("betting closed") ||
-    normalized.includes("раунд сейчас не принимает ставки")
-  ) {
-    return t("rush.error.roundNotAccepting");
-  }
-
-  if (
-    normalized.includes("нет соединения") ||
-    normalized.includes("trying to reconnect") ||
-    normalized.includes("пытаемся переподключиться")
-  ) {
-    return t("rush.connectionLost");
-  }
-
-  if (normalized.includes("вы уже поставили ставку") || normalized.includes("already placed a bet")) {
-    return t("rush.error.alreadyBet");
-  }
-
-  if (normalized.includes("следующий раунд") && normalized.includes("у вас уже есть")) {
-    return t("rush.error.queuedBetExists");
-  }
-
-  if (normalized.includes("недостаточно средств") || normalized.includes("insufficient balance")) {
-    return t("rush.error.insufficientBalance");
-  }
-
-  if (normalized.includes("некорректная сумма ставки") || normalized.includes("invalid bet amount")) {
-    return t("rush.error.invalidBetAmount");
-  }
-
-  if (normalized.includes("ошибка сервера при размещении ставки") || normalized.includes("server error while placing the bet")) {
-    return t("rush.error.betServer");
-  }
-
-  if (normalized.includes("требуется авторизация") || normalized.includes("authorization required")) {
-    return t("rush.error.authRequired");
-  }
-
-  if (normalized.includes("не удалось поставить ставку") || normalized.includes("could not place the bet")) {
-    return t("rush.error.betFailed");
-  }
-
-  if (normalized.includes("round is not running")) {
-    return t("rush.error.roundNotRunning");
-  }
-
-  if (normalized.includes("bet already cashed out")) {
-    return t("rush.error.alreadyCashedOut");
-  }
-
-  if (normalized.includes("active bet not found")) {
-    return t("rush.error.activeBetNotFound");
-  }
-
-  if (normalized.includes("server error while cashing out")) {
-    return t("rush.error.cashoutServer");
-  }
-
-  if (normalized.includes("cashout failed")) {
-    return t("rush.error.cashoutFailed");
-  }
-
-  return message;
-}
-
-function historyPillClass(crashAt: number, isFirst: boolean): string {
-  if (isFirst) return `${styles.historyPill} ${styles.historyPillFirst}`;
-  if (crashAt < 1.6) return `${styles.historyPill} ${styles.historyLow}`;
-  if (crashAt < 3.2) return `${styles.historyPill} ${styles.historyMid}`;
-  return `${styles.historyPill} ${styles.historyHigh}`;
-}
-
-function isSameBet(a: PlayerBetView | null, b: PlayerBetView | null): boolean {
-  if (a === b) return true;
-  if (!a || !b) return false;
-  return (
-    a.id === b.id &&
-    a.status === b.status &&
-    a.amount === b.amount &&
-    a.currency === b.currency &&
-    a.payout === b.payout &&
-    a.cashoutMultiplier === b.cashoutMultiplier &&
-    a.visibleToCurrentUserOnly === b.visibleToCurrentUserOnly
-  );
-}
-
-function isSamePlayers(a: PlayerBetView[], b: PlayerBetView[]): boolean {
-  if (a === b) return true;
-  if (a.length !== b.length) return false;
-
-  for (let i = 0; i < a.length; i += 1) {
-    const p = a[i];
-    const n = b[i];
-    if (
-      p.id !== n.id ||
-      p.status !== n.status ||
-      p.amount !== n.amount ||
-      p.currency !== n.currency ||
-      p.payout !== n.payout ||
-      p.cashoutMultiplier !== n.cashoutMultiplier ||
-      p.visibleToCurrentUserOnly !== n.visibleToCurrentUserOnly
-    ) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function hasStructuralSnapshotChange(prev: RoundSnapshot, next: RoundSnapshot): boolean {
-  if (prev.phase !== next.phase) return true;
-  if (prev.roundId !== next.roundId) return true;
-  if (prev.roundIndex !== next.roundIndex) return true;
-  if (prev.onlineCount !== next.onlineCount) return true;
-  if (prev.countdown !== next.countdown) return true;
-  if (prev.crashAt !== next.crashAt) return true;
-  if ((prev.fairness?.serverSeedHash ?? null) !== (next.fairness?.serverSeedHash ?? null)) return true;
-  if ((prev.fairness?.serverSeed ?? null) !== (next.fairness?.serverSeed ?? null)) return true;
-  if (prev.canPlaceBet !== next.canPlaceBet) return true;
-  if (prev.canCashOut !== next.canCashOut) return true;
-  if (!isSameBet(prev.queuedBet, next.queuedBet)) return true;
-  if (!isSameBet(prev.userActiveBet, next.userActiveBet)) return true;
-  if (!isSamePlayers(prev.players, next.players)) return true;
-  if (prev.history.length !== next.history.length) return true;
-
-  for (let i = 0; i < prev.history.length; i += 1) {
-    if (
-      prev.history[i].roundId !== next.history[i].roundId ||
-      prev.history[i].crashAt !== next.history[i].crashAt ||
-      prev.history[i].timestamp !== next.history[i].timestamp ||
-      (prev.history[i].serverSeedHash ?? null) !== (next.history[i].serverSeedHash ?? null) ||
-      (prev.history[i].serverSeed ?? null) !== (next.history[i].serverSeed ?? null)
-    ) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function cloneSnapshotForPhaser(snapshot: RoundSnapshot): RoundSnapshot {
-  return {
-    ...snapshot,
-    history: snapshot.history.map((item) => ({ ...item })),
-    players: snapshot.players.map((player) => ({ ...player })),
-    queuedBet: snapshot.queuedBet ? { ...snapshot.queuedBet } : null,
-    userActiveBet: snapshot.userActiveBet ? { ...snapshot.userActiveBet } : null,
-  };
 }
 
 /* ================================================================
@@ -354,24 +68,12 @@ export function StarRushPanel({
   const { t, formatDate, formatTime } = useI18n();
   const haptics = useHaptics();
   const panelRootRef = useRef<HTMLDivElement | null>(null);
-  const mountRef = useRef<HTMLDivElement | null>(null);
   const historyRowRef = useRef<HTMLDivElement | null>(null);
   const historyRailRef = useRef<HTMLDivElement | null>(null);
   const historyPopoverRef = useRef<HTMLDivElement | null>(null);
   const settingsPopoverRef = useRef<HTMLDivElement | null>(null);
-  const rendererRef = useRef<StarRushGame | null>(null);
-  const resizeObRef = useRef<ResizeObserver | null>(null);
-  const roundAdapterRef = useRef<BackendRoundStateAdapter | null>(null);
-  const isPanelActiveRef = useRef(isActive);
-  const activationResizeRafRef = useRef<number | null>(null);
 
-  const [snapshot, setSnapshot] = useState<RoundSnapshot>(INITIAL_SNAPSHOT);
-  const [coefficient, setCoefficient] = useState<number>(INITIAL_SNAPSHOT.coefficient);
   const [betAmount, setBetAmount] = useState<number>(1);
-  const [walletTonBalance, setWalletTonBalance] = useState<number>(Math.max(0, initialTonBalance));
-  const [walletTonLocked, setWalletTonLocked] = useState<number>(0);
-  const [walletStarsBalance, setWalletStarsBalance] = useState<number>(Math.max(0, initialStarsBalance));
-  const [walletStarsLocked, setWalletStarsLocked] = useState<number>(0);
   const [isBetSubmitting, setBetSubmitting] = useState(false);
   const [isCashoutSubmitting, setCashoutSubmitting] = useState(false);
   const [panelAnchorRect, setPanelAnchorRect] = useState<{ left: number; width: number } | null>(null);
@@ -382,39 +84,18 @@ export function StarRushPanel({
   const [openHistoryKey, setOpenHistoryKey] = useState<string | null>(null);
   const [historyPopoverPos, setHistoryPopoverPos] = useState<HistoryPopoverPosition | null>(null);
   const [copiedHistoryField, setCopiedHistoryField] = useState<"hash" | "seed" | null>(null);
-  const [connectionState, setConnectionState] = useState<BackendRoundConnectionState>(INITIAL_CONNECTION_STATE);
 
-  // Separate fast-changing coefficient from structural snapshot
-  // so the bets list doesn't re-render at ~15fps during RUNNING.
-  const lastStructRef = useRef<RoundSnapshot>(INITIAL_SNAPSHOT);
-  const coeffTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pendingCoeffRef = useRef<number>(INITIAL_SNAPSHOT.coefficient);
-  const latestPhaserSnapshotRef = useRef<RoundSnapshot>(cloneSnapshotForPhaser(INITIAL_SNAPSHOT));
-  const debugPhaserSyncRef = useRef(false);
   const renderCountRef = useRef(0);
   const toastIdRef = useRef(0);
   const historyCopyResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const onOnlineCountChangeRef = useRef(onOnlineCountChange);
   const onWalletNeedsRefreshRef = useRef(onWalletNeedsRefresh);
-  const lastPhaseRef = useRef<RoundPhase>(INITIAL_SNAPSHOT.phase);
+  const lastPhaseRef = useRef<RoundPhase>(RoundPhase.PREPARING);
   const lastCrashHapticRoundRef = useRef<string | null>(null);
   renderCountRef.current += 1;
 
   useEffect(() => {
-    onOnlineCountChangeRef.current = onOnlineCountChange;
-  }, [onOnlineCountChange]);
-
-  useEffect(() => {
     onWalletNeedsRefreshRef.current = onWalletNeedsRefresh;
   }, [onWalletNeedsRefresh]);
-
-  useEffect(() => {
-    setWalletTonBalance(Math.max(0, initialTonBalance));
-  }, [initialTonBalance]);
-
-  useEffect(() => {
-    setWalletStarsBalance(Math.max(0, initialStarsBalance));
-  }, [initialStarsBalance]);
 
   const showToast = useCallback((message: string) => {
     const trimmed = message.trim();
@@ -423,25 +104,28 @@ export function StarRushPanel({
     setToast({ id: toastIdRef.current, message: trimmed });
   }, []);
 
-  const refreshTonWalletBalance = useCallback(async () => {
-    const response = await fetch("/api/wallets", {
-      method: "GET",
-      credentials: "include",
-      cache: "no-store",
-      headers: { Accept: "application/json" },
-    });
+  const {
+    tonAvailableBalance,
+    starsAvailableBalance,
+    refreshWalletBalances,
+  } = useWalletBalances({ initialTonBalance, initialStarsBalance });
 
-    const payload = (await response.json().catch(() => ({}))) as WalletsApiResponse;
-    if (!response.ok || payload?.ok !== true || !Array.isArray(payload.wallets)) return;
-
-    const tonWallet = payload.wallets.find((wallet) => wallet.currency === "TON");
-    const starsWallet = payload.wallets.find((wallet) => wallet.currency === "STARS");
-
-    setWalletTonBalance(Math.max(0, toFiniteNumber(tonWallet?.balance)));
-    setWalletTonLocked(Math.max(0, toFiniteNumber(tonWallet?.lockedBalance)));
-    setWalletStarsBalance(Math.max(0, toFiniteNumber(starsWallet?.balance)));
-    setWalletStarsLocked(Math.max(0, toFiniteNumber(starsWallet?.lockedBalance)));
-  }, []);
+  const {
+    snapshot,
+    coefficient,
+    connectionState,
+    mountRef,
+    rendererRef,
+    adapterRef: roundAdapterRef,
+    getLiveCoefficient,
+  } = useRoundAdapter({
+    isActive,
+    isPlaceModalOpen,
+    onError: showToast,
+    onPostBootstrap: refreshWalletBalances,
+    onWalletNeedsRefresh,
+    onOnlineCountChange,
+  });
 
   useEffect(() => {
     const panel = panelRootRef.current;
@@ -473,142 +157,12 @@ export function StarRushPanel({
       window.removeEventListener("orientationchange", updateRect);
     };
   }, []);
-  /* -- backend adapter + renderer init -- */
-  useEffect(() => {
-    const isDevClient = process.env.NODE_ENV !== "production" && typeof window !== "undefined";
-    const params = isDevClient ? new URLSearchParams(window.location.search) : null;
-    const debugRoundSync = Boolean(isDevClient && params?.has("debugRoundSync"));
-    const debugPhaserSync = Boolean(isDevClient && params?.has("debugPhaserSync"));
-    debugPhaserSyncRef.current = debugPhaserSync;
-    const adapter = new BackendRoundStateAdapter({
-      debug: debugRoundSync,
-      snapshotPath: "/api/game/round/current",
-    });
-    roundAdapterRef.current = adapter;
-    const unsubConnection = adapter.subscribeConnection((next) => {
-      setConnectionState(next);
-      rendererRef.current?.setConnectionSuspended(next.status !== "connected");
-    });
-
-    const unsub = adapter.subscribe((next) => {
-      const phaserSnapshot = cloneSnapshotForPhaser(next);
-      latestPhaserSnapshotRef.current = phaserSnapshot;
-
-      // Always forward to Phaser (it handles its own frame-rate)
-      if (rendererRef.current) {
-        if (debugPhaserSyncRef.current) {
-          console.debug(
-            `[StarRushPanel][PhaserSync] apply snapshot round=${phaserSnapshot.roundId} phase=${phaserSnapshot.phase} coeff=${phaserSnapshot.coefficient.toFixed(4)}`,
-          );
-        }
-        rendererRef.current.applySnapshot(phaserSnapshot);
-      }
-
-      pendingCoeffRef.current = next.coefficient;
-
-      const prev = lastStructRef.current;
-      const structChanged = hasStructuralSnapshotChange(prev, next);
-
-      if (structChanged) {
-        // Structural change - update immediately (bets/phase changed)
-        lastStructRef.current = next;
-        setSnapshot(next);
-        setCoefficient(next.coefficient);
-      } else {
-        // Coefficient-only tick - throttle to ~100ms for React UI
-        if (!coeffTimerRef.current) {
-          coeffTimerRef.current = setTimeout(() => {
-            coeffTimerRef.current = null;
-            setCoefficient(pendingCoeffRef.current);
-          }, 100);
-        }
-      }
-    });
-
-    let cancelled = false;
-
-    const bootstrap = async () => {
-      // Adapter performs snapshot resync before ws connect.
-      await adapter.start();
-      if (cancelled) return;
-      await refreshTonWalletBalance();
-      onWalletNeedsRefreshRef.current?.();
-      if (cancelled) return;
-
-      if (!mountRef.current) return;
-      const { StarRushGame } = await import("@/game/StarRushGame");
-      if (cancelled || !mountRef.current) return;
-
-      const renderer = new StarRushGame(mountRef.current, { debugSync: debugPhaserSync });
-      rendererRef.current = renderer;
-      renderer.setConnectionSuspended(adapter.getConnectionState().status !== "connected");
-
-      // Phaser Scale.RESIZE handles initial canvas sizing via its own
-      // resize event (fires inside create()). We only push later container
-      // size changes through the ResizeObserver - hooked AFTER the renderer
-      // exists so we never call resize() before the scene has booted.
-      const initialPhaserSnapshot = cloneSnapshotForPhaser(latestPhaserSnapshotRef.current);
-      latestPhaserSnapshotRef.current = initialPhaserSnapshot;
-      if (debugPhaserSyncRef.current) {
-        console.debug(
-          `[StarRushPanel][PhaserSync] bootstrap snapshot round=${initialPhaserSnapshot.roundId} phase=${initialPhaserSnapshot.phase} coeff=${initialPhaserSnapshot.coefficient.toFixed(4)}`,
-        );
-      }
-      renderer.applySnapshot(initialPhaserSnapshot);
-
-      const el = mountRef.current;
-      if (el && !cancelled) {
-        resizeObRef.current = new ResizeObserver((entries) => {
-          const e = entries[0];
-          if (!e) return;
-          if (!isPanelActiveRef.current) return;
-          const nextWidth = e.contentRect.width;
-          const nextHeight = e.contentRect.height;
-          if (nextWidth < MIN_RENDER_SURFACE_PX || nextHeight < MIN_RENDER_SURFACE_PX) return;
-          rendererRef.current?.resize(nextWidth, nextHeight);
-        });
-        resizeObRef.current.observe(el);
-      }
-    };
-
-    bootstrap().catch((err: unknown) => {
-      const msg = err instanceof Error ? err.message : "Failed to start renderer";
-      showToast(msg);
-    });
-
-    const onVis = () => {
-      const hidden = document.hidden || !isPanelActiveRef.current;
-      adapter.setDocumentHidden(hidden);
-      rendererRef.current?.setLowPowerMode(hidden);
-    };
-    document.addEventListener("visibilitychange", onVis);
-    onVis();
-
-    return () => {
-      cancelled = true;
-      document.removeEventListener("visibilitychange", onVis);
-      resizeObRef.current?.disconnect();
-      resizeObRef.current = null;
-      if (coeffTimerRef.current) { clearTimeout(coeffTimerRef.current); coeffTimerRef.current = null; }
-      unsub();
-      unsubConnection();
-      adapter.destroy();
-      roundAdapterRef.current = null;
-      rendererRef.current?.destroy();
-      rendererRef.current = null;
-      debugPhaserSyncRef.current = false;
-    };
-  }, [refreshTonWalletBalance, showToast]);
 
   useEffect(() => {
     if (!toast) return;
     const t = window.setTimeout(() => setToast(null), TOAST_VISIBLE_MS);
     return () => window.clearTimeout(t);
   }, [toast]);
-
-  useEffect(() => {
-    onOnlineCountChangeRef.current?.(snapshot.onlineCount);
-  }, [snapshot.onlineCount]);
 
   useEffect(() => {
     if (!isActive) {
@@ -644,51 +198,15 @@ export function StarRushPanel({
         clearTimeout(historyCopyResetTimerRef.current);
         historyCopyResetTimerRef.current = null;
       }
-      if (activationResizeRafRef.current !== null) {
-        cancelAnimationFrame(activationResizeRafRef.current);
-        activationResizeRafRef.current = null;
-      }
     };
   }, []);
 
   useEffect(() => {
-    isPanelActiveRef.current = isActive;
-    if (activationResizeRafRef.current !== null) {
-      cancelAnimationFrame(activationResizeRafRef.current);
-      activationResizeRafRef.current = null;
-    }
-    if (typeof window === "undefined" || typeof document === "undefined") return;
-    const hidden = document.hidden || !isActive;
-    roundAdapterRef.current?.setDocumentHidden(hidden);
-    rendererRef.current?.setLowPowerMode(hidden);
-    if (!isActive) return;
-
-    activationResizeRafRef.current = window.requestAnimationFrame(() => {
-      activationResizeRafRef.current = null;
-      const host = mountRef.current;
-      if (!host) return;
-      const rect = host.getBoundingClientRect();
-      if (rect.width < MIN_RENDER_SURFACE_PX || rect.height < MIN_RENDER_SURFACE_PX) return;
-      rendererRef.current?.resize(rect.width, rect.height);
-    });
-  }, [isActive]);
-
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    const hidden = document.hidden || !isPanelActiveRef.current || isPlaceModalOpen;
-    roundAdapterRef.current?.setDocumentHidden(hidden);
-    rendererRef.current?.setLowPowerMode(hidden);
-  }, [isPlaceModalOpen]);
-
-  useEffect(() => {
-    const interrupted = connectionState.status !== "connected";
-    if (interrupted && isPlaceModalOpen) {
+    if (connectionState.status === "connected") return;
+    if (isPlaceModalOpen) {
       setPlaceModalOpen(false);
     }
-    if (interrupted) {
-      setSettingsOpen(false);
-    }
-    rendererRef.current?.setConnectionSuspended(interrupted);
+    setSettingsOpen(false);
   }, [connectionState.status, isPlaceModalOpen]);
 
   useEffect(() => {
@@ -749,7 +267,7 @@ export function StarRushPanel({
           return false;
         }
 
-        await refreshTonWalletBalance();
+        await refreshWalletBalances();
         onWalletNeedsRefreshRef.current?.();
         haptics.betPlaced();
         return true;
@@ -757,7 +275,7 @@ export function StarRushPanel({
         setBetSubmitting(false);
       }
     },
-    [haptics, isBetSubmitting, isCashoutSubmitting, refreshTonWalletBalance, showToast, t],
+    [haptics, isBetSubmitting, isCashoutSubmitting, refreshWalletBalances, showToast, t],
   );
 
   const onCashOut = useCallback(async () => {
@@ -779,12 +297,12 @@ export function StarRushPanel({
         multiplier: result.multiplier.toFixed(2),
         currency: result.currency,
       }));
-      await refreshTonWalletBalance();
+      await refreshWalletBalances();
       onWalletNeedsRefreshRef.current?.();
     } finally {
       setCashoutSubmitting(false);
     }
-  }, [haptics, isBetSubmitting, isCashoutSubmitting, refreshTonWalletBalance, showToast, t]);
+  }, [haptics, isBetSubmitting, isCashoutSubmitting, refreshWalletBalances, showToast, t]);
 
   const onPlaceFromModal = useCallback(async (payload: PlaceBetSubmitPayload) => {
     if (payload.tab === "GIFTS") {
@@ -834,14 +352,6 @@ export function StarRushPanel({
   const isConnectionInterrupted = connectionState.status !== "connected";
   const cashoutAmount = userActive ? userActive.amount * coefficient : 0;
   const activeBetCurrency = userActive?.currency ?? "TON";
-  const tonAvailableBalance = useMemo(
-    () => Math.max(0, walletTonBalance - walletTonLocked),
-    [walletTonBalance, walletTonLocked],
-  );
-  const starsAvailableBalance = useMemo(
-    () => Math.max(0, walletStarsBalance - walletStarsLocked),
-    [walletStarsBalance, walletStarsLocked],
-  );
   const connectionHint = useMemo(() => {
     if (!isConnectionInterrupted) return "";
     if (connectionState.reconnectAttempt > 0) {
@@ -1111,8 +621,7 @@ export function StarRushPanel({
     if (ctaState !== "bet-ready") return;
     setPlaceModalOpen(true);
   }, [ctaState, onCashOut]);
-  const getRocketPose = useCallback(() => rendererRef.current?.getRocketPose() ?? null, []);
-  const getLiveCoefficient = useCallback(() => pendingCoeffRef.current, []);
+  const getRocketPose = useCallback(() => rendererRef.current?.getRocketPose() ?? null, [rendererRef]);
   const onHistoryWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
     const rail = historyRailRef.current;
     if (!rail) return;
