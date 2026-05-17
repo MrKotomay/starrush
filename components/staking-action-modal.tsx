@@ -93,18 +93,18 @@ export function StakingActionModal({
         <motion.div
           className="fixed inset-0 z-[95] flex items-center justify-center p-4"
           onClick={onClose}
-          style={{ background: "rgba(4,8,18,0.62)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" } as React.CSSProperties}
+          style={{ background: "var(--modal-overlay)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" } as React.CSSProperties}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: shouldReduceMotion ? 0.1 : 0.2, ease: EASE }}
         >
           <motion.section
-            className="w-full max-w-sm rounded-[28px] border border-white/10 p-4 shadow-[0_24px_58px_rgba(2,6,18,0.28)]"
+            className="w-full max-w-sm rounded-[28px] border border-white/10 p-4"
             onClick={(event) => event.stopPropagation()}
             style={{
-              background:
-                "radial-gradient(72% 52% at 50% 0%, rgba(107,75,255,0.12) 0%, transparent 68%), linear-gradient(160deg, rgba(28,38,64,0.92) 0%, rgba(16,24,42,0.94) 54%, rgba(10,15,30,0.96) 100%)",
+              background: "var(--modal-background)",
+              boxShadow: "var(--modal-shadow)",
             }}
             initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 18, scale: 0.985 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}

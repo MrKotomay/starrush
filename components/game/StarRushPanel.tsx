@@ -1,9 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
-import { Check, Copy, Settings2, Vibrate, VibrateOff } from "lucide-react";
+import { Settings2 } from "lucide-react";
 
 import styles from "@/styles/starrush.module.css";
 
@@ -16,35 +14,29 @@ import { PlayersBetsList } from "@/components/game/PlayersBetsList";
 import { RocketOverlay } from "@/components/game/RocketOverlay";
 import { Currency, RoundHistoryItem, RoundPhase } from "@/game/types";
 import { useAppSettings } from "@/lib/app-settings";
-import { formatCurrencyAmount, isIntegerCurrency } from "@/lib/currency";
+import { formatCurrencyAmount } from "@/lib/currency";
 import { useHaptics } from "@/lib/haptics";
 import { useI18n } from "@/lib/i18n";
 
 import {
-  HISTORY_POPOVER_EASE,
   HISTORY_POPOVER_MAX_WIDTH_PX,
   HISTORY_POPOVER_SIDE_GAP_PX,
-  MAX_BET_BY_CURRENCY,
-  MIN_BET_BY_CURRENCY,
-  ROUND_SWITCH_RETRY_STEP_MS,
-  ROUND_SWITCH_RETRY_WINDOW_MS,
-  TOAST_EASE,
   TOAST_VISIBLE_MS,
   formatConnectionHint,
-  formatRoundDate,
-  formatRoundTime,
-  historyPillClass,
-  isRoundSwitchErrorMessage,
-  localizeAdapterMessage,
-  toFiniteNumber,
   type HistoryDetailsState,
   type HistoryPopoverPosition,
   type MainCtaState,
   type ToastState,
-  type WalletsApiResponse,
 } from "@/components/game/star-rush/helpers";
+import { useGameActions } from "@/components/game/star-rush/hooks/use-game-actions";
 import { useRoundAdapter } from "@/components/game/star-rush/hooks/use-round-adapter";
 import { useWalletBalances } from "@/components/game/star-rush/hooks/use-wallet-balances";
+import { ConnectionBanner } from "@/components/game/star-rush/parts/ConnectionBanner";
+import { HistoryDetailsPopover } from "@/components/game/star-rush/parts/HistoryDetailsPopover";
+import { HistoryRail } from "@/components/game/star-rush/parts/HistoryRail";
+import { MainCta } from "@/components/game/star-rush/parts/MainCta";
+import { SettingsPopover } from "@/components/game/star-rush/parts/SettingsPopover";
+import { ToastLayer } from "@/components/game/star-rush/parts/ToastLayer";
 
 interface StarRushPanelProps {
   initialTonBalance?: number;
@@ -74,13 +66,10 @@ export function StarRushPanel({
   const settingsPopoverRef = useRef<HTMLDivElement | null>(null);
 
   const [betAmount, setBetAmount] = useState<number>(1);
-  const [isBetSubmitting, setBetSubmitting] = useState(false);
-  const [isCashoutSubmitting, setCashoutSubmitting] = useState(false);
   const [panelAnchorRect, setPanelAnchorRect] = useState<{ left: number; width: number } | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [isPlaceModalOpen, setPlaceModalOpen] = useState(false);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
-  const [showHistoryEdgeFade, setShowHistoryEdgeFade] = useState(false);
   const [openHistoryKey, setOpenHistoryKey] = useState<string | null>(null);
   const [historyPopoverPos, setHistoryPopoverPos] = useState<HistoryPopoverPosition | null>(null);
   const [copiedHistoryField, setCopiedHistoryField] = useState<"hash" | "seed" | null>(null);
@@ -125,6 +114,25 @@ export function StarRushPanel({
     onPostBootstrap: refreshWalletBalances,
     onWalletNeedsRefresh,
     onOnlineCountChange,
+  });
+
+  const handleWalletNeedsRefresh = useCallback(() => {
+    onWalletNeedsRefreshRef.current?.();
+  }, []);
+
+  const {
+    isBetSubmitting,
+    isCashoutSubmitting,
+    isActionBusy,
+    placeBet,
+    cashOut: onCashOut,
+  } = useGameActions({
+    adapterRef: roundAdapterRef,
+    haptics,
+    t,
+    showToast,
+    refreshWalletBalances,
+    onWalletNeedsRefresh: handleWalletNeedsRefresh,
   });
 
   useEffect(() => {
@@ -223,87 +231,6 @@ export function StarRushPanel({
     return () => window.clearInterval(timer);
   }, []);
 
-  const placeBetAmount = useCallback(
-    async (rawBetAmount: number, currency: Currency): Promise<boolean> => {
-      const adapter = roundAdapterRef.current;
-      if (!adapter) return false;
-      if (isBetSubmitting || isCashoutSubmitting) return false;
-
-      const amount = isIntegerCurrency(currency)
-        ? Math.round(Math.max(0, rawBetAmount))
-        : Math.round(Math.max(0, rawBetAmount) * 100) / 100;
-      const minBet = MIN_BET_BY_CURRENCY[currency];
-      const maxBet = MAX_BET_BY_CURRENCY[currency];
-      if (!Number.isFinite(amount) || amount < minBet || amount > maxBet) {
-        showToast(t("rush.betLimit", { min: minBet, max: maxBet }));
-        return false;
-      }
-
-      setBetSubmitting(true);
-      try {
-        let result = await adapter.placeBet(amount, currency);
-        if (!result.ok && isRoundSwitchErrorMessage(result.message)) {
-          const retryDeadline = Date.now() + ROUND_SWITCH_RETRY_WINDOW_MS;
-
-          while (Date.now() < retryDeadline) {
-            await new Promise<void>((resolve) => {
-              window.setTimeout(resolve, ROUND_SWITCH_RETRY_STEP_MS);
-            });
-
-            const liveSnapshot = adapter.getSnapshot();
-            const canRetryNow =
-              (liveSnapshot.phase === RoundPhase.PREPARING || liveSnapshot.phase === RoundPhase.RUNNING) &&
-              liveSnapshot.canPlaceBet;
-            if (!canRetryNow) continue;
-
-            result = await adapter.placeBet(amount, currency);
-            if (result.ok) break;
-            if (!isRoundSwitchErrorMessage(result.message)) break;
-          }
-        }
-
-        if (!result.ok) {
-          showToast(localizeAdapterMessage(result.message, t));
-          return false;
-        }
-
-        await refreshWalletBalances();
-        onWalletNeedsRefreshRef.current?.();
-        haptics.betPlaced();
-        return true;
-      } finally {
-        setBetSubmitting(false);
-      }
-    },
-    [haptics, isBetSubmitting, isCashoutSubmitting, refreshWalletBalances, showToast, t],
-  );
-
-  const onCashOut = useCallback(async () => {
-    const adapter = roundAdapterRef.current;
-    if (!adapter) return;
-    if (isCashoutSubmitting || isBetSubmitting) return;
-
-    setCashoutSubmitting(true);
-    try {
-      const result = await adapter.cashOut();
-      if (!result.ok) {
-        showToast(localizeAdapterMessage(result.message, t));
-        return;
-      }
-
-      haptics.cashoutSuccess();
-      showToast(t("rush.cashoutToast", {
-        payout: formatCurrencyAmount(result.currency, result.payout, { compactStars: false }),
-        multiplier: result.multiplier.toFixed(2),
-        currency: result.currency,
-      }));
-      await refreshWalletBalances();
-      onWalletNeedsRefreshRef.current?.();
-    } finally {
-      setCashoutSubmitting(false);
-    }
-  }, [haptics, isBetSubmitting, isCashoutSubmitting, refreshWalletBalances, showToast, t]);
-
   const onPlaceFromModal = useCallback(async (payload: PlaceBetSubmitPayload) => {
     if (payload.tab === "GIFTS") {
       showToast(t("placeBet.emptyInventory"));
@@ -314,11 +241,11 @@ export function StarRushPanel({
     const currency: Currency = payload.tab === "STARS" ? "STARS" : "TON";
     setBetAmount(amount);
 
-    const accepted = await placeBetAmount(amount, currency);
+    const accepted = await placeBet(amount, currency);
     if (!accepted) return;
 
     setPlaceModalOpen(false);
-  }, [placeBetAmount, showToast, t]);
+  }, [placeBet, showToast, t]);
 
   const isPreparing = snapshot.phase === RoundPhase.PREPARING;
   const isRunning = snapshot.phase === RoundPhase.RUNNING;
@@ -348,7 +275,6 @@ export function StarRushPanel({
   ]);
   const userActive = snapshot.userActiveBet?.status === "ACTIVE" ? snapshot.userActiveBet : null;
   const canCashOutNow = snapshot.phase === RoundPhase.RUNNING && snapshot.canCashOut && !!userActive;
-  const isActionBusy = isBetSubmitting || isCashoutSubmitting;
   const isConnectionInterrupted = connectionState.status !== "connected";
   const cashoutAmount = userActive ? userActive.amount * coefficient : 0;
   const activeBetCurrency = userActive?.currency ?? "TON";
@@ -579,36 +505,6 @@ export function StarRushPanel({
     if (!openHistoryKey) return;
     updateHistoryPopoverPosition();
   }, [openHistoryKey, selectedHistoryDetails, coefficient, snapshot.phase, snapshot.roundId, history.length, updateHistoryPopoverPosition]);
-  useEffect(() => {
-    const rail = historyRailRef.current;
-    if (!rail) return;
-
-    const updateHistoryEdgeFade = () => {
-      const maxScrollLeft = rail.scrollWidth - rail.clientWidth;
-      if (maxScrollLeft <= 1) {
-        setShowHistoryEdgeFade(false);
-        return;
-      }
-      const hasHiddenRightPart = rail.scrollLeft < maxScrollLeft - 1;
-      setShowHistoryEdgeFade(hasHiddenRightPart);
-    };
-
-    updateHistoryEdgeFade();
-    rail.addEventListener("scroll", updateHistoryEdgeFade, { passive: true });
-    const observer = new ResizeObserver(updateHistoryEdgeFade);
-    observer.observe(rail);
-
-    return () => {
-      rail.removeEventListener("scroll", updateHistoryEdgeFade);
-      observer.disconnect();
-    };
-  }, [hasStatusChip, isRunning, history.length]);
-
-  useEffect(() => {
-    const rail = historyRailRef.current;
-    if (!rail) return;
-    rail.scrollTo({ left: 0, behavior: "auto" });
-  }, [snapshot.phase, snapshot.roundId]);
 
   const onMainAction = useCallback(() => {
     setSettingsOpen(false);
@@ -622,14 +518,6 @@ export function StarRushPanel({
     setPlaceModalOpen(true);
   }, [ctaState, onCashOut]);
   const getRocketPose = useCallback(() => rendererRef.current?.getRocketPose() ?? null, [rendererRef]);
-  const onHistoryWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
-    const rail = historyRailRef.current;
-    if (!rail) return;
-    if (Math.abs(event.deltaY) < Math.abs(event.deltaX)) return;
-    if (rail.scrollWidth <= rail.clientWidth) return;
-    event.preventDefault();
-    rail.scrollLeft += event.deltaY;
-  }, []);
 
   return (
     <div ref={panelRootRef} className={styles.panelRoot}>
@@ -649,252 +537,79 @@ export function StarRushPanel({
         ) : null}
 
         {isConnectionInterrupted ? (
-          <div className={styles.connectionBanner} role="status" aria-live="polite">
-            <span className={styles.connectionBannerTitle}>{t("rush.noConnection")}</span>
-            <span className={styles.connectionBannerText}>{connectionStatusText}</span>
-          </div>
+          <ConnectionBanner title={t("rush.noConnection")} hint={connectionStatusText} />
         ) : null}
 
-        <div ref={historyRowRef} className={styles.historyRow}>
-          <div ref={historyRailRef} className={styles.historyRail} onWheel={onHistoryWheel}>
-            {hasStatusChip ? (
-              <div className={styles.historyPillWrap}>
-                <button
-                  type="button"
-                  className={styles.historyPillBtn}
-                  data-history-key={currentRoundHistoryDetails.key}
-                  onClick={() => onToggleHistoryDetails(currentRoundHistoryDetails.key)}
-                  aria-label={t("rush.fairness.currentRound")}
-                >
-                  <span
-                    className={`${styles.historyPill} ${styles.historyPillFirst} ${styles.historyPillPinnedActive} ${statusChipClass} ${
-                      openHistoryKey === currentRoundHistoryDetails.key ? styles.historyPillActive : ""
-                    }`}
-                  >
-                    <AnimatePresence mode="wait" initial={false}>
-                      <motion.span
-                        key={statusChipTextKey}
-                        className={styles.historyPillAnimatedText}
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -5 }}
-                        transition={{ duration: 0.16, ease: HISTORY_POPOVER_EASE }}
-                      >
-                        {statusChipLabel}
-                      </motion.span>
-                    </AnimatePresence>
-                  </span>
-                </button>
-              </div>
-            ) : null}
-
-            <AnimatePresence initial={false}>
-              {history.map((item) => {
-                const details = buildCompletedHistoryDetails(item);
-                const isOpen = openHistoryKey === details.key;
-                return (
-                  <motion.div
-                    key={item.roundId}
-                    layout
-                    className={styles.historyPillWrap}
-                    initial={{ opacity: 0, x: 16, scale: 0.96 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: -16, scale: 0.96 }}
-                    transition={{ duration: 0.2, ease: HISTORY_POPOVER_EASE }}
-                  >
-                    <button
-                      type="button"
-                      className={styles.historyPillBtn}
-                      data-history-key={details.key}
-                      onClick={() => onToggleHistoryDetails(details.key)}
-                      aria-label={t("rush.fairness.roundDetails", { roundId: item.roundId })}
-                    >
-                      <span className={`${historyPillClass(item.crashAt, false)} ${isOpen ? styles.historyPillActive : ""}`}>
-                        {`x${item.crashAt.toFixed(2)}`}
-                      </span>
-                    </button>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </div>
-
-          <div
-            className={`${styles.historyEdgeFade} ${!showHistoryEdgeFade ? styles.historyEdgeFadeHidden : ""}`}
-            aria-hidden="true"
-          />
-
-          {/* settings gear */}
-          <button
-            type="button"
-            data-rush-settings-button="true"
-            className={styles.settingsBtn}
-            aria-label={t("rush.settingsButton")}
-            aria-expanded={isSettingsOpen}
-            onClick={() => setSettingsOpen((prev) => !prev)}
-          >
-            <Settings2 size={16} strokeWidth={2.1} />
-          </button>
-
-          <AnimatePresence initial={false}>
-            {isSettingsOpen ? (
-              <motion.div
-                ref={settingsPopoverRef}
-                className={styles.settingsPopover}
-                initial={{ opacity: 0, y: 6, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 6, scale: 0.98 }}
-                transition={{ duration: 0.18, ease: HISTORY_POPOVER_EASE }}
+        <HistoryRail
+          history={history}
+          buildCompletedHistoryDetails={buildCompletedHistoryDetails}
+          openHistoryKey={openHistoryKey}
+          onToggleHistoryDetails={onToggleHistoryDetails}
+          hasStatusChip={hasStatusChip}
+          currentRoundHistoryDetails={currentRoundHistoryDetails}
+          statusChipLabel={statusChipLabel}
+          statusChipClass={statusChipClass}
+          statusChipTextKey={statusChipTextKey}
+          currentRoundLabel={t("rush.fairness.currentRound")}
+          roundDetailsAriaLabel={(roundId) => t("rush.fairness.roundDetails", { roundId })}
+          phase={snapshot.phase}
+          roundId={snapshot.roundId}
+          rowRef={historyRowRef}
+          railRef={historyRailRef}
+          trailing={
+            <>
+              <button
+                type="button"
+                data-rush-settings-button="true"
+                className={styles.settingsBtn}
+                aria-label={t("rush.settingsButton")}
+                aria-expanded={isSettingsOpen}
+                onClick={() => setSettingsOpen((prev) => !prev)}
               >
-                <div className={styles.settingsIconStack}>
-                  <button
-                    type="button"
-                    className={styles.settingsIconBtn}
-                    aria-pressed={hapticsEnabled}
-                    aria-label={t("rush.settings.haptics")}
-                    onClick={() => setHapticsEnabled(!hapticsEnabled)}
-                  >
-                    <AnimatePresence mode="wait" initial={false}>
-                      <motion.span
-                        key={hapticsEnabled ? "vibrate-on" : "vibrate-off"}
-                        className={styles.settingsIconGlyph}
-                        initial={{ opacity: 0, scale: 0.82, y: 4 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.82, y: -4 }}
-                        transition={{ duration: 0.16, ease: HISTORY_POPOVER_EASE }}
-                      >
-                        {hapticsEnabled ? <Vibrate size={15} strokeWidth={2.1} /> : <VibrateOff size={15} strokeWidth={2.1} />}
-                      </motion.span>
-                    </AnimatePresence>
-                  </button>
+                <Settings2 size={16} strokeWidth={2.1} />
+              </button>
+              <SettingsPopover
+                isOpen={isSettingsOpen}
+                popoverRef={settingsPopoverRef}
+                hapticsEnabled={hapticsEnabled}
+                hapticsLabel={t("rush.settings.haptics")}
+                onToggleHaptics={() => setHapticsEnabled(!hapticsEnabled)}
+                locale={locale}
+                languageLabel={`${t("rush.settings.language")}: ${locale === "ru" ? "RU" : "EN"}`}
+                onToggleLocale={() => setLocale(locale === "ru" ? "en" : "ru")}
+              />
+            </>
+          }
+        />
 
-                  <button
-                    type="button"
-                    className={styles.settingsIconBtn}
-                    aria-label={`${t("rush.settings.language")}: ${locale === "ru" ? "RU" : "EN"}`}
-                    onClick={() => setLocale(locale === "ru" ? "en" : "ru")}
-                  >
-                    <AnimatePresence mode="wait" initial={false}>
-                      <motion.span
-                        key={locale === "ru" ? "lang-ru" : "lang-en"}
-                        className={styles.settingsIconGlyph}
-                        initial={{ opacity: 0, scale: 0.82, y: 4 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.82, y: -4 }}
-                        transition={{ duration: 0.16, ease: HISTORY_POPOVER_EASE }}
-                      >
-                        <span aria-hidden="true" className={styles.flagBadge}>
-                          <img
-                            src={locale === "ru" ? "/ru-flag.svg" : "/usa-flag.svg"}
-                            alt=""
-                            className={styles.flagImage}
-                          />
-                        </span>
-                      </motion.span>
-                    </AnimatePresence>
-                  </button>
-                </div>
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-        </div>
+        <HistoryDetailsPopover
+          details={selectedHistoryDetails}
+          position={historyPopoverPos}
+          expanded={showExpandedHistoryDetails}
+          copiedField={copiedHistoryField}
+          popoverRef={historyPopoverRef}
+          hashLabel={t("rush.fairness.serverSeedHash")}
+          seedLabel={t("rush.fairness.serverSeed")}
+          coefficientLabel={t("rush.fairness.coefficient")}
+          dateLabel={t("rush.fairness.date")}
+          timeLabel={t("rush.fairness.time")}
+          onCopy={(field, value) => { void onCopyHistoryValue(field, value); }}
+          formatDate={formatDate}
+          formatTime={formatTime}
+        />
 
-        {typeof document !== "undefined"
-          ? createPortal(
-            <AnimatePresence initial={false}>
-              {selectedHistoryDetails && historyPopoverPos ? (
-                <motion.div
-                  ref={historyPopoverRef}
-                  className={`${styles.historyInfoPopover} ${styles.historyInfoPopoverFloating}`}
-                  style={{
-                    left: `${historyPopoverPos.left}px`,
-                    top: `${historyPopoverPos.top}px`,
-                  }}
-                  initial={{ opacity: 0, y: -6, scale: 0.985 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -5, scale: 0.985 }}
-                  transition={{ duration: 0.18, ease: HISTORY_POPOVER_EASE }}
-                >
-                  <div className={styles.historyInfoSection}>
-                    <span className={styles.historyInfoLabel}>{t("rush.fairness.serverSeedHash")}</span>
-                    <button
-                      type="button"
-                      className={styles.historyInfoCopyBtn}
-                      disabled={!selectedHistoryDetails.serverSeedHash}
-                      onClick={() => {
-                        void onCopyHistoryValue("hash", selectedHistoryDetails.serverSeedHash);
-                      }}
-                    >
-                      <span className={styles.historyInfoValue}>
-                        {selectedHistoryDetails.serverSeedHash ?? "—"}
-                      </span>
-                      {copiedHistoryField === "hash" ? (
-                        <Check size={14} className={styles.historyInfoCopyIcon} />
-                      ) : (
-                        <Copy size={14} className={styles.historyInfoCopyIcon} />
-                      )}
-                    </button>
-                  </div>
-
-                  {showExpandedHistoryDetails ? (
-                    <>
-                      <div className={styles.historyInfoSection}>
-                        <span className={styles.historyInfoLabel}>{t("rush.fairness.serverSeed")}</span>
-                        <button
-                          type="button"
-                          className={styles.historyInfoCopyBtn}
-                          disabled={!selectedHistoryDetails.serverSeed}
-                          onClick={() => {
-                            void onCopyHistoryValue("seed", selectedHistoryDetails.serverSeed);
-                          }}
-                        >
-                          <span className={styles.historyInfoValue}>
-                            {selectedHistoryDetails.serverSeed ?? "—"}
-                          </span>
-                          {copiedHistoryField === "seed" ? (
-                            <Check size={14} className={styles.historyInfoCopyIcon} />
-                          ) : (
-                            <Copy size={14} className={styles.historyInfoCopyIcon} />
-                          )}
-                        </button>
-                      </div>
-
-                      <div className={styles.historyInfoGrid}>
-                        <span className={styles.historyInfoGridLabel}>{t("rush.fairness.coefficient")}</span>
-                        <span className={styles.historyInfoGridValue}>{`${selectedHistoryDetails.crashAt.toFixed(2)}x`}</span>
-                        <span className={styles.historyInfoGridLabel}>{t("rush.fairness.date")}</span>
-                        <span className={styles.historyInfoGridValue}>{formatRoundDate(selectedHistoryDetails.timestamp, formatDate)}</span>
-                        <span className={styles.historyInfoGridLabel}>{t("rush.fairness.time")}</span>
-                        <span className={styles.historyInfoGridValue}>{formatRoundTime(selectedHistoryDetails.timestamp, formatTime)}</span>
-                      </div>
-                    </>
-                  ) : null}
-                </motion.div>
-              ) : null}
-            </AnimatePresence>,
-            document.body,
-          )
-          : null}
-
-        <section className={styles.betSection}>
-          <div className={styles.betDock}>
-            <button
-              key={ctaState === "connection-lost" ? `offline-${connectionState.reconnectAttempt}` : ctaState}
-              type="button"
-              className={`${styles.actionButton} ${ctaStateClass} liquid-sheen`}
-              disabled={isMainActionDisabled}
-              data-sheen={ctaSheenMode}
-              data-cta-state={ctaState}
-              aria-busy={isActionBusy}
-              onClick={onMainAction}
-            >
-              {ctaState === "connection-lost" ? t("rush.noConnection") : mainBetLabel}
-            </button>
-            {ctaState === "connection-lost" ? (
-              <p className={styles.queueHint}>{connectionStatusText}</p>
-            ) : null}
-          </div>
-        </section>
+        <MainCta
+          ctaState={ctaState}
+          ctaStateClass={ctaStateClass}
+          ctaSheenMode={ctaSheenMode}
+          reconnectAttempt={connectionState.reconnectAttempt}
+          isMainActionDisabled={isMainActionDisabled}
+          isActionBusy={isActionBusy}
+          mainBetLabel={mainBetLabel}
+          connectionLostLabel={t("rush.noConnection")}
+          connectionStatusText={connectionStatusText}
+          onClick={onMainAction}
+        />
       </div>
 
       <PlayersBetsList
@@ -922,22 +637,7 @@ export function StarRushPanel({
         onSubmit={onPlaceFromModal}
       />
 
-      <AnimatePresence mode="wait" initial={false}>
-        {toast ? (
-          <div className={styles.toastLayer}>
-            <motion.div
-              key={toast.id}
-              className={styles.toastMotion}
-              initial={{ opacity: 0, y: -18, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -14, scale: 0.985 }}
-              transition={{ duration: 0.24, ease: TOAST_EASE }}
-            >
-              <div className={styles.toast}>{toast.message}</div>
-            </motion.div>
-          </div>
-        ) : null}
-      </AnimatePresence>
+      <ToastLayer toast={toast} />
     </div>
   );
 }

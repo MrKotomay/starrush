@@ -136,6 +136,13 @@
   --glass-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.02) 100%);
   --bg-radial: radial-gradient(64% 44% at 50% 0%, rgba(126, 105, 255, 0.18) 0%, rgba(126, 105, 255, 0.05) 44%, transparent 72%);
   --sheet-gradient: linear-gradient(180deg, rgba(107,75,255,0.12) 0%, rgba(7,12,22,0.96) 30%, hsl(var(--bg-0)) 100%);
+  /* Shared modal background — used by wallet-action, wallet-overview, staking-action, etc.
+     Override here to retheme every modal at once. */
+  --modal-background:
+    radial-gradient(72% 52% at 50% 0%, rgba(var(--rgb-primary), 0.12) 0%, transparent 68%),
+    linear-gradient(160deg, rgba(28, 38, 64, 0.92) 0%, rgba(16, 24, 42, 0.94) 54%, rgba(10, 15, 30, 0.96) 100%);
+  --modal-overlay: rgba(4, 8, 18, 0.62);
+  --modal-shadow: 0 24px 58px rgba(2, 6, 18, 0.28);
 
   /* ── Typography scale ────────────────────────────── */
   --text-display: 700 1.82rem/1.08 var(--font-sans);   /* 29px hero numbers  */
